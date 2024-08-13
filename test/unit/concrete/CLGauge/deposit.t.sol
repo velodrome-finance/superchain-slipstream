@@ -40,7 +40,7 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10,
+            deadline: block.timestamp + 10,
             sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
@@ -62,7 +62,7 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10,
+            deadline: block.timestamp + 10,
             sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
@@ -105,7 +105,7 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10,
+            deadline: block.timestamp + 10,
             sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
@@ -136,7 +136,7 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10,
+            deadline: block.timestamp + 10,
             sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
@@ -158,7 +158,7 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10,
+            deadline: block.timestamp + 10,
             sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
@@ -184,7 +184,7 @@ contract DepositTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1);
+        assertEq(gauge.lastUpdateTime(tokenId), 1703072409);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), -TICK_SPACING_60, TICK_SPACING_60)));
@@ -207,7 +207,7 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10,
+            deadline: block.timestamp + 10,
             sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
@@ -233,7 +233,7 @@ contract DepositTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(2 * TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1);
+        assertEq(gauge.lastUpdateTime(tokenId), 1703072409);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), TICK_SPACING_60, 2 * TICK_SPACING_60)));
@@ -256,7 +256,7 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10,
+            deadline: block.timestamp + 10,
             sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
@@ -282,7 +282,7 @@ contract DepositTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1);
+        assertEq(gauge.lastUpdateTime(tokenId), 1703072409);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), -2 * TICK_SPACING_60, -TICK_SPACING_60)));

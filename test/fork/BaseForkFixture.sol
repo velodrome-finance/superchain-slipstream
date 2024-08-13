@@ -9,11 +9,8 @@ abstract contract BaseForkFixture is BaseFixture {
 
     string public addresses;
     IERC20 public op;
-    uint256 public blockNumber = 109241151;
 
     function setUp() public virtual override {
-        vm.createSelectFork({urlOrAlias: "optimism", blockNumber: blockNumber});
-
         string memory root = vm.projectRoot();
         string memory path = string(abi.encodePacked(root, "/test/fork/addresses.json"));
         addresses = vm.readFile(path);

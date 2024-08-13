@@ -5,12 +5,12 @@ import {CLFactory} from "contracts/core/CLFactory.sol";
 import {SafeCast} from "contracts/core/libraries/SafeCast.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
-import {Constants} from "./Constants.sol";
+import {TestConstants} from "./TestConstants.sol";
 import {Events} from "./Events.sol";
 import {SafeCast} from "contracts/core/libraries/SafeCast.sol";
 import "forge-std/Test.sol";
 
-abstract contract PoolUtils is Test, Constants, Events {
+abstract contract PoolUtils is Test, TestConstants, Events {
     function computeAddress(address factory, address tokenA, address tokenB, int24 tickSpacing)
         internal
         view

@@ -62,11 +62,11 @@ contract CLFactory is ICLFactory {
         emit UnstakedFeeManagerChanged(address(0), _unstakedFeeManager);
         emit DefaultUnstakedFeeChanged(0, 100_000);
 
-        enableTickSpacing(1, 100);
-        enableTickSpacing(50, 500);
-        enableTickSpacing(100, 500);
-        enableTickSpacing(200, 3_000);
-        enableTickSpacing(2_000, 10_000);
+        _enableTickSpacing(1, 100);
+        _enableTickSpacing(50, 500);
+        _enableTickSpacing(100, 500);
+        _enableTickSpacing(200, 3_000);
+        _enableTickSpacing(2_000, 10_000);
     }
 
     /// @inheritdoc ICLFactory
@@ -193,13 +193,16 @@ contract CLFactory is ICLFactory {
     /// @inheritdoc ICLFactory
     function enableTickSpacing(int24 tickSpacing, uint24 fee) public override {
         require(msg.sender == owner);
+        _enableTickSpacing(tickSpacing, fee);
+    }
+
+    function _enableTickSpacing(int24 tickSpacing, uint24 fee) internal {
         require(fee > 0 && fee <= 100_000);
         // tick spacing is capped at 16384 to prevent the situation where tickSpacing is so large that
         // TickBitmap#nextInitializedTickWithinOneWord overflows int24 container from a valid tick
         // 16384 ticks represents a >5x price change with ticks of 1 bips
         require(tickSpacing > 0 && tickSpacing < 16384);
         require(tickSpacingToFee[tickSpacing] == 0);
-
         tickSpacingToFee[tickSpacing] = fee;
         _tickSpacings.push(tickSpacing);
         emit TickSpacingEnabled(tickSpacing, fee);

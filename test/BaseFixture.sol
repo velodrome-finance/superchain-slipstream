@@ -1,6 +1,9 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
+import {CreateXLibrary} from "contracts/libraries/CreateXLibrary.sol";
+import {ICreateX} from "contracts/libraries/ICreateX.sol";
+
 import "forge-std/Test.sol";
 import {CLFactory} from "contracts/core/CLFactory.sol";
 import {ICLPool, CLPool} from "contracts/core/CLPool.sol";
@@ -17,7 +20,7 @@ import {IFactoryRegistry, MockFactoryRegistry} from "contracts/test/MockFactoryR
 import {IVotingRewardsFactory, MockVotingRewardsFactory} from "contracts/test/MockVotingRewardsFactory.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Constants} from "./utils/Constants.sol";
+import {TestConstants} from "./utils/TestConstants.sol";
 import {Events} from "./utils/Events.sol";
 import {PoolUtils} from "./utils/PoolUtils.sol";
 import {Users} from "./utils/Users.sol";
@@ -29,7 +32,9 @@ import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {IMinter} from "contracts/core/interfaces/IMinter.sol";
 import {ILpMigrator, LpMigrator} from "contracts/periphery/LpMigrator.sol";
 
-abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
+abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
+    using CreateXLibrary for bytes11;
+
     CLFactory public poolFactory;
     CLPool public poolImplementation;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
@@ -62,56 +67,106 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     string public nftName = "Slipstream Position NFT v1";
     string public nftSymbol = "CL-POS";
 
-    function setUp() public virtual {
-        users = Users({
-            owner: createUser("Owner"),
-            feeManager: createUser("FeeManager"),
-            alice: createUser("Alice"),
-            bob: createUser("Bob"),
-            charlie: createUser("Charlie")
-        });
+    /// mocks
+    ICreateX public cx = ICreateX(0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed);
 
-        vm.startPrank(users.owner);
+    uint256 public blockNumber = 113736816;
+
+    function setUp() public virtual {
+        //createX block is 113736815
+        require(blockNumber >= 113736816, "BlockNumber too low");
+
+        vm.createSelectFork({urlOrAlias: "optimism", blockNumber: blockNumber});
+
+        createUsers();
+
         rewardToken = new ERC20("", "");
 
         deployDependencies();
 
-        // deploy pool and associated contracts
-        poolImplementation = new CLPool();
-        poolFactory = new CLFactory({
-            _owner: users.owner,
-            _swapFeeManager: users.owner,
-            _unstakedFeeManager: users.owner,
-            _voter: address(voter),
-            _poolImplementation: address(poolImplementation)
-        });
+        address deployer = users.deployer;
+        poolImplementation = CLPool(
+            cx.deployCreate3({
+                salt: CL_POOL_ENTROPY.calculateSalt({_deployer: deployer}),
+                initCode: abi.encodePacked(type(CLPool).creationCode)
+            })
+        );
+
+        poolFactory = CLFactory(
+            cx.deployCreate3({
+                salt: CL_POOL_FACTORY_ENTROPY.calculateSalt({_deployer: deployer}),
+                initCode: abi.encodePacked(
+                    type(CLFactory).creationCode,
+                    abi.encode(
+                        users.owner, // owner
+                        users.owner, // swap fee manager
+                        users.owner, // unstaked fee manager
+                        address(voter), // voter
+                        address(poolImplementation) // pool implementation
+                    )
+                )
+            })
+        );
+        vm.startPrank(users.owner);
         // backward compatibility with the original uniV3 fee structure and tick spacing
         poolFactory.enableTickSpacing(10, 500);
         poolFactory.enableTickSpacing(60, 3_000);
         // 200 tick spacing fee is manually overriden in tests as it is part of default settings
+        vm.stopPrank();
 
-        // deploy nft manager and descriptor
-        nftDescriptor = new NonfungibleTokenPositionDescriptor({
-            _WETH9: address(weth),
-            _nativeCurrencyLabelBytes: 0x4554480000000000000000000000000000000000000000000000000000000000 // 'ETH' as bytes32 string
-        });
-        nft = new NonfungiblePositionManager({
-            _owner: users.owner,
-            _factory: address(poolFactory),
-            _WETH9: address(weth),
-            _tokenDescriptor: address(nftDescriptor),
-            name: nftName,
-            symbol: nftSymbol
-        });
+        // deploy nft contracts
+        nftDescriptor = NonfungibleTokenPositionDescriptor(
+            cx.deployCreate3({
+                salt: NFT_POSITION_DESCRIPTOR.calculateSalt({_deployer: deployer}),
+                initCode: abi.encodePacked(
+                    type(NonfungibleTokenPositionDescriptor).creationCode,
+                    abi.encode(
+                        address(weth), // WETH9
+                        0x4554480000000000000000000000000000000000000000000000000000000000 // nativeCurrencyLabelBytes
+                    )
+                )
+            })
+        );
+        nft = NonfungiblePositionManager(
+            payable(
+                cx.deployCreate3({
+                    salt: NFT_POSITION_MANAGER.calculateSalt({_deployer: deployer}),
+                    initCode: abi.encodePacked(
+                        type(NonfungiblePositionManager).creationCode,
+                        abi.encode(
+                            users.owner, // owner
+                            address(poolFactory), // pool factory
+                            address(weth), // WETH9
+                            address(nftDescriptor), // nft descriptor
+                            nftName, // name
+                            nftSymbol // symbol
+                        )
+                    )
+                })
+            )
+        );
 
-        // deploy gauges and associated contracts
-        gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({
-            _notifyAdmin: users.owner,
-            _voter: address(voter),
-            _nft: address(nft),
-            _implementation: address(gaugeImplementation)
-        });
+        // deploy gauges
+        gaugeImplementation = CLGauge(
+            cx.deployCreate3({
+                salt: CL_GAUGE_ENTROPY.calculateSalt({_deployer: deployer}),
+                initCode: abi.encodePacked(type(CLGauge).creationCode)
+            })
+        );
+        gaugeFactory = CLGaugeFactory(
+            cx.deployCreate3({
+                salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: deployer}),
+                initCode: abi.encodePacked(
+                    type(CLGaugeFactory).creationCode,
+                    abi.encode(
+                        users.owner, // notifyAdmin
+                        address(voter), // voter
+                        address(nft), // nft (nfpm)
+                        address(gaugeImplementation) // gauge implementation
+                    )
+                )
+            })
+        );
 
         lpMigrator = new LpMigrator();
 
@@ -223,5 +278,16 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     function createUser(string memory name) internal returns (address payable user) {
         user = payable(makeAddr({name: name}));
         vm.deal({account: user, newBalance: TOKEN_1 * 1_000});
+    }
+
+    function createUsers() internal {
+        users = Users({
+            owner: createUser("Owner"),
+            feeManager: createUser("FeeManager"),
+            alice: createUser("Alice"),
+            bob: createUser("Bob"),
+            charlie: createUser("Charlie"),
+            deployer: createUser("Deployer")
+        });
     }
 }

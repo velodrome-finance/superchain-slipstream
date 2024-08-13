@@ -12,4 +12,6 @@ struct Users {
     address payable bob;
     // User, used as malicious user
     address payable charlie;
+    // User, used as deployer
+    address payable deployer;
 }

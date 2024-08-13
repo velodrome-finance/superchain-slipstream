@@ -76,6 +76,7 @@ const v3CoreFactoryFixture: Fixture<{
     mockVoter.address,
     pool.address
   )) as ICLFactory
+
   const customUnstakedFeeModule = (await CustomUnstakedFeeModuleFactory.deploy(
     factory.address
   )) as CustomUnstakedFeeModule

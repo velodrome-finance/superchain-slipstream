@@ -1,7 +1,9 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-abstract contract Constants {
+import {Constants} from "script/constants/Constants.sol";
+
+abstract contract TestConstants is Constants {
     int24 public constant TICK_SPACING_STABLE = 1;
     int24 public constant TICK_SPACING_LOW = 50;
     int24 public constant TICK_SPACING_MEDIUM = 100;
