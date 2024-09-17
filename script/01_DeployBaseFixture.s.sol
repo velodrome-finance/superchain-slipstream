@@ -8,8 +8,8 @@ import {CLPool} from "contracts/core/CLPool.sol";
 import {CLFactory} from "contracts/core/CLFactory.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
 import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
-import {CLGauge} from "contracts/gauge/CLGauge.sol";
-import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
+import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
+import {CLLeafGaugeFactory} from "contracts/gauge/CLLeafGaugeFactory.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
@@ -39,8 +39,8 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
     CLFactory public poolFactory;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
-    CLGauge public gaugeImplementation;
-    CLGaugeFactory public gaugeFactory;
+    CLLeafGauge public gaugeImplementation;
+    CLLeafGaugeFactory public leafGaugeFactory;
     CustomSwapFeeModule public swapFeeModule;
     CustomUnstakedFeeModule public unstakedFeeModule;
     MixedRouteQuoterV1 public mixedQuoter;
@@ -102,29 +102,22 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
         );
         checkAddress({_entropy: NFT_POSITION_MANAGER, _output: address(nft)});
 
-        // deploy gauges
-        gaugeImplementation = CLGauge(
-            cx.deployCreate3({
-                salt: CL_GAUGE_ENTROPY.calculateSalt({_deployer: _deployer}),
-                initCode: abi.encodePacked(type(CLGauge).creationCode)
-            })
-        );
-        checkAddress({_entropy: CL_GAUGE_ENTROPY, _output: address(gaugeImplementation)});
-        gaugeFactory = CLGaugeFactory(
+        leafGaugeFactory = CLLeafGaugeFactory(
             cx.deployCreate3({
                 salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: _deployer}),
                 initCode: abi.encodePacked(
-                    type(CLGaugeFactory).creationCode,
+                    type(CLLeafGaugeFactory).creationCode,
                     abi.encode(
-                        _params.notifyAdmin, // notifyAdmin
                         _params.voter, // voter
                         address(nft), // nft (nfpm)
-                        address(gaugeImplementation) // gauge implementation
+                        address(poolFactory), // factory
+                        address(0), // xerc20
+                        address(0) // bridge
                     )
                 )
             })
         );
-        checkAddress({_entropy: CL_GAUGE_FACTORY_ENTROPY, _output: address(gaugeFactory)});
+        checkAddress({_entropy: CL_GAUGE_FACTORY_ENTROPY, _output: address(leafGaugeFactory)});
 
         // deploy fee modules
         swapFeeModule = new CustomSwapFeeModule({_factory: address(poolFactory)});
@@ -192,7 +185,7 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
         console2.log("nftDescriptor: ", address(nftDescriptor));
         console2.log("nft: ", address(nft));
         console2.log("gaugeImplementation: ", address(gaugeImplementation));
-        console2.log("gaugeFactory: ", address(gaugeFactory));
+        console2.log("leafGaugeFactory: ", address(leafGaugeFactory));
         console2.log("swapFeeModule: ", address(swapFeeModule));
         console2.log("unstakedFeeModule: ", address(unstakedFeeModule));
         console2.log("mixedQuoter: ", address(mixedQuoter));
@@ -213,7 +206,7 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
                     stdJson.serialize("", "nftDescriptor", address(nftDescriptor)),
                     stdJson.serialize("", "nft", address(nft)),
                     stdJson.serialize("", "gaugeImplementation", address(gaugeImplementation)),
-                    stdJson.serialize("", "gaugeFactory", address(gaugeFactory)),
+                    stdJson.serialize("", "leafGaugeFactory", address(leafGaugeFactory)),
                     stdJson.serialize("", "swapFeeModule", address(swapFeeModule)),
                     stdJson.serialize("", "unstakedFeeModule", address(unstakedFeeModule)),
                     stdJson.serialize("", "mixedQuoter", address(mixedQuoter)),

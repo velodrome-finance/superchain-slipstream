@@ -5,8 +5,8 @@ pragma abicoder v2;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import {ICLGauge} from "contracts/gauge/interfaces/ICLGauge.sol";
-import {ICLGaugeFactory} from "contracts/gauge/interfaces/ICLGaugeFactory.sol";
+import {ICLLeafGauge} from "contracts/gauge/interfaces/ICLLeafGauge.sol";
+import {ICLLeafGaugeFactory} from "contracts/gauge/interfaces/ICLLeafGaugeFactory.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
@@ -18,77 +18,76 @@ import {FixedPoint128} from "contracts/core/libraries/FixedPoint128.sol";
 import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
 import {IReward} from "contracts/gauge/interfaces/IReward.sol";
 
-contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
+contract CLLeafGauge is ICLLeafGauge, ERC721Holder, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeERC20 for IERC20;
     using SafeCast for uint128;
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     INonfungiblePositionManager public override nft;
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     IVoter public override voter;
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     ICLPool public override pool;
-    /// @inheritdoc ICLGauge
-    ICLGaugeFactory public override gaugeFactory;
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
+    address public override bridge;
+
+    /// @inheritdoc ICLLeafGauge
     address public override feesVotingReward;
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     address public override rewardToken;
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     uint256 public override periodFinish;
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     uint256 public override rewardRate;
 
     mapping(uint256 => uint256) public override rewardRateByEpoch; // epochStart => rewardRate
     /// @dev The set of all staked nfts for a given address
     mapping(address => EnumerableSet.UintSet) internal _stakes;
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     mapping(uint256 => uint256) public override rewardGrowthInside;
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     mapping(uint256 => uint256) public override rewards;
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     mapping(uint256 => uint256) public override lastUpdateTime;
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     uint256 public override fees0;
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     uint256 public override fees1;
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     address public override token0;
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     address public override token1;
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     int24 public override tickSpacing;
 
-    /// @inheritdoc ICLGauge
     bool public override isPool;
 
-    /// @inheritdoc ICLGauge
-    function initialize(
+    constructor(
         address _pool,
+        address _token0,
+        address _token1,
+        int24 _tickSpacing,
         address _feesVotingReward,
         address _rewardToken,
         address _voter,
         address _nft,
-        address _token0,
-        address _token1,
-        int24 _tickSpacing,
+        address _bridge,
         bool _isPool
-    ) external override {
-        require(address(pool) == address(0), "AI");
-        gaugeFactory = ICLGaugeFactory(msg.sender);
+    ) {
         pool = ICLPool(_pool);
+        token0 = _token0;
+        token1 = _token1;
+        tickSpacing = _tickSpacing;
         feesVotingReward = _feesVotingReward;
         rewardToken = _rewardToken;
         voter = IVoter(_voter);
         nft = INonfungiblePositionManager(_nft);
-        token0 = _token0;
-        token1 = _token1;
-        tickSpacing = _tickSpacing;
+        bridge = _bridge;
         isPool = _isPool;
     }
 
@@ -101,7 +100,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         rewardGrowthInside[tokenId] = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function earned(address account, uint256 tokenId) external view override returns (uint256) {
         require(_stakes[account].contains(tokenId), "NA");
 
@@ -133,7 +132,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         return claimable;
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function getReward(address account) external override nonReentrant {
         require(msg.sender == address(voter), "NV");
 
@@ -149,7 +148,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         }
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function getReward(uint256 tokenId) external override nonReentrant {
         require(_stakes[msg.sender].contains(tokenId), "NA");
 
@@ -169,7 +168,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         }
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function deposit(uint256 tokenId) external override nonReentrant {
         require(nft.ownerOf(tokenId) == msg.sender, "NA");
         require(voter.isAlive(address(this)), "GK");
@@ -200,7 +199,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         emit Deposit(msg.sender, tokenId, liquidityToStake);
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function withdraw(uint256 tokenId) external override nonReentrant {
         require(_stakes[msg.sender].contains(tokenId), "NA");
 
@@ -225,7 +224,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         emit Withdraw(msg.sender, tokenId, liquidityToStake);
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function stakedValues(address depositor) external view override returns (uint256[] memory staked) {
         uint256 length = _stakes[depositor].length();
         staked = new uint256[](length);
@@ -234,17 +233,17 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         }
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function stakedByIndex(address depositor, uint256 index) external view override returns (uint256) {
         return _stakes[depositor].at(index);
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function stakedContains(address depositor, uint256 tokenId) external view override returns (bool) {
         return _stakes[depositor].contains(tokenId);
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function stakedLength(address depositor) external view override returns (uint256) {
         return _stakes[depositor].length();
     }
@@ -255,19 +254,19 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         return _remaining * rewardRate;
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function notifyRewardAmount(uint256 _amount) external override nonReentrant {
         address sender = msg.sender;
-        require(sender == address(voter), "NV");
+        // require(sender == bridge, "NB");
         require(_amount != 0, "ZR");
         _claimFees();
         _notifyRewardAmount(sender, _amount);
     }
 
-    /// @inheritdoc ICLGauge
+    /// @inheritdoc ICLLeafGauge
     function notifyRewardWithoutClaim(uint256 _amount) external override nonReentrant {
         address sender = msg.sender;
-        require(sender == gaugeFactory.notifyAdmin(), "NA");
+        // require(sender == bridge, "NB");
         require(_amount != 0, "ZR");
         _notifyRewardAmount(sender, _amount);
     }

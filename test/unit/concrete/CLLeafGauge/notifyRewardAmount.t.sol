@@ -1,12 +1,12 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLGauge.t.sol";
+import "./CLLeafGauge.t.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 
-contract NotifyRewardAmountTest is CLGaugeTest {
+contract NotifyRewardAmountTest is CLLeafGaugeTest {
     CLPool public pool;
-    CLGauge public gauge;
+    CLLeafGauge public gauge;
     address public feesVotingReward;
 
     function setUp() public override {
@@ -24,20 +24,14 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
 
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
-        feesVotingReward = voter.gaugeToFees(address(gauge));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        feesVotingReward = leafVoter.gaugeToFees(address(gauge));
 
         skipToNextEpoch(0);
     }
 
-    function test_RevertIf_NotTeam() public {
-        vm.startPrank(users.charlie);
-        vm.expectRevert(abi.encodePacked("NV"));
-        gauge.notifyRewardAmount(TOKEN_1);
-    }
-
     function test_RevertIf_ZeroAmount() public {
-        vm.startPrank(address(voter));
+        vm.startPrank(address(leafVoter));
         vm.expectRevert(abi.encodePacked("ZR"));
         gauge.notifyRewardAmount(0);
     }
@@ -47,13 +41,13 @@ contract NotifyRewardAmountTest is CLGaugeTest {
 
         uint256 reward = TOKEN_1;
 
-        deal(address(rewardToken), address(voter), reward);
-        vm.startPrank(address(voter));
+        deal(address(rewardToken), address(leafVoter), reward);
+        vm.startPrank(address(leafVoter));
 
         rewardToken.approve(address(gauge), reward);
 
         vm.expectEmit(true, true, false, false, address(gauge));
-        emit NotifyReward({from: address(voter), amount: reward});
+        emit NotifyReward({from: address(leafVoter), amount: reward});
         gauge.notifyRewardAmount(reward);
 
         vm.stopPrank();
@@ -73,8 +67,8 @@ contract NotifyRewardAmountTest is CLGaugeTest {
 
         uint256 reward = TOKEN_1;
 
-        deal(address(rewardToken), address(voter), reward * 2);
-        vm.startPrank(address(voter));
+        deal(address(rewardToken), address(leafVoter), reward * 2);
+        vm.startPrank(address(leafVoter));
 
         rewardToken.approve(address(gauge), reward * 2);
 
@@ -117,7 +111,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         skipToNextEpoch(0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // in collectFees() we substract 1 from the fee for gas optimization
         assertEq(token0.balanceOf(address(feesVotingReward)), 3e15 - 1);
@@ -147,7 +141,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         skipToNextEpoch(0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // in collectFees() we substract 1 from the fee for gas optimization
         assertEq(token0.balanceOf(address(feesVotingReward)), 15e14 - 1);
@@ -178,7 +172,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         skipToNextEpoch(0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertApproxEqAbs(token0.balanceOf(address(feesVotingReward)), 3e15, 1);
         assertEq(token1.balanceOf(address(feesVotingReward)), 6e15);
@@ -203,7 +197,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         skipToNextEpoch(0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertApproxEqAbs(token0.balanceOf(address(feesVotingReward)), 15e14, 1);
         assertApproxEqAbs(token1.balanceOf(address(feesVotingReward)), 3e15, 1);
@@ -228,7 +222,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         clCallee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
 
         skip(1 days);
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEq(gauge.rewardRate(), reward / (6 days));
         assertEq(gauge.rewardRateByEpoch(epochStart), reward / (6 days));
@@ -263,7 +257,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         gauge.deposit(tokenId);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skipToNextEpoch(0);
         // no notifyRewardAmount happens for 1 entire epoch
@@ -288,7 +282,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         aliceRewardBalance = rewardToken.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1, 1e6);
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
         skipToNextEpoch(0);
 
         vm.startPrank(users.alice);
@@ -307,11 +301,11 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         skip(1 days);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(1 days);
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEq(pool.rewardRate(), (reward * 2) / 5 days);
         // loss from requeueing

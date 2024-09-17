@@ -3,4 +3,4 @@ pragma abicoder v2;
 
 import "../../../BaseFixture.sol";
 
-contract CLGaugeTest is BaseFixture {}
+contract CLLeafGaugeTest is BaseFixture {}

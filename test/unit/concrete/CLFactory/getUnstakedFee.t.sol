@@ -4,7 +4,7 @@ pragma abicoder v2;
 import "./CLFactory.t.sol";
 
 contract GetUnstakedFeeTest is CLFactoryTest {
-    CLGauge public gauge;
+    CLLeafGauge public gauge;
 
     function test_KilledGaugeReturnsZeroUnstakedFee() public {
         address pool = createAndCheckPool({
@@ -15,14 +15,14 @@ contract GetUnstakedFeeTest is CLFactoryTest {
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
 
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
-        assertEq(voter.isAlive(address(gauge)), true);
+        assertEq(leafVoter.isAlive(address(gauge)), true);
         assertEq(uint256(poolFactory.getUnstakedFee(pool)), 100_000);
 
-        voter.killGauge(address(gauge));
+        leafVoter.killGauge(address(gauge));
 
-        assertEq(voter.isAlive(address(gauge)), false);
+        assertEq(leafVoter.isAlive(address(gauge)), false);
         assertEq(uint256(poolFactory.getUnstakedFee(pool)), 0);
     }
 

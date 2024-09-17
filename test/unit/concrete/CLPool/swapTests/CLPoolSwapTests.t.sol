@@ -13,7 +13,7 @@ abstract contract CLPoolSwapTests is CLPoolTest {
     Position[] public stakedPositions;
     Position[] public unstakedPositions;
 
-    CLGauge public gauge;
+    CLLeafGauge public gauge;
 
     struct Position {
         int24 tickLower;

@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {CLPoolSwapAllStakedNoUnstakeFeeTest, CLGauge} from "./CLPoolSwapAllStakedNoUnstakeFee.t.sol";
+import {CLPoolSwapAllStakedNoUnstakeFeeTest, CLLeafGauge} from "./CLPoolSwapAllStakedNoUnstakeFee.t.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 import {LiquidityAmounts} from "contracts/periphery/libraries/LiquidityAmounts.sol";
 import {TickMath} from "contracts/core/libraries/TickMath.sol";
@@ -34,7 +34,7 @@ contract MediumFee1to1Price0LiquidityAllLiquidityAroundCurrentPriceAllStakedTest
             Position({tickLower: tickSpacing, tickUpper: getMaxTick(tickSpacing), liquidity: liquidity})
         );
 
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.stopPrank();
 

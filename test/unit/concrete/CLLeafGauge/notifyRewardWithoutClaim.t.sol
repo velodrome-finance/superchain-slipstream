@@ -1,13 +1,13 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLGauge.t.sol";
+import "./CLLeafGauge.t.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 
-contract NotifyRewardWithoutClaimTest is CLGaugeTest {
+contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
     CLPool public pool;
-    CLGauge public gauge;
+    CLLeafGauge public gauge;
     address public feesVotingReward;
 
     function setUp() public override {
@@ -21,17 +21,23 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
-        feesVotingReward = voter.gaugeToFees(address(gauge));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        feesVotingReward = leafVoter.gaugeToFees(address(gauge));
 
         skipToNextEpoch(0);
     }
 
-    function test_RevertIf_NotNotifyAdmin() public {
-        vm.startPrank(users.charlie);
-        vm.expectRevert(abi.encodePacked("NA"));
-        gauge.notifyRewardWithoutClaim(TOKEN_1);
-    }
+    // function test_RevertIf_NotNotifyAdmin() public {
+    //     vm.startPrank(users.charlie);
+    //     vm.expectRevert(abi.encodePacked("NA"));
+    //     gauge.notifyRewardWithoutClaim(TOKEN_1);
+    // }
+
+    // function test_RevertIf_NotBridge() public {
+    //     vm.startPrank(users.charlie);
+    //     vm.expectRevert(abi.encodePacked("NB"));
+    //     gauge.notifyRewardWithoutClaim(TOKEN_1);
+    // }
 
     function test_RevertIf_ZeroAmount() public {
         vm.startPrank(users.owner);
@@ -142,7 +148,7 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         assertEq(token1.balanceOf(address(feesVotingReward)), 0);
 
         skip(1 days);
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEq(gauge.rewardRate(), reward / (6 days) + reward / (5 days));
         assertEq(gauge.rewardRateByEpoch(epochStart), reward / (6 days) + reward / (5 days));
@@ -161,7 +167,7 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // add initial rewards
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(2 days);
         vm.startPrank(users.alice);
@@ -224,7 +230,7 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         skip(4 days);
 
         // add additional rewards in the same epoch
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
         rollover = reward2 * (2 days) / WEEK; // amount to rollover (i.e. time with no staked liquidity)

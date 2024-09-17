@@ -1,5 +1,6 @@
 import { BigNumber, BigNumberish, Wallet } from 'ethers'
 import { ethers } from 'hardhat'
+import { constants } from 'ethers'
 import { MockTimeCLPool } from '../../../typechain/MockTimeCLPool'
 import { CoreTestERC20 } from '../../../typechain/CoreTestERC20'
 import { CLFactory } from '../../../typechain/CLFactory'
@@ -7,8 +8,7 @@ import { TestCLCallee } from '../../../typechain/TestCLCallee'
 import { TestCLRouter } from '../../../typechain/TestCLRouter'
 import { MockVoter } from '../../../typechain/MockVoter'
 import { CustomUnstakedFeeModule, MockFactoryRegistry, MockVotingRewardsFactory } from '../../../typechain'
-import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
-import { CLGauge } from '../../../typechain/CLGauge'
+import { CLLeafGaugeFactory } from '../../../typechain/CLLeafGaugeFactory'
 import { encodePriceSqrt } from './utilities'
 
 import { Fixture } from 'ethereum-waffle'
@@ -60,8 +60,7 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   const MockTimeCLPoolDeployerFactory = await ethers.getContractFactory('CLFactory')
   const MockTimeCLPoolFactory = await ethers.getContractFactory('MockTimeCLPool')
   const MockVoterFactory = await ethers.getContractFactory('MockVoter')
-  const GaugeImplementationFactory = await ethers.getContractFactory('CLGauge')
-  const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
+  const GaugeFactoryFactory = await ethers.getContractFactory('CLLeafGaugeFactory')
   const MockFactoryRegistryFactory = await ethers.getContractFactory('MockFactoryRegistry')
   const MockVotingRewardsFactoryFactory = await ethers.getContractFactory('MockVotingRewardsFactory')
   const MockVotingEscrowFactory = await ethers.getContractFactory('MockVotingEscrow')
@@ -75,13 +74,6 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     mockFactoryRegistry.address,
     mockVotingEscrow.address
   )) as MockVoter
-  const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
-  const gaugeFactory = (await GaugeFactoryFactory.deploy(
-    wallet.address,
-    mockVoter.address,
-    '0x0000000000000000000000000000000000000001',
-    gaugeImplementation.address
-  )) as CLGaugeFactory
 
   const mockTimePool = (await MockTimeCLPoolFactory.deploy()) as MockTimeCLPool
   const mockTimePoolDeployer = (await MockTimeCLPoolDeployerFactory.deploy(
@@ -91,6 +83,15 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     mockVoter.address,
     mockTimePool.address
   )) as CLFactory
+
+  const gaugeFactory = (await GaugeFactoryFactory.deploy(
+    mockVoter.address,
+    constants.AddressZero, //nft address
+    mockTimePoolDeployer.address,
+    constants.AddressZero, //xerc20 address
+    constants.AddressZero //bridge address
+  )) as CLLeafGaugeFactory
+
   const customUnstakedFeeModule = (await CustomUnstakedFeeModuleFactory.deploy(
     mockTimePoolDeployer.address
   )) as CustomUnstakedFeeModule

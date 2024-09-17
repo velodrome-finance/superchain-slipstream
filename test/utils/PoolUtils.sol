@@ -7,7 +7,6 @@ import {CLPool} from "contracts/core/CLPool.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {TestConstants} from "./TestConstants.sol";
 import {Events} from "./Events.sol";
-import {SafeCast} from "contracts/core/libraries/SafeCast.sol";
 import "forge-std/Test.sol";
 
 abstract contract PoolUtils is Test, TestConstants, Events {

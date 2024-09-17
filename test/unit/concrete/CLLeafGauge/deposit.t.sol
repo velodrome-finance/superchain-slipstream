@@ -1,14 +1,14 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLGauge.t.sol";
+import "./CLLeafGauge.t.sol";
 
-contract DepositTest is CLGaugeTest {
+contract DepositTest is CLLeafGaugeTest {
     using stdStorage for StdStorage;
     using SafeCast for uint128;
 
     CLPool public pool;
-    CLGauge public gauge;
+    CLLeafGauge public gauge;
 
     function setUp() public override {
         super.setUp();
@@ -21,7 +21,7 @@ contract DepositTest is CLGaugeTest {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
@@ -68,8 +68,9 @@ contract DepositTest is CLGaugeTest {
         (uint256 tokenId,,,) = nft.mint(params);
 
         // write directly to storage to kill gauge in the mock contract
-        stdstore.target({_target: address(voter)}).sig({_sig: voter.isAlive.selector}).with_key({who: address(gauge)})
-            .checked_write({write: false});
+        stdstore.target({_target: address(leafVoter)}).sig({_sig: leafVoter.isAlive.selector}).with_key({
+            who: address(gauge)
+        }).checked_write({write: false});
 
         vm.expectRevert(abi.encodePacked("GK"));
         gauge.deposit({tokenId: tokenId});
@@ -88,7 +89,7 @@ contract DepositTest is CLGaugeTest {
             tickSpacing: TICK_SPACING_60,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
-        voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool2)});
+        leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool2)});
 
         vm.startPrank(users.charlie);
         testToken0.approve(address(nft), type(uint256).max);
@@ -122,7 +123,7 @@ contract DepositTest is CLGaugeTest {
             tickSpacing: TICK_SPACING_10,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
-        voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool2)});
+        leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool2)});
 
         vm.startPrank(users.charlie);
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
@@ -184,7 +185,7 @@ contract DepositTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1703072409);
+        assertEq(gauge.lastUpdateTime(tokenId), 1726099200);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), -TICK_SPACING_60, TICK_SPACING_60)));
@@ -233,7 +234,7 @@ contract DepositTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(2 * TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1703072409);
+        assertEq(gauge.lastUpdateTime(tokenId), 1726099200);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), TICK_SPACING_60, 2 * TICK_SPACING_60)));
@@ -282,7 +283,7 @@ contract DepositTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1703072409);
+        assertEq(gauge.lastUpdateTime(tokenId), 1726099200);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), -2 * TICK_SPACING_60, -TICK_SPACING_60)));

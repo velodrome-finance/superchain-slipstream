@@ -5,7 +5,7 @@ import "../../../../../BaseFixture.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
 import {CLPoolSwapTests} from "../CLPoolSwapTests.t.sol";
 import "forge-std/StdJson.sol";
-import {CLGauge} from "contracts/gauge/CLGauge.sol";
+import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
 
 /// Changes of note: execution price was scaled by 10**39 as Solidity has no native support for decimals.
 /// Execution price is a string field as it also contains "-Infinity" and "NaN" values
@@ -86,7 +86,7 @@ abstract contract CLPoolSwapPartiallyStakedWithUnstakeFeeTest is CLPoolSwapTests
 
         // sanity check
         skip(WEEK);
-        addRewardToGauge(address(voter), address(gauge), 1e18);
+        addRewardToGauge(address(leafVoter), address(gauge), 1e18);
     }
 
     function burnUnstakedPosition() internal {

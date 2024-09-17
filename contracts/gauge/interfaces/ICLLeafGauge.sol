@@ -4,9 +4,9 @@ pragma solidity =0.7.6;
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
-import {ICLGaugeFactory} from "contracts/gauge/interfaces/ICLGaugeFactory.sol";
+import {ICLLeafGaugeFactory} from "contracts/gauge/interfaces/ICLLeafGaugeFactory.sol";
 
-interface ICLGauge {
+interface ICLLeafGauge {
     event NotifyReward(address indexed from, uint256 amount);
     event Deposit(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event Withdraw(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
@@ -19,11 +19,14 @@ interface ICLGauge {
     /// @notice Voter contract gauge receives emissions from
     function voter() external view returns (IVoter);
 
+    /// @notice Address of Velodrome v2 Bridge
+    function bridge() external view returns (address);
+
     /// @notice Address of the CL pool linked to the gauge
     function pool() external view returns (ICLPool);
 
     /// @notice Address of the factory that created this gauge
-    function gaugeFactory() external view returns (ICLGaugeFactory);
+    // function gaugeFactory() external view returns (ICLLeafGaugeFactory);
 
     /// @notice Address of the FeesVotingReward contract linked to the gauge
     function feesVotingReward() external view returns (address);
@@ -71,28 +74,6 @@ interface ICLGauge {
     /// @param tokenId The tokenId of the position
     /// @return The rewardGrowthInside for the position
     function rewardGrowthInside(uint256 tokenId) external view returns (uint256);
-
-    /// @notice Called on gauge creation by CLGaugeFactory
-    /// @param _pool The address of the pool
-    /// @param _feesVotingReward The address of the feesVotingReward contract
-    /// @param _rewardToken The address of the reward token
-    /// @param _voter The address of the voter contract
-    /// @param _nft The address of the nft position manager contract
-    /// @param _token0 The address of token0 of the pool
-    /// @param _token1 The address of token1 of the pool
-    /// @param _tickSpacing The tick spacing of the pool
-    /// @param _isPool Whether the attached pool is a real pool or not
-    function initialize(
-        address _pool,
-        address _feesVotingReward,
-        address _rewardToken,
-        address _voter,
-        address _nft,
-        address _token0,
-        address _token1,
-        int24 _tickSpacing,
-        bool _isPool
-    ) external;
 
     /// @notice Returns the claimable rewards for a given account and tokenId
     /// @dev Throws if account is not the position owner

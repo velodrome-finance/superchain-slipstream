@@ -1,7 +1,9 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {CLPoolSwapPartiallyStakedWithUnstakeFeeTest, CLGauge} from "./CLPoolSwapPartiallyStakedWithUnstakeFee.t.sol";
+import {
+    CLPoolSwapPartiallyStakedWithUnstakeFeeTest, CLLeafGauge
+} from "./CLPoolSwapPartiallyStakedWithUnstakeFee.t.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 import {LiquidityAmounts} from "contracts/periphery/libraries/LiquidityAmounts.sol";
 import {TickMath} from "contracts/core/libraries/TickMath.sol";
@@ -59,7 +61,7 @@ contract MediumFee1to1PriceAdditionalLiquidityAroundCurrentPricePartiallyStakedW
             Position({tickLower: tickSpacing, tickUpper: getMaxTick(tickSpacing), liquidity: liquidity / 2})
         );
 
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.stopPrank();
 

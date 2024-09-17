@@ -4,12 +4,12 @@ pragma abicoder v2;
 import "../../../../BaseFixture.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
 import {CLPoolTest} from "../CLPool.t.sol";
-import {CLGauge} from "contracts/gauge/CLGauge.sol";
+import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
 import "contracts/core/libraries/FullMath.sol";
 
 contract RewardGrowthGlobalTest is CLPoolTest {
     CLPool public pool;
-    CLGauge public gauge;
+    CLLeafGauge public gauge;
 
     int24 tickSpacing = TICK_SPACING_60;
 
@@ -24,7 +24,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.alice);
 
@@ -91,7 +91,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, rollover, 1e5);
 
-        addRewardToGauge(address(voter), address(gauge), reward2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward2);
 
         // rewardRate and rewardReserve should account for stuck rewards from previous epoch
         assertEqUint(pool.rewardRate(), (reward2 + rollover) / WEEK);
@@ -124,7 +124,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // still 0 since no action triggered update on the accumulator
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
@@ -156,7 +156,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         uint256 delay = 1 hours;
         skip(delay);
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // reward states should be set
         assertEqUint(pool.lastUpdated(), block.timestamp);
@@ -186,7 +186,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         // SNAPSHOT STATE //
         uint256 snapshot = vm.snapshot();
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // move one week and trigger update by minting new position
         skip(WEEK);
@@ -204,7 +204,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         // we move the reward distribution by 1 hour as oppose to the previous where we distribute at epoch start
         skip(1 hours);
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // move one week minus the delay and trigger update by minting new position
         // moves time to epoch flip boundary
@@ -234,7 +234,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // reward states should be set
         assertEqUint(pool.lastUpdated(), block.timestamp);
@@ -276,7 +276,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // still 0 since no action triggered update on the accumulator
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
@@ -336,7 +336,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // still 0 since no action triggered update on the accumulator
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
@@ -392,7 +392,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2, 1e5);
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         rewardRate = pool.rewardRate();
 
@@ -434,7 +434,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // move 3 days and withdraw to remove stakedLiquidity
         skip(3 days);
@@ -485,7 +485,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         uint256 reward = TOKEN_1;
         uint256 timeNoStakedLiquidity;
         uint256 rewardRate = reward / WEEK;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
         assertEqUint(pool.rewardRate(), rewardRate);
         // for every 5 hours during the epoch, we will simulate 2 hours with no stakedLiquidity
         for (uint256 i = 0; i < (WEEK / 5 hours); i++) {
@@ -540,7 +540,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         assertApproxEqAbs(uint256(stakedLiquidity), 10e18, 1e3);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // move 3 days and swap to move out from stakedLiquidity range
         skip(3 days);
@@ -597,7 +597,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         int24 inactiveLiqTick = -1847;
         (, int24 activeLiqTick,,,,) = CLPool(pool).slot0();
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
         assertEq(pool.rewardRate(), rewardRate);
         for (uint256 i = 0; i < (WEEK / 5 hours); i++) {
             // we will have 3 hours with staked liq, followed by 1 hour without and another with
@@ -664,7 +664,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
         assertEqUint(pool.rewardRate(), reward / WEEK);
@@ -678,7 +678,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         skipToNextEpoch(1 days);
 
-        addRewardToGauge(address(voter), address(gauge), reward * 2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward * 2);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
         assertEqUint(pool.rewardRate(), (reward * 2 / 7 + reward * 2) / (6 days));
@@ -691,7 +691,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
         assertEqUint(pool.rewardRate(), reward / WEEK);
@@ -706,7 +706,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         skipToNextEpoch(0);
         skipToNextEpoch(1 days);
 
-        addRewardToGauge(address(voter), address(gauge), reward * 2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward * 2);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
         assertEqUint(pool.rewardRate(), (reward * 2 / 7 + reward * 2) / (6 days));
@@ -724,7 +724,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         gauge.deposit(tokenId);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skipToNextEpoch(1);
 
@@ -751,12 +751,12 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         gauge.deposit(tokenId);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skipToNextEpoch(1);
 
         // add new rewards to update RewardGrowthGlobal
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         // all rewardReserves should be accounted in the accumulator
         // possible to rollover full amount if sufficient time passes
@@ -782,7 +782,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skipToNextEpoch(60);
 
@@ -792,7 +792,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         assertEq(pool.rollover(), reward);
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEqUint(pool.rollover(), 0);
 
@@ -819,7 +819,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEq(gauge.rewardRate(), reward / WEEK);
 
@@ -834,7 +834,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         // no stake, nothing happens
         skipToNextEpoch(0);
-        addRewardToGauge(address(voter), address(gauge), reward * 2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward * 2);
 
         assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (7 days));
 
@@ -855,7 +855,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEq(gauge.rewardRate(), reward / WEEK);
 
@@ -870,7 +870,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         // no stake, nothing happens
         skipToNextEpoch(1 days);
-        addRewardToGauge(address(voter), address(gauge), reward * 2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward * 2);
 
         assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (6 days));
 
@@ -891,7 +891,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEq(gauge.rewardRate(), reward / WEEK);
 
@@ -908,7 +908,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         skipToNextEpoch(0);
         // one epoch skipped entirely
         skipToNextEpoch(1 days);
-        addRewardToGauge(address(voter), address(gauge), reward * 2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward * 2);
 
         assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (6 days));
 
@@ -929,7 +929,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEq(gauge.rewardRate(), reward / WEEK);
 
@@ -946,7 +946,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         skipToNextEpoch(0);
         // one epoch skipped entirely
         skipToNextEpoch(0);
-        addRewardToGauge(address(voter), address(gauge), reward * 2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward * 2);
 
         assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (7 days));
 
@@ -967,7 +967,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEq(gauge.rewardRate(), reward / WEEK);
 
@@ -986,7 +986,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         skipToNextEpoch(0);
         // delay
         skipToNextEpoch(1 days);
-        addRewardToGauge(address(voter), address(gauge), reward * 2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward * 2);
 
         assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (6 days));
 
@@ -1007,7 +1007,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEq(gauge.rewardRate(), reward / WEEK);
 
@@ -1025,7 +1025,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         // skip multiple epoch
         skipToNextEpoch(0);
         skipToNextEpoch(0);
-        addRewardToGauge(address(voter), address(gauge), reward * 2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward * 2);
 
         assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (7 days));
 
@@ -1046,7 +1046,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(60);
 
@@ -1066,7 +1066,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         skipToNextEpoch(200);
 
-        addRewardToGauge(address(voter), address(gauge), reward * 2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward * 2);
         assertEqUint(pool.rollover(), 0);
         assertEq(pool.rewardRate(), (reward * 2 + reward - (reward / WEEK * (WEEK - 120))) / (WEEK - 200));
         assertApproxEqAbs(pool.rewardReserve(), (reward * 2 + reward / WEEK * 120), 1e6);
@@ -1077,7 +1077,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(1 days);
 
@@ -1105,7 +1105,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(1 days);
 
@@ -1119,7 +1119,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         gauge.getReward(tokenId);
 
         skip(1 days);
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skipToNextEpoch(0);
 

@@ -1,11 +1,11 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLGauge.t.sol";
+import "./CLLeafGauge.t.sol";
 
-contract EarnedTest is CLGaugeTest {
+contract EarnedTest is CLLeafGaugeTest {
     CLPool public pool;
-    CLGauge public gauge;
+    CLLeafGauge public gauge;
 
     function setUp() public override {
         super.setUp();
@@ -18,7 +18,7 @@ contract EarnedTest is CLGaugeTest {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.bob);
         deal({token: address(token0), to: users.bob, give: TOKEN_1 * 10});
@@ -52,7 +52,7 @@ contract EarnedTest is CLGaugeTest {
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(2 days);
 
@@ -114,7 +114,7 @@ contract EarnedTest is CLGaugeTest {
 
         skip(WEEK / 2);
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skipToNextEpoch(0);
         // half the epoch has passed, all rewards distributed
@@ -128,7 +128,7 @@ contract EarnedTest is CLGaugeTest {
         assertEq(aliceRewardBalance, aliceClaimableFirst);
 
         skip(1 days);
-        addRewardToGauge(address(voter), address(gauge), reward2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward2);
 
         skip(1 days);
 
@@ -178,7 +178,7 @@ contract EarnedTest is CLGaugeTest {
         nft.approve(address(gauge), aliceTokenId);
         gauge.deposit({tokenId: aliceTokenId});
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(1 days);
 

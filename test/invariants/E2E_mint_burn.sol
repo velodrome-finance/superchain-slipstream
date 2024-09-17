@@ -7,8 +7,6 @@ import "contracts/core/libraries/TickMath.sol";
 import "contracts/core/CLPool.sol";
 import "contracts/core/libraries/Position.sol";
 
-// import 'hardhat/console.sol';
-
 contract E2E_mint_burn {
     SetupTokens tokens;
     SetupCL cl;
@@ -402,8 +400,6 @@ contract E2E_mint_burn {
         require(positions.length > 0);
 
         (uint128 posIdx, uint128 burnAmount) = _getRandomPositionIdxAndBurnAmount(_amount);
-        // console.log('burn posIdx = %s', posIdx);
-        // console.log('burn amount = %s', burnAmount);
         PoolPosition storage pos = positions[posIdx];
 
         CLMinter.MinterStats memory bfre;
@@ -432,7 +428,6 @@ contract E2E_mint_burn {
         require(positions.length > 0);
 
         uint128 posIdx = _getRandomPositionIdx(_amount, positions.length);
-        // console.log('burn posIdx = %s', posIdx);
         PoolPosition storage pos = positions[posIdx];
 
         CLMinter.MinterStats memory bfre;
@@ -461,7 +456,6 @@ contract E2E_mint_burn {
         require(positions.length > 0);
 
         uint128 posIdx = _getRandomPositionIdx(_amount, positions.length);
-        // console.log('burn posIdx = %s', posIdx);
         PoolPosition storage pos = positions[posIdx];
 
         CLMinter.MinterStats memory bfre;

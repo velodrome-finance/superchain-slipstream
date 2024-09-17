@@ -5,7 +5,7 @@ import "../../../BaseFixture.sol";
 
 contract CLFactoryTest is BaseFixture {
     function test_InitialState() public virtual {
-        assertEq(address(poolFactory.voter()), address(voter));
+        assertEq(address(poolFactory.voter()), address(leafVoter));
         assertEq(poolFactory.poolImplementation(), address(poolImplementation));
         assertEq(poolFactory.owner(), users.owner);
         assertEq(poolFactory.swapFeeModule(), address(customSwapFeeModule));

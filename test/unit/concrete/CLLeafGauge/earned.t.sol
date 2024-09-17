@@ -1,11 +1,11 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLGauge.t.sol";
+import "./CLLeafGauge.t.sol";
 
-contract EarnedTest is CLGaugeTest {
+contract EarnedTest is CLLeafGaugeTest {
     CLPool public pool;
-    CLGauge public gauge;
+    CLLeafGauge public gauge;
 
     function setUp() public override {
         super.setUp();
@@ -18,7 +18,7 @@ contract EarnedTest is CLGaugeTest {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.bob);
         deal({token: address(token0), to: users.bob, give: TOKEN_1 * 10});
@@ -52,7 +52,7 @@ contract EarnedTest is CLGaugeTest {
         gauge.deposit(tokenId);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(2 days);
 
@@ -75,7 +75,7 @@ contract EarnedTest is CLGaugeTest {
         gauge.deposit(tokenId);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(2 days);
 
@@ -98,7 +98,7 @@ contract EarnedTest is CLGaugeTest {
         gauge.deposit(tokenId);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(2 days);
 
@@ -121,7 +121,7 @@ contract EarnedTest is CLGaugeTest {
         gauge.deposit(aliceTokenId);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(1 days);
 
@@ -231,7 +231,7 @@ contract EarnedTest is CLGaugeTest {
         skip(WEEK / 2);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEqUint(pool.rewardRate(), reward / (WEEK / 2));
 
@@ -242,7 +242,7 @@ contract EarnedTest is CLGaugeTest {
 
         skip(1 days);
         uint256 reward2 = TOKEN_1 * 2;
-        addRewardToGauge(address(voter), address(gauge), reward2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward2);
 
         assertEqUint(pool.rewardRate(), reward2 / 6 days);
 
@@ -278,7 +278,7 @@ contract EarnedTest is CLGaugeTest {
         gauge.deposit(bobTokenId);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         assertEqUint(pool.rewardRate(), reward / WEEK);
 
@@ -289,7 +289,7 @@ contract EarnedTest is CLGaugeTest {
         skip(1 days); // rewards distributed over 6 days intead of 7
         uint256 reward2 = TOKEN_1 * 2;
 
-        addRewardToGauge(address(voter), address(gauge), reward2);
+        addRewardToGauge(address(leafVoter), address(gauge), reward2);
 
         assertEqUint(pool.rewardRate(), reward2 / 6 days);
 
@@ -316,7 +316,7 @@ contract EarnedTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skipToNextEpoch(2);
 
@@ -334,7 +334,7 @@ contract EarnedTest is CLGaugeTest {
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         skip(7 days - 3 - 1);
 

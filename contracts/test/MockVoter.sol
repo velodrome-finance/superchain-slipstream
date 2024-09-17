@@ -3,11 +3,11 @@ pragma solidity =0.7.6;
 pragma abicoder v2;
 
 import {CLFactory} from "contracts/core/CLFactory.sol";
-import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
+import {CLRootGaugeFactory} from "contracts/mainnet/gauge/CLRootGaugeFactory.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
 import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
-import {ICLGauge} from "contracts/gauge/interfaces/ICLGauge.sol";
+import {ICLLeafGauge} from "contracts/gauge/interfaces/ICLLeafGauge.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 import {IVotingRewardsFactory} from "contracts/test/interfaces/IVotingRewardsFactory.sol";
@@ -56,7 +56,8 @@ contract MockVoter is IVoter {
             IVotingRewardsFactory(votingRewardsFactory).createRewards(forwarder, rewards);
 
         address gauge =
-            CLGaugeFactory(gaugeFactory).createGauge(forwarder, _pool, feesVotingReward, address(rewardToken), true);
+            CLRootGaugeFactory(gaugeFactory).createGauge(forwarder, _pool, feesVotingReward, address(rewardToken), true);
+
         require(CLFactory(_poolFactory).isPair(_pool));
         isAlive[gauge] = true;
         gauges[_pool] = gauge;
@@ -67,9 +68,9 @@ contract MockVoter is IVoter {
 
     function distribute(address gauge) external override {
         uint256 _claimable = rewardToken.balanceOf(address(this));
-        if (_claimable > ICLGauge(gauge).left() && _claimable > DURATION) {
+        if (_claimable > ICLLeafGauge(gauge).left() && _claimable > DURATION) {
             rewardToken.approve(gauge, _claimable);
-            ICLGauge(gauge).notifyRewardAmount(rewardToken.balanceOf(address(this)));
+            ICLLeafGauge(gauge).notifyRewardAmount(rewardToken.balanceOf(address(this)));
         }
     }
 
@@ -82,7 +83,7 @@ contract MockVoter is IVoter {
     function claimRewards(address[] memory _gauges) external override {
         uint256 _length = _gauges.length;
         for (uint256 i = 0; i < _length; i++) {
-            ICLGauge(_gauges[i]).getReward(msg.sender);
+            ICLLeafGauge(_gauges[i]).getReward(msg.sender);
         }
     }
 }

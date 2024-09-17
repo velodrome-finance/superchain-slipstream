@@ -4,12 +4,12 @@ pragma abicoder v2;
 import "../../../../BaseFixture.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
 import {CLPoolTest} from "../CLPool.t.sol";
-import {CLGauge} from "contracts/gauge/CLGauge.sol";
+import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
 import "contracts/core/libraries/FullMath.sol";
 
 contract FlashTest is CLPoolTest {
     CLPool public pool;
-    CLGauge public gauge;
+    CLLeafGauge public gauge;
 
     int24 tickSpacing = TICK_SPACING_60;
 
@@ -25,7 +25,7 @@ contract FlashTest is CLPoolTest {
             })
         );
 
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);

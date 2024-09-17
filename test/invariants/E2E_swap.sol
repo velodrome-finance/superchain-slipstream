@@ -5,7 +5,7 @@ import "./Setup.sol";
 import "./helpers/Hevm.sol";
 import {CoreTestERC20} from "contracts/core/test/CoreTestERC20.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
-import {CLGauge} from "contracts/gauge/CLGauge.sol";
+import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
 import {
     INonfungiblePositionManager, NonfungiblePositionManager
 } from "contracts/periphery/NonfungiblePositionManager.sol";
@@ -17,7 +17,7 @@ contract E2E_swap {
     SetupCL cl;
 
     CLPool pool;
-    CLGauge gauge;
+    CLLeafGauge gauge;
     NonfungiblePositionManager nft;
     IVoter voter;
 
@@ -532,7 +532,6 @@ contract E2E_swap {
         int256 _amountSpecified = int256(_amount);
 
         uint160 sqrtPriceLimitX96 = get_random_zeroForOne_priceLimit(_amount);
-        // console.log('sqrtPriceLimitX96 = %s', sqrtPriceLimitX96);
 
         (CLSwapper.SwapperStats memory bfre, CLSwapper.SwapperStats memory aftr) =
             swapper.doSwap(true, _amountSpecified, sqrtPriceLimitX96);
@@ -579,7 +578,6 @@ contract E2E_swap {
         int256 _amountSpecified = int256(_amount);
 
         uint160 sqrtPriceLimitX96 = get_random_oneForZero_priceLimit(_amount);
-        // console.log('sqrtPriceLimitX96 = %s', sqrtPriceLimitX96);
 
         (CLSwapper.SwapperStats memory bfre, CLSwapper.SwapperStats memory aftr) =
             swapper.doSwap(false, _amountSpecified, sqrtPriceLimitX96);
@@ -626,7 +624,6 @@ contract E2E_swap {
         int256 _amountSpecified = -int256(_amount);
 
         uint160 sqrtPriceLimitX96 = get_random_zeroForOne_priceLimit(_amount);
-        // console.log('sqrtPriceLimitX96 = %s', sqrtPriceLimitX96);
 
         (CLSwapper.SwapperStats memory bfre, CLSwapper.SwapperStats memory aftr) =
             swapper.doSwap(true, _amountSpecified, sqrtPriceLimitX96);
@@ -673,7 +670,6 @@ contract E2E_swap {
         int256 _amountSpecified = -int256(_amount);
 
         uint160 sqrtPriceLimitX96 = get_random_oneForZero_priceLimit(_amount);
-        // console.log('sqrtPriceLimitX96 = %s', sqrtPriceLimitX96);
 
         (CLSwapper.SwapperStats memory bfre, CLSwapper.SwapperStats memory aftr) =
             swapper.doSwap(false, _amountSpecified, sqrtPriceLimitX96);

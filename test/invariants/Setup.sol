@@ -14,8 +14,8 @@ import {IFactoryRegistry, MockFactoryRegistry} from "contracts/test/MockFactoryR
 import {
     INonfungiblePositionManager, NonfungiblePositionManager
 } from "contracts/periphery/NonfungiblePositionManager.sol";
-import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
-import {CLGauge} from "contracts/gauge/CLGauge.sol";
+import {CLLeafGaugeFactory} from "contracts/gauge/CLLeafGaugeFactory.sol";
+import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
 import {MockWETH} from "contracts/test/MockWETH.sol";
 import {IVotingRewardsFactory, MockVotingRewardsFactory} from "contracts/test/MockVotingRewardsFactory.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
@@ -83,9 +83,9 @@ contract SetupCL {
 
     //NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
-    CLGaugeFactory public gaugeFactory;
-    CLGauge public gaugeImplementation;
-    CLGauge public gauge;
+    CLLeafGaugeFactory public leafGaugeFactory;
+    CLLeafGauge public gaugeImplementation;
+    CLLeafGauge public gauge;
 
     // will create the following enabled fees and corresponding tickSpacing
     // fee 500   + tickSpacing 10
@@ -136,18 +136,18 @@ contract SetupCL {
         });
 
         // deploy gauges and associated contracts
-        gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({
-            _notifyAdmin: address(this),
+        leafGaugeFactory = new CLLeafGaugeFactory({
             _voter: address(voter),
             _nft: address(nft),
-            _implementation: address(gaugeImplementation)
+            _factory: address(poolFactory),
+            _xerc20: address(0),
+            _bridge: address(0)
         });
 
         factoryRegistry.approve({
             poolFactory: address(poolFactory),
             votingRewardsFactory: address(votingRewardsFactory),
-            gaugeFactory: address(gaugeFactory)
+            gaugeFactory: address(leafGaugeFactory)
         });
 
         customSwapFeeModule = new CustomSwapFeeModule(address(poolFactory));
@@ -169,7 +169,7 @@ contract SetupCL {
             })
         );
 
-        gauge = CLGauge(voter.gauges(address(pool)));
+        gauge = CLLeafGauge(voter.gauges(address(pool)));
 
         hevm.prank(address(voter));
         rewardToken.approve(address(gauge), 1000000000e18);
@@ -186,7 +186,7 @@ contract CLMinter is ERC721Holder {
     CoreTestERC20 token1;
 
     NonfungiblePositionManager nft;
-    CLGauge gauge;
+    CLLeafGauge gauge;
 
     CoreTestERC20 rewardToken;
 
@@ -207,7 +207,7 @@ contract CLMinter is ERC721Holder {
         pool = _pool;
     }
 
-    function setGauge(CLGauge _gauge) public {
+    function setGauge(CLLeafGauge _gauge) public {
         gauge = _gauge;
     }
 
@@ -445,7 +445,7 @@ contract CLSwapper {
     CoreTestERC20 token0;
     CoreTestERC20 token1;
 
-    CLGauge gauge;
+    CLLeafGauge gauge;
 
     struct SwapperStats {
         uint128 liq;
@@ -467,7 +467,7 @@ contract CLSwapper {
         pool = _pool;
     }
 
-    function setGauge(CLGauge _gauge) public {
+    function setGauge(CLLeafGauge _gauge) public {
         gauge = _gauge;
     }
 

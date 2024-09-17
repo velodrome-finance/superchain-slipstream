@@ -13,11 +13,13 @@ contract SetGaugeAndPositionManagerTest is CLPoolTest {
 
         // redeploy contracts
         factoryRegistry = IFactoryRegistry(new MockFactoryRegistry());
-        voter = IVoter(
-            new MockVoter({
-                _rewardToken: address(rewardToken),
+        leafMessageBridge = ILeafMessageBridge(address(0)); // TODO: for now it is zero address, later it should be from a fork
+
+        leafVoter = ILeafVoter(
+            new LeafVoter({
                 _factoryRegistry: address(factoryRegistry),
-                _ve: address(escrow)
+                _emergencyCouncil: users.owner, // emergency council
+                _messageBridge: address(leafMessageBridge) // message bridge
             })
         );
 
@@ -26,7 +28,7 @@ contract SetGaugeAndPositionManagerTest is CLPoolTest {
             _owner: users.owner,
             _swapFeeManager: address(this),
             _unstakedFeeManager: address(this),
-            _voter: address(voter),
+            _voter: address(leafVoter),
             _poolImplementation: address(poolImplementation)
         });
 
@@ -43,18 +45,19 @@ contract SetGaugeAndPositionManagerTest is CLPoolTest {
             symbol: nftSymbol
         });
 
-        gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({
-            _notifyAdmin: users.owner,
-            _voter: address(voter),
+        // gaugeImplementation = new CLLeafGauge();
+        leafGaugeFactory = new CLLeafGaugeFactory({
+            _voter: address(leafVoter),
             _nft: address(nft),
-            _implementation: address(gaugeImplementation)
+            _factory: address(poolFactory),
+            _xerc20: address(0),
+            _bridge: address(0)
         });
 
         factoryRegistry.approve({
             poolFactory: address(poolFactory),
             votingRewardsFactory: address(votingRewardsFactory),
-            gaugeFactory: address(gaugeFactory)
+            gaugeFactory: address(leafGaugeFactory)
         });
         vm.stopPrank();
 
@@ -67,15 +70,15 @@ contract SetGaugeAndPositionManagerTest is CLPoolTest {
             })
         );
 
-        vm.label(address(gaugeFactory), "GF");
+        vm.label(address(leafGaugeFactory), "GF");
         vm.label(address(factoryRegistry), "FR");
     }
 
     function test_RevertIf_AlreadyInitialized() public {
-        vm.prank(address(gaugeFactory));
+        vm.prank(address(leafGaugeFactory));
         pool.setGaugeAndPositionManager({_gauge: address(1), _nft: address(nft)});
 
-        vm.prank(address(gaugeFactory));
+        vm.prank(address(leafGaugeFactory));
         vm.expectRevert();
         pool.setGaugeAndPositionManager({_gauge: address(1), _nft: address(nft)});
     }
@@ -86,7 +89,7 @@ contract SetGaugeAndPositionManagerTest is CLPoolTest {
     }
 
     function test_SetGaugeAndPositionManager() public {
-        address gauge = voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)});
+        address gauge = leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)});
 
         assertEq(pool.gauge(), address(gauge));
         assertEq(pool.nft(), address(nft));

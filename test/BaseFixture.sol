@@ -11,9 +11,10 @@ import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/Nonfungibl
 import {
     INonfungiblePositionManager, NonfungiblePositionManager
 } from "contracts/periphery/NonfungiblePositionManager.sol";
-import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
-import {CLGauge} from "contracts/gauge/CLGauge.sol";
+import {CLLeafGaugeFactory} from "contracts/gauge/CLLeafGaugeFactory.sol";
+import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
 import {MockWETH} from "contracts/test/MockWETH.sol";
+import {ILeafVoter, LeafVoter} from "contracts/test/LeafVoter.sol";
 import {IVoter, MockVoter} from "contracts/test/MockVoter.sol";
 import {IVotingEscrow, MockVotingEscrow} from "contracts/test/MockVotingEscrow.sol";
 import {IFactoryRegistry, MockFactoryRegistry} from "contracts/test/MockFactoryRegistry.sol";
@@ -31,6 +32,11 @@ import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModu
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {IMinter} from "contracts/core/interfaces/IMinter.sol";
 import {ILpMigrator, LpMigrator} from "contracts/periphery/LpMigrator.sol";
+import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
+
+import {Constants} from "script/constants/Constants.sol";
+
+import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
 
 abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     using CreateXLibrary for bytes11;
@@ -39,17 +45,21 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     CLPool public poolImplementation;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
-    CLGaugeFactory public gaugeFactory;
-    CLGauge public gaugeImplementation;
+    CLLeafGaugeFactory public leafGaugeFactory;
+    CLLeafGauge public gaugeImplementation;
     LpMigrator public lpMigrator;
+
+    IVoter public rootVoter;
 
     /// @dev mocks
     IFactoryRegistry public factoryRegistry;
-    IVoter public voter;
+    ILeafVoter public leafVoter;
     IVotingEscrow public escrow;
     IMinter public minter;
     IERC20 public weth;
     IVotingRewardsFactory public votingRewardsFactory;
+
+    ILeafMessageBridge public leafMessageBridge;
 
     ERC20 public rewardToken;
 
@@ -70,13 +80,18 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     /// mocks
     ICreateX public cx = ICreateX(0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed);
 
-    uint256 public blockNumber = 113736816;
+    uint256 public blockNumber = 125312540;
+
+    uint256 public rootStartTime; // root fork start time (set to start of epoch for simplicity)
 
     function setUp() public virtual {
         //createX block is 113736815
         require(blockNumber >= 113736816, "BlockNumber too low");
 
         vm.createSelectFork({urlOrAlias: "optimism", blockNumber: blockNumber});
+
+        rootStartTime = VelodromeTimeLibrary.epochStart(block.timestamp);
+        vm.warp({newTimestamp: rootStartTime});
 
         createUsers();
 
@@ -101,7 +116,7 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
                         users.owner, // owner
                         users.owner, // swap fee manager
                         users.owner, // unstaked fee manager
-                        address(voter), // voter
+                        address(leafVoter), // leaf voter
                         address(poolImplementation) // pool implementation
                     )
                 )
@@ -147,22 +162,17 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         );
 
         // deploy gauges
-        gaugeImplementation = CLGauge(
-            cx.deployCreate3({
-                salt: CL_GAUGE_ENTROPY.calculateSalt({_deployer: deployer}),
-                initCode: abi.encodePacked(type(CLGauge).creationCode)
-            })
-        );
-        gaugeFactory = CLGaugeFactory(
+        leafGaugeFactory = CLLeafGaugeFactory(
             cx.deployCreate3({
                 salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: deployer}),
                 initCode: abi.encodePacked(
-                    type(CLGaugeFactory).creationCode,
+                    type(CLLeafGaugeFactory).creationCode,
                     abi.encode(
-                        users.owner, // notifyAdmin
-                        address(voter), // voter
+                        address(leafVoter), // voter
                         address(nft), // nft (nfpm)
-                        address(gaugeImplementation) // gauge implementation
+                        address(poolFactory), // factory
+                        address(rewardToken), // xerc20
+                        address(0) // bridge
                     )
                 )
             })
@@ -177,7 +187,7 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         factoryRegistry.approve({
             poolFactory: address(poolFactory),
             votingRewardsFactory: address(votingRewardsFactory),
-            gaugeFactory: address(gaugeFactory)
+            gaugeFactory: address(leafGaugeFactory)
         });
 
         // transfer residual permissions
@@ -228,11 +238,14 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         votingRewardsFactory = IVotingRewardsFactory(new MockVotingRewardsFactory());
         weth = IERC20(address(new MockWETH()));
         escrow = IVotingEscrow(new MockVotingEscrow(users.owner));
-        voter = IVoter(
-            new MockVoter({
-                _rewardToken: address(rewardToken),
+
+        leafMessageBridge = ILeafMessageBridge(address(0)); // TODO: for now it is zero address, later it should be from a fork
+
+        leafVoter = ILeafVoter(
+            new LeafVoter({
                 _factoryRegistry: address(factoryRegistry),
-                _ve: address(escrow)
+                _emergencyCouncil: users.owner, // emergency council
+                _messageBridge: address(leafMessageBridge) // message bridge
             })
         );
     }
@@ -255,13 +268,13 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         if (rewardToken.allowance(_voter, _gauge) < _amount) {
             rewardToken.approve(_gauge, _amount);
         }
-        CLGauge(_gauge).notifyRewardAmount(_amount);
+        CLLeafGauge(_gauge).notifyRewardAmount(_amount);
         vm.stopPrank();
     }
 
     function labelContracts() internal virtual {
         vm.label({account: address(weth), newLabel: "WETH"});
-        vm.label({account: address(voter), newLabel: "Voter"});
+        vm.label({account: address(leafVoter), newLabel: "Leaf Voter"});
         vm.label({account: address(nftDescriptor), newLabel: "NFT Descriptor"});
         vm.label({account: address(nft), newLabel: "NFT Manager"});
         vm.label({account: address(poolImplementation), newLabel: "Pool Implementation"});
@@ -269,10 +282,11 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         vm.label({account: address(token0), newLabel: "Token 0"});
         vm.label({account: address(token1), newLabel: "Token 1"});
         vm.label({account: address(rewardToken), newLabel: "Reward Token"});
-        vm.label({account: address(gaugeFactory), newLabel: "Gauge Factory"});
+        vm.label({account: address(leafGaugeFactory), newLabel: "Leaf Gauge Factory"});
         vm.label({account: address(customSwapFeeModule), newLabel: "Custom Swap FeeModule"});
         vm.label({account: address(customUnstakedFeeModule), newLabel: "Custom Unstaked Fee Module"});
         vm.label({account: address(lpMigrator), newLabel: "Lp Migrator"});
+        vm.label({account: address(cx), newLabel: "Create X"});
     }
 
     function createUser(string memory name) internal returns (address payable user) {

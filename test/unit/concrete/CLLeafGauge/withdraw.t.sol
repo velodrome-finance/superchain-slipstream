@@ -1,14 +1,14 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLGauge.t.sol";
+import "./CLLeafGauge.t.sol";
 
-contract WithdrawTest is CLGaugeTest {
+contract WithdrawTest is CLLeafGaugeTest {
     using stdStorage for StdStorage;
     using SafeCast for uint128;
 
     CLPool public pool;
-    CLGauge public gauge;
+    CLLeafGauge public gauge;
 
     event MetadataUpdate(uint256 _tokenId);
 
@@ -27,7 +27,7 @@ contract WithdrawTest is CLGaugeTest {
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
 
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.alice);
     }
@@ -99,7 +99,7 @@ contract WithdrawTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1703072409);
+        assertEq(gauge.lastUpdateTime(tokenId), 1726099200);
 
         (uint128 nftLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(nft), -TICK_SPACING_60, TICK_SPACING_60)));
@@ -152,7 +152,7 @@ contract WithdrawTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(2 * TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1703072409);
+        assertEq(gauge.lastUpdateTime(tokenId), 1726099200);
 
         (uint128 nftLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(nft), TICK_SPACING_60, 2 * TICK_SPACING_60)));
@@ -205,7 +205,7 @@ contract WithdrawTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1703072409);
+        assertEq(gauge.lastUpdateTime(tokenId), 1726099200);
 
         (uint128 nftLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(nft), -2 * TICK_SPACING_60, -TICK_SPACING_60)));
@@ -237,7 +237,7 @@ contract WithdrawTest is CLGaugeTest {
         gauge.deposit({tokenId: tokenId});
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(leafVoter), address(gauge), reward);
 
         vm.startPrank(users.alice);
 
@@ -266,7 +266,7 @@ contract WithdrawTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1703289600);
+        assertEq(gauge.lastUpdateTime(tokenId), 1726876800);
     }
 
     function test_WithdrawUpdatesPositionCorrectly() public {
