@@ -6,7 +6,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {ICLLeafGauge} from "contracts/gauge/interfaces/ICLLeafGauge.sol";
-import {ICLLeafGaugeFactory} from "contracts/gauge/interfaces/ICLLeafGaugeFactory.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
@@ -17,6 +16,7 @@ import {FullMath} from "contracts/core/libraries/FullMath.sol";
 import {FixedPoint128} from "contracts/core/libraries/FixedPoint128.sol";
 import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
 import {IReward} from "contracts/gauge/interfaces/IReward.sol";
+import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
 
 contract CLLeafGauge is ICLLeafGauge, ERC721Holder, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -24,17 +24,17 @@ contract CLLeafGauge is ICLLeafGauge, ERC721Holder, ReentrancyGuard {
     using SafeCast for uint128;
 
     /// @inheritdoc ICLLeafGauge
-    INonfungiblePositionManager public override nft;
+    INonfungiblePositionManager public immutable override nft;
     /// @inheritdoc ICLLeafGauge
-    IVoter public override voter;
+    IVoter public immutable override voter;
     /// @inheritdoc ICLLeafGauge
-    ICLPool public override pool;
+    ICLPool public immutable override pool;
 
     /// @inheritdoc ICLLeafGauge
-    address public override bridge;
+    address public immutable override bridge;
 
     /// @inheritdoc ICLLeafGauge
-    address public override feesVotingReward;
+    address public immutable override feesVotingReward;
     /// @inheritdoc ICLLeafGauge
     address public override rewardToken;
 
@@ -59,13 +59,13 @@ contract CLLeafGauge is ICLLeafGauge, ERC721Holder, ReentrancyGuard {
     /// @inheritdoc ICLLeafGauge
     uint256 public override fees1;
     /// @inheritdoc ICLLeafGauge
-    address public override token0;
+    address public immutable override token0;
     /// @inheritdoc ICLLeafGauge
-    address public override token1;
+    address public immutable override token1;
     /// @inheritdoc ICLLeafGauge
-    int24 public override tickSpacing;
+    int24 public immutable override tickSpacing;
 
-    bool public override isPool;
+    bool public immutable override isPool;
 
     constructor(
         address _pool,
@@ -257,7 +257,7 @@ contract CLLeafGauge is ICLLeafGauge, ERC721Holder, ReentrancyGuard {
     /// @inheritdoc ICLLeafGauge
     function notifyRewardAmount(uint256 _amount) external override nonReentrant {
         address sender = msg.sender;
-        // require(sender == bridge, "NB");
+        require(sender == ILeafMessageBridge(bridge).module(), "NM");
         require(_amount != 0, "ZR");
         _claimFees();
         _notifyRewardAmount(sender, _amount);
@@ -266,7 +266,7 @@ contract CLLeafGauge is ICLLeafGauge, ERC721Holder, ReentrancyGuard {
     /// @inheritdoc ICLLeafGauge
     function notifyRewardWithoutClaim(uint256 _amount) external override nonReentrant {
         address sender = msg.sender;
-        // require(sender == bridge, "NB");
+        require(sender == ILeafMessageBridge(bridge).module(), "NM");
         require(_amount != 0, "ZR");
         _notifyRewardAmount(sender, _amount);
     }

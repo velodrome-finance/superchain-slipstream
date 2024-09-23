@@ -101,7 +101,7 @@ contract CreatePoolTest is CLFactoryTest {
 
         assertEq(address(gauge.pool()), address(pool));
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
-        assertEq(gauge.rewardToken(), address(rewardToken));
+        assertEq(gauge.rewardToken(), address(xVelo));
         assertTrue(gauge.isPool());
     }
 
@@ -122,7 +122,7 @@ contract CreatePoolTest is CLFactoryTest {
 
         assertEq(address(gauge.pool()), address(pool));
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
-        assertEq(gauge.rewardToken(), address(rewardToken));
+        assertEq(gauge.rewardToken(), address(xVelo));
         assertTrue(gauge.isPool());
     }
 
@@ -143,7 +143,7 @@ contract CreatePoolTest is CLFactoryTest {
 
         assertEq(address(gauge.pool()), address(pool));
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
-        assertEq(gauge.rewardToken(), address(rewardToken));
+        assertEq(gauge.rewardToken(), address(xVelo));
         assertTrue(gauge.isPool());
     }
 }

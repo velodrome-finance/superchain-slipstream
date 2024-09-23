@@ -62,7 +62,7 @@ contract EarnedTest is CLLeafGaugeTest {
         // alice should be able to claim 2 days worth of rewards
         assertApproxEqAbs(aliceClaimableBalance, reward / 7 * 2, 1e5);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
     }
 
@@ -85,7 +85,7 @@ contract EarnedTest is CLLeafGaugeTest {
         // alice should not receive rewards
         assertEq(aliceClaimableBalance, 0);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
     }
 
@@ -108,7 +108,7 @@ contract EarnedTest is CLLeafGaugeTest {
         // alice should not receive rewards
         assertEq(aliceClaimableBalance, 0);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
     }
 
@@ -154,7 +154,7 @@ contract EarnedTest is CLLeafGaugeTest {
         gauge.withdraw(aliceTokenId);
 
         // alice already claimed 1 day worth of rewards
-        assertApproxEqAbs(rewardToken.balanceOf(users.alice), reward / 7 + aliceBal, 1e5);
+        assertApproxEqAbs(xVelo.balanceOf(users.alice), reward / 7 + aliceBal, 1e5);
 
         // alice claimed with the withdraw
         vm.expectRevert(abi.encodePacked("NA"));
@@ -255,7 +255,7 @@ contract EarnedTest is CLLeafGaugeTest {
         assertApproxEqAbs(gauge.earned(address(users.alice), aliceTokenId), reward / 2 + reward2 / 2, 1e5);
         assertApproxEqAbs(gauge.earned(address(users.bob), bobTokenId), reward / 2 + reward2 / 2, 1e5);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         // gauge should have 3 rewards left (no reward claims)
         assertEq(gaugeRewardTokenBalance, reward + reward2);
     }
@@ -302,7 +302,7 @@ contract EarnedTest is CLLeafGaugeTest {
         assertApproxEqAbs(gauge.earned(address(users.alice), aliceTokenId), reward / 2 + reward2 / 2, 1e5);
         assertApproxEqAbs(gauge.earned(address(users.bob), bobTokenId), reward / 2 + reward2 / 2, 1e5);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward + reward2);
     }
 

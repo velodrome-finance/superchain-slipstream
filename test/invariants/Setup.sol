@@ -141,7 +141,6 @@ contract SetupCL {
         leafGaugeFactory = new CLLeafGaugeFactory({
             _voter: address(voter),
             _nft: address(nft),
-            _factory: address(poolFactory),
             _xerc20: address(0),
             _bridge: address(0)
         });

@@ -4,7 +4,6 @@ pragma solidity =0.7.6;
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
-import {ICLLeafGaugeFactory} from "contracts/gauge/interfaces/ICLLeafGaugeFactory.sol";
 
 interface ICLLeafGauge {
     event NotifyReward(address indexed from, uint256 amount);
@@ -24,9 +23,6 @@ interface ICLLeafGauge {
 
     /// @notice Address of the CL pool linked to the gauge
     function pool() external view returns (ICLPool);
-
-    /// @notice Address of the factory that created this gauge
-    // function gaugeFactory() external view returns (ICLLeafGaugeFactory);
 
     /// @notice Address of the FeesVotingReward contract linked to the gauge
     function feesVotingReward() external view returns (address);

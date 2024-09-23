@@ -15,8 +15,6 @@ contract CLLeafGaugeFactory is ICLLeafGaugeFactory {
     /// @inheritdoc ICLLeafGaugeFactory
     address public immutable override voter;
     /// @inheritdoc ICLLeafGaugeFactory
-    address public immutable override factory;
-    /// @inheritdoc ICLLeafGaugeFactory
     address public immutable override xerc20;
     /// @inheritdoc ICLLeafGaugeFactory
     address public immutable override bridge;
@@ -27,43 +25,39 @@ contract CLLeafGaugeFactory is ICLLeafGaugeFactory {
         uint256 chainId;
         bytes32 salt;
         address pool;
+        address token0;
+        address token1;
+        int24 tickSpacing;
         bytes11 entropy;
     }
 
-    constructor(address _voter, address _nft, address _factory, address _xerc20, address _bridge) {
+    constructor(address _voter, address _nft, address _xerc20, address _bridge) {
         voter = _voter;
         nft = _nft;
-        factory = _factory;
         xerc20 = _xerc20;
         bridge = _bridge;
     }
 
     /// @inheritdoc ICLLeafGaugeFactory
-    function createGauge(address _token0, address _token1, int24 _tickSpacing, address _feesVotingReward, bool _isPool)
+    function createGauge(address _pool, address _feesVotingReward, bool _isPool)
         external
         override
         returns (address gauge)
     {
+        require(msg.sender == voter, "NV");
         GaugeCreateX memory gcx;
 
-        gcx.pool = ICLFactory(factory).getPool({tokenA: _token0, tokenB: _token1, tickSpacing: _tickSpacing});
-
-        /// @dev Create pool just in case pool does not exist already. Expect it to exist most of the time.
-        if (address(gcx.pool) == address(0)) {
-            gcx.pool = ICLFactory(factory).createPool({
-                tokenA: _token0,
-                tokenB: _token1,
-                tickSpacing: _tickSpacing,
-                sqrtPriceX96: 79228162514264337593543950336 // encodePriceSqrt(1, 1)
-            });
-        }
+        gcx.pool = _pool;
 
         assembly {
             let chainId := chainid()
             mstore(add(gcx, 0x20), chainId)
         }
 
-        gcx.salt = keccak256(abi.encodePacked(gcx.chainId, _token0, _token1, _tickSpacing));
+        gcx.token0 = ICLPool(_pool).token0();
+        gcx.token1 = ICLPool(_pool).token1();
+        gcx.tickSpacing = ICLPool(_pool).tickSpacing();
+        gcx.salt = keccak256(abi.encodePacked(gcx.chainId, gcx.token0, gcx.token1, gcx.tickSpacing));
         gcx.entropy = bytes11(gcx.salt);
 
         gauge = CreateXLibrary.CREATEX.deployCreate3({
@@ -72,9 +66,9 @@ contract CLLeafGaugeFactory is ICLLeafGaugeFactory {
                 type(CLLeafGauge).creationCode,
                 abi.encode(
                     gcx.pool,
-                    _token0,
-                    _token1,
-                    _tickSpacing,
+                    gcx.token0,
+                    gcx.token1,
+                    gcx.tickSpacing,
                     _feesVotingReward, // fee contract
                     xerc20, // xerc20 corresponding to reward token
                     voter, // superchain voter contract

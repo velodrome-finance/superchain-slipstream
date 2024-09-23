@@ -3,7 +3,7 @@ pragma solidity =0.7.6;
 pragma abicoder v2;
 
 import {CLFactory} from "contracts/core/CLFactory.sol";
-import {CLLeafGaugeFactory} from "contracts/gauge/CLLeafGaugeFactory.sol";
+import {ICLLeafGaugeFactory} from "contracts/gauge/CLLeafGaugeFactory.sol";
 import {ILeafVoter} from "./interfaces/ILeafVoter.sol";
 import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
 import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
@@ -38,7 +38,7 @@ contract LeafVoter is ILeafVoter {
         messageBridge = _messageBridge;
     }
 
-    function createGauge(address _poolFactory, address _pool) external override returns (address) {
+    function createGauge(address _poolFactory, address _pool) external override returns (address gauge) {
         require(IFactoryRegistry(factoryRegistry).isPoolFactoryApproved(_poolFactory));
         (address votingRewardsFactory, address gaugeFactory) =
             IFactoryRegistry(factoryRegistry).factoriesToPoolFactory(_poolFactory);
@@ -50,14 +50,12 @@ contract LeafVoter is ILeafVoter {
         (address feesVotingReward, address bribeVotingReward) =
             IVotingRewardsFactory(votingRewardsFactory).createRewards(forwarder, rewards);
 
-        address gauge = CLLeafGaugeFactory(gaugeFactory).createGauge({
-            _token0: rewards[0],
-            _token1: rewards[1],
-            _tickSpacing: ICLPool(_pool).tickSpacing(),
+        gauge = ICLLeafGaugeFactory(gaugeFactory).createGauge({
+            _pool: _pool,
             _feesVotingReward: feesVotingReward,
-            _isPool: true
+            isPool: CLFactory(_poolFactory).isPool(_pool)
         });
-        require(CLFactory(_poolFactory).isPair(_pool));
+
         isAlive[gauge] = true;
         gauges[_pool] = gauge;
         gaugeToFees[gauge] = feesVotingReward;

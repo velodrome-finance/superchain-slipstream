@@ -3,6 +3,12 @@ pragma solidity =0.7.6;
 pragma abicoder v2;
 
 interface IXERC20 {
+    struct RateLimitMidPointInfo {
+        uint112 bufferCap;
+        uint128 rateLimitPerSecond;
+        address bridge;
+    }
+
     /// @notice Emits when a limit is set
     /// @param _mintingLimit The updated minting limit we are setting to the bridge
     /// @param _burningLimit The updated burning limit we are setting to the bridge
@@ -79,4 +85,15 @@ interface IXERC20 {
     /// @param _burningLimit The updated burning limit we are setting to the bridge
     /// @param _bridge The address of the bridge we are setting the limits to
     function setLimits(address _bridge, uint256 _mintingLimit, uint256 _burningLimit) external;
+
+    function maxRateLimitPerSecond() external pure returns (uint128);
+
+    function addBridge(RateLimitMidPointInfo memory _newBridge) external;
+
+    ///
+    /// ERC20 functions
+    ///
+    function balanceOf(address account) external view returns (uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
 }

@@ -67,11 +67,11 @@ contract GetRewardTest is CLLeafGaugeTest {
         emit ClaimRewards(users.alice, 285714285714259199);
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice should have 2 days worth of rewards
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726876800);
+        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
     }
 
     function test_GetRewardOneDepositorWithPositionInCurrentPrice() public {
@@ -90,14 +90,14 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice should have 2 days worth of rewards
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 7 * 5, 1e5);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726876800);
+        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
     }
 
     function test_GetRewardOneDepositorWithPositionRightOfCurrentPrice() public {
@@ -116,14 +116,14 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice should not receive rewards
         assertEq(aliceRewardBalance, 0);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726876800);
+        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
     }
 
     function test_GetRewardOneDepositorWithPositionLeftOfCurrentPrice() public {
@@ -142,14 +142,14 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice should not receive rewards
         assertEq(aliceRewardBalance, 0);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726876800);
+        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
     }
 
     function test_GetRewardWithMultipleDepositors() public {
@@ -177,9 +177,9 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
         assertEq(gauge.rewards(aliceTokenId), 0);
-        assertEq(gauge.lastUpdateTime(aliceTokenId), 1726876800);
+        assertEq(gauge.lastUpdateTime(aliceTokenId), 1727481600);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice should have 1 day worth of rewards
         assertApproxEqAbs(aliceRewardBalance, reward / 7, 1e5);
 
@@ -188,26 +188,26 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
         assertEq(gauge.rewards(bobTokenId), 0);
-        assertEq(gauge.lastUpdateTime(bobTokenId), 1727308800);
+        assertEq(gauge.lastUpdateTime(bobTokenId), 1727913600);
 
-        uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
+        uint256 bobRewardBalance = xVelo.balanceOf(users.bob);
         // bob should have half an epoch worth of rewards
         assertApproxEqAbs(bobRewardBalance, reward / 2, 1e5);
 
         // gauge should have alice rewards as a balance minus the 1 day worth of already claimed rewards
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2 - reward / 7, 1e5);
 
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
         assertEq(gauge.rewards(aliceTokenId), 0);
-        assertEq(gauge.lastUpdateTime(aliceTokenId), 1727308800);
+        assertEq(gauge.lastUpdateTime(aliceTokenId), 1727913600);
 
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice should have half of the rewards
         assertApproxEqAbs(aliceRewardBalance, reward / 2, 1e5);
 
-        gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
         assertLe(gaugeRewardTokenBalance, 1e5);
     }
@@ -238,7 +238,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         // withdraw should collect the rewards
         gauge.withdraw(aliceTokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 4, 1e5);
 
         skip(WEEK / 2);
@@ -251,10 +251,10 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
-        uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
+        uint256 bobRewardBalance = xVelo.balanceOf(users.bob);
         assertApproxEqAbs(bobRewardBalance, reward / 2 + reward / 4, 1e5);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
         assertLe(gaugeRewardTokenBalance, 1e5);
     }
@@ -277,7 +277,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, firstExpectedReward, 1e5);
 
         uint256 bobTokenId = nftCallee.mintNewCustomRangePositionForUserWith60TickSpacing(
@@ -298,14 +298,14 @@ contract GetRewardTest is CLLeafGaugeTest {
         // we withdraw alice position so we can add more liquidity into it and stake it back
         gauge.withdraw(aliceTokenId);
 
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice already claimed 1 day worth of reward
         assertApproxEqAbs(aliceRewardBalance, firstExpectedReward + secondExpectedReward, 1e5);
 
         vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
-        uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
+        uint256 bobRewardBalance = xVelo.balanceOf(users.bob);
         assertApproxEqAbs(bobRewardBalance, secondExpectedReward, 1e5);
 
         vm.startPrank(users.alice);
@@ -331,7 +331,7 @@ contract GetRewardTest is CLLeafGaugeTest {
 
         gauge.getReward(aliceTokenId);
 
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice: first claim + second claim + third claim
         assertApproxEqAbs(aliceRewardBalance, firstExpectedReward + secondExpectedReward + thirdExpectedReward * 2, 1e5);
 
@@ -339,7 +339,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         // we withdraw for bob then mint a new position for him with half the size
         gauge.withdraw(bobTokenId);
 
-        bobRewardBalance = rewardToken.balanceOf(users.bob);
+        bobRewardBalance = xVelo.balanceOf(users.bob);
         // bob: first claim + second claim + third claim
         assertApproxEqAbs(bobRewardBalance, secondExpectedReward + thirdExpectedReward, 1e5);
 
@@ -358,7 +358,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(
             aliceRewardBalance,
             firstExpectedReward + secondExpectedReward + thirdExpectedReward * 2 + fourthExpectedReward * 4,
@@ -368,10 +368,10 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
-        bobRewardBalance = rewardToken.balanceOf(users.bob);
+        bobRewardBalance = xVelo.balanceOf(users.bob);
         assertApproxEqAbs(bobRewardBalance, secondExpectedReward + thirdExpectedReward + fourthExpectedReward, 1e5);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         // gauge should have 3 days worth of rewards left
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 7 * 3, 1e5);
     }
@@ -406,7 +406,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 2, 1e5);
 
         skip(1 days);
@@ -420,7 +420,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 2 + reward2 / 2 / 6, 1e5);
 
         skipToNextEpoch(0);
@@ -428,16 +428,16 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 2 + reward2 / 2, 1e5);
 
         vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
-        uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
+        uint256 bobRewardBalance = xVelo.balanceOf(users.bob);
         assertApproxEqAbs(bobRewardBalance, reward / 2 + reward2 / 2, 1e5);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
         assertLe(gaugeRewardTokenBalance, 1e6);
     }
@@ -469,7 +469,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 2, 1e5);
 
         skip(1 days); // rewards distributed over 6 days intead of 7
@@ -484,7 +484,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 2 + reward2 / 2 / 6, 1e5);
 
         skipToNextEpoch(0); // accrue all of remaining rewards
@@ -492,20 +492,20 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 2 + reward2 / 2, 1e5);
 
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         // bob not claimed yet
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2 + reward2 / 2, 1e5);
 
         vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
-        uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
+        uint256 bobRewardBalance = xVelo.balanceOf(users.bob);
         assertApproxEqAbs(bobRewardBalance, reward / 2 + reward2 / 2, 1e5);
 
-        gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
         assertLe(gaugeRewardTokenBalance, 1e6);
     }
@@ -541,11 +541,11 @@ contract GetRewardTest is CLLeafGaugeTest {
         emit ClaimRewards(users.alice, 285714285714259199);
         leafVoter.claimRewards(gauges);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice should have 2 days worth of rewards
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726876800);
+        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
     }
 
     function test_GetRewardAsVoterWithMultipleDeposits() public {
@@ -572,12 +572,12 @@ contract GetRewardTest is CLLeafGaugeTest {
         emit ClaimRewards(users.alice, 142857142857129599);
         leafVoter.claimRewards(gauges);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice should have 2 days worth of rewards
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726876800);
+        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
         assertEq(gauge.rewards(tokenId2), 0);
-        assertEq(gauge.lastUpdateTime(tokenId2), 1726876800);
+        assertEq(gauge.lastUpdateTime(tokenId2), 1727481600);
     }
 }

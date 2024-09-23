@@ -2,6 +2,8 @@
 pragma solidity =0.7.6;
 
 interface ICLRootGaugeFactory {
+    event SetNotifyAdmin(address indexed notifyAdmin);
+
     /// @notice Voter contract address
     function voter() external view returns (address);
 
@@ -11,8 +13,21 @@ interface ICLRootGaugeFactory {
     /// @notice Lockbox contract address
     function lockbox() external view returns (address);
 
-    /// @notice MessageBridge contract address
+    /// @notice Address of bridge contract used to forward x-chain messages
     function messageBridge() external view returns (address);
+
+    /// @notice Pool factory associated with this gauge factory
+    function poolFactory() external view returns (address);
+
+    /// @notice Voting rewards factory contract address
+    function votingRewardsFactory() external view returns (address);
+
+    /// @notice Administrator that can call `notifyRewardWithoutClaim` on gauges
+    function notifyAdmin() external view returns (address);
+
+    /// @notice Set notifyAdmin value on root gauge factory
+    /// @param _admin New administrator that will be able to call `notifyRewardWithoutClaim` on gauges.
+    function setNotifyAdmin(address _admin) external;
 
     /// @notice Creates a new root gauge
     /// @param _pool Address of the pool contract

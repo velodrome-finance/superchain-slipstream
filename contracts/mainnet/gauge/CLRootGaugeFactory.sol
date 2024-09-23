@@ -23,12 +23,37 @@ contract CLRootGaugeFactory is ICLRootGaugeFactory {
     address public immutable override lockbox;
     /// @inheritdoc ICLRootGaugeFactory
     address public immutable override messageBridge;
+    /// @inheritdoc ICLRootGaugeFactory
+    address public immutable override poolFactory;
+    /// @inheritdoc ICLRootGaugeFactory
+    address public immutable override votingRewardsFactory;
+    /// @inheritdoc ICLRootGaugeFactory
+    address public override notifyAdmin;
 
-    constructor(address _voter, address _xerc20, address _lockbox, address _messageBridge) {
+    constructor(
+        address _voter,
+        address _xerc20,
+        address _lockbox,
+        address _messageBridge,
+        address _poolFactory,
+        address _votingRewardsFactory,
+        address _notifyAdmin
+    ) {
         voter = _voter;
         xerc20 = _xerc20;
         lockbox = _lockbox;
         messageBridge = _messageBridge;
+        poolFactory = _poolFactory;
+        votingRewardsFactory = _votingRewardsFactory;
+        notifyAdmin = _notifyAdmin;
+    }
+
+    /// @inheritdoc ICLRootGaugeFactory
+    function setNotifyAdmin(address _admin) external override {
+        require(notifyAdmin == msg.sender, "NA");
+        require(_admin != address(0), "ZA");
+        notifyAdmin = _admin;
+        emit SetNotifyAdmin({notifyAdmin: _admin});
     }
 
     /// @inheritdoc ICLRootGaugeFactory
@@ -50,10 +75,12 @@ contract CLRootGaugeFactory is ICLRootGaugeFactory {
             initCode: abi.encodePacked(
                 type(CLRootGauge).creationCode,
                 abi.encode(
+                    address(this), // gauge factory
                     _rewardToken, // reward token
                     xerc20, // xerc20 corresponding to reward token
                     lockbox, // lockbox to convert reward token to xerc20
                     messageBridge, // bridge to communicate x-chain
+                    voter, // voter contract
                     chainId // chain id associated with gauge
                 )
             )
@@ -63,8 +90,8 @@ contract CLRootGaugeFactory is ICLRootGaugeFactory {
         IRootFeesVotingReward(_feesVotingReward).initialize(gauge);
         IRootBribeVotingReward(_bribeVotingReward).initialize(gauge);
 
-        bytes memory payload = abi.encode(token0, token1, tickSpacing);
-        bytes memory message = abi.encode(Commands.CREATE_GAUGE, payload);
+        bytes memory payload = abi.encode(votingRewardsFactory, address(this), token0, token1, uint24(tickSpacing));
+        bytes memory message = abi.encode(Commands.CREATE_GAUGE, abi.encode(poolFactory, payload));
         IRootMessageBridge(messageBridge).sendMessage({_chainid: chainId, _message: message});
     }
 }

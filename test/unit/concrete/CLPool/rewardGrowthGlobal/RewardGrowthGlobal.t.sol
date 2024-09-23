@@ -57,7 +57,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         uint256 accumulatedReward = rewardRate * (timeElapsed - timeNoStakedLiq);
         uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(accumulatedReward, Q128, pool.stakedLiquidity());
 
-        assertApproxEqAbs(rewardToken.balanceOf(users.alice), accumulatedReward, 1e5);
+        assertApproxEqAbs(xVelo.balanceOf(users.alice), accumulatedReward, 1e5);
         assertApproxEqAbs(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128, 1e4);
 
         assertEqUint(pool.rewardRate(), rewardRate);
@@ -80,7 +80,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         gauge.getReward(tokenId);
 
         // alice rewards should be `WEEK - timeNoStakedLiq` worth of rewards
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, rewardRate * (WEEK - timeNoStakedLiq), 1e5);
 
         // at the start of the new epoch reserves should be dust
@@ -88,7 +88,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         // assert that emissions got stuck in the gauge for the current epoch,
         // `timeNoStakedLiq` worth of rewards will be rolled over to next epoch
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, rollover, 1e5);
 
         addRewardToGauge(address(leafVoter), address(gauge), reward2);
@@ -104,10 +104,10 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         gauge.getReward(tokenId);
 
         // we assert that the stuck rewards get rolled over to the next epoch correctly
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward1 + reward2, 1e6);
 
-        gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertLe(gaugeRewardTokenBalance, 1e6);
     }
 
@@ -385,11 +385,11 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 2, 1e5);
 
         // assert that emissions got stuck in the gauge
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2, 1e5);
 
         addRewardToGauge(address(leafVoter), address(gauge), reward);
@@ -407,14 +407,14 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         gauge.getReward(tokenId);
 
         // we assert that the stuck rewards get rolled over to the next epoch correctly
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 2 + (reward + reward / 2) / 2, 1e6);
 
         gauge.getReward(tokenId2);
-        uint256 aliceRewardBalanceTokenId2 = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalanceTokenId2 = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalanceTokenId2, aliceRewardBalance + (reward + reward / 2) / 2, 1e6);
 
-        gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertLe(gaugeRewardTokenBalance, 1e6);
     }
 
@@ -441,7 +441,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         vm.startPrank(users.alice);
         gauge.withdraw(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 3, 1e5);
 
         assertEqUint(pool.stakedLiquidity(), 0);
@@ -496,7 +496,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
             vm.startPrank(users.alice);
             gauge.withdraw(tokenId);
 
-            uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+            uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
             assertApproxEqAbs(aliceRewardBalance, oldAliceBal + (timeDelta * rewardRate), 1e5); // Accrued rewards during timeDelta
 
             assertEqUint(pool.stakedLiquidity(), 0);
@@ -767,13 +767,13 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         assertEqUint(pool.rewardReserve(), reward);
 
         // sanity checks
-        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward * 2, 1e6);
 
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward, 1);
     }
 
@@ -803,14 +803,14 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertLe(aliceRewardBalance, 1e6);
 
         skipToNextEpoch(0);
 
         gauge.getReward(tokenId);
 
-        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward * 2, 1e6);
     }
 
@@ -846,7 +846,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
     }
 
@@ -882,7 +882,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
     }
 
@@ -920,7 +920,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
     }
 
@@ -958,7 +958,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
     }
 
@@ -998,7 +998,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
     }
 
@@ -1037,7 +1037,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
     }
 
@@ -1059,7 +1059,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         vm.startPrank(users.alice);
         gauge.withdraw(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / WEEK * (WEEK - 120), 1e6);
         assertApproxEqAbs(pool.rewardReserve(), reward - reward / WEEK * (WEEK - 60), 1e6);
         assertEqUint(pool.rollover(), reward / WEEK * 60);
@@ -1091,7 +1091,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         gauge.getReward(tokenId);
 
         uint256 rewardRate = reward / WEEK;
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertEq(pool.rewardRate(), rewardRate);
         assertEq(pool.rollover(), rewardRate * 1 days);
         assertApproxEqAbs(aliceRewardBalance, (reward / 7 * 6), 1e6);
@@ -1126,7 +1126,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward * 2, 1e6);
         assertLe(pool.rewardReserve(), 1e6);
     }

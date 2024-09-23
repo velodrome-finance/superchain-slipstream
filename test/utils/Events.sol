@@ -33,4 +33,9 @@ abstract contract Events {
     event Withdraw(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event NotifyReward(address indexed from, uint256 amount);
     event ClaimRewards(address indexed from, uint256 amount);
+
+    ///
+    /// CLGaugeFactory Events
+    ///
+    event SetNotifyAdmin(address indexed notifyAdmin);
 }

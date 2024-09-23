@@ -268,4 +268,9 @@ contract CLFactory is ICLFactory {
     function isPair(address pool) external view override returns (bool) {
         return _isPool[pool];
     }
+
+    /// @inheritdoc ICLFactory
+    function isPool(address pool) external view override returns (bool) {
+        return _isPool[pool];
+    }
 }

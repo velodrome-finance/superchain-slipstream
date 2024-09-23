@@ -15,6 +15,9 @@ interface IRootMessageBridge {
     /// @notice Returns the address of the module contract that is allowed to send messages x-chain
     function module() external view returns (address);
 
+    /// @notice Returns the address of the WETH contract
+    function weth() external view returns (address);
+
     /// @notice Returns the address of the voter contract
     /// @dev Used to verify the sender of a message
     function voter() external view returns (address);

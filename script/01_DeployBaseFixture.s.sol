@@ -110,7 +110,6 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
                     abi.encode(
                         _params.voter, // voter
                         address(nft), // nft (nfpm)
-                        address(poolFactory), // factory
                         address(0), // xerc20
                         address(0) // bridge
                     )

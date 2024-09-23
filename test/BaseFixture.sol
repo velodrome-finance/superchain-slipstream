@@ -2,6 +2,10 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {Math} from "@openzeppelin/contracts/math/Math.sol";
+import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import "forge-std/Test.sol";
 
 import {CLFactory} from "contracts/core/CLFactory.sol";
@@ -20,8 +24,6 @@ import {IVoter, MockVoter} from "contracts/test/MockVoter.sol";
 import {IVotingEscrow, MockVotingEscrow} from "contracts/test/MockVotingEscrow.sol";
 import {IFactoryRegistry, MockFactoryRegistry} from "contracts/test/MockFactoryRegistry.sol";
 import {IVotingRewardsFactory, MockVotingRewardsFactory} from "contracts/test/MockVotingRewardsFactory.sol";
-import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {TestConstants} from "./utils/TestConstants.sol";
 import {Events} from "./utils/Events.sol";
 import {PoolUtils} from "./utils/PoolUtils.sol";
@@ -37,7 +39,6 @@ import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol
 
 import {Constants} from "script/constants/Constants.sol";
 
-import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
 import {IXERC20} from "contracts/superchain/IXERC20.sol";
 import {IXERC20Lockbox} from "contracts/superchain/IXERC20Lockbox.sol";
 import {IChainRegistry} from "contracts/mainnet/interfaces/bridge/IChainRegistry.sol";
@@ -45,18 +46,38 @@ import {IRootMessageBridge} from "contracts/mainnet/interfaces/bridge/IRootMessa
 import {IRootHLMessageModule} from "contracts/mainnet/interfaces/bridge/hyperlane/IRootHLMessageModule.sol";
 import {RootCLPool} from "contracts/mainnet/pool/RootCLPool.sol";
 import {RootCLPoolFactory} from "contracts/mainnet/pool/RootCLPoolFactory.sol";
+import {ICLRootGaugeFactory, CLRootGaugeFactory} from "contracts/mainnet/gauge/CLRootGaugeFactory.sol";
+import {ICLRootGauge, CLRootGauge} from "contracts/mainnet/gauge/CLRootGauge.sol";
+import {
+    IRootVotingRewardsFactory, MockRootVotingRewardsFactory
+} from "contracts/test/MockRootVotingRewardsFactory.sol";
+import {ILeafMessageBridge, MockLeafMessageBridge} from "contracts/test/MockLeafMessageBridge.sol";
+import {IMailbox} from "contracts/test/interfaces/IMailbox.sol";
 
 import {TestERC20} from "contracts/periphery/test/TestERC20.sol";
 
 abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     using CreateXLibrary for bytes11;
+    using SafeCast for uint256;
+
+    //TODO: to avoid leaf gauge factory collision.
+    //Should be removed once the test refactor is setup in correct root/leaf chains
+    bytes11 public constant CL_LEAF_GAUGE_FACTORY_ENTROPY = 0x0000000000000000000040;
 
     string public addresses;
+
+    /// @dev Fixed fee used for x-chain message quotes
+    uint256 public constant MESSAGE_FEE = 1 ether / 10_000; // 0.0001 ETH
 
     // root variables
     uint32 public rootChainId = 10; // root chain id
     uint256 public rootId; // root fork id (used by foundry)
     uint256 public rootStartTime; // root fork start time (set to start of epoch for simplicity)
+
+    //leaf variables
+    uint32 public leaf = 34443; // leaf chain id
+    // uint256 public leafId; // root fork id (used by foundry)
+    // uint256 public leafStartTime; // root fork start time (set to start of epoch for simplicity)
 
     // root superchain contracts
     IXERC20 public xVelo;
@@ -67,7 +88,9 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     IXERC20Lockbox public rootLockbox;
     RootCLPoolFactory public rootPoolFactory;
     RootCLPool public rootPoolImplementation;
+    CLRootGaugeFactory public rootGaugeFactory;
 
+    // leaf contracts
     CLFactory public poolFactory;
     CLPool public poolImplementation;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
@@ -76,7 +99,9 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     CLLeafGauge public gaugeImplementation;
     LpMigrator public lpMigrator;
 
+    // root mocks
     IVoter public rootVoter;
+    IRootVotingRewardsFactory public rootVotingRewardsFactory;
 
     /// @dev mocks
     IFactoryRegistry public factoryRegistry;
@@ -85,8 +110,10 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     IMinter public minter;
     IERC20 public weth;
     IVotingRewardsFactory public votingRewardsFactory;
+    IMailbox public rootMailbox;
 
     ILeafMessageBridge public leafMessageBridge;
+    address public leafMessageModule; // used for test purposes
 
     ERC20 public rewardToken;
 
@@ -127,8 +154,37 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         rewardToken = new ERC20("", "");
 
         setUpDependencyForks();
+        deployRootDependencies();
         setUpRootChain();
         deployDependencies();
+
+        // approve gauge in factory registry
+        vm.prank(Ownable(address(factoryRegistry)).owner());
+        factoryRegistry.approve({
+            poolFactory: address(rootPoolFactory),
+            votingRewardsFactory: address(rootVotingRewardsFactory),
+            gaugeFactory: address(rootGaugeFactory)
+        });
+
+        // mock calls to dispatch
+        vm.mockCall({
+            callee: address(rootMailbox),
+            data: abi.encode(bytes4(keccak256("quoteDispatch(uint32,bytes32,bytes)"))),
+            returnData: abi.encode(MESSAGE_FEE)
+        });
+
+        leafMessageModule = makeAddr({name: "LeafMessageModule"});
+        leafMessageBridge = ILeafMessageBridge(
+            new MockLeafMessageBridge(users.owner, address(xVelo), address(leafVoter), leafMessageModule)
+        ); // TODO: for now it is mock, later it should be from a fork
+
+        leafVoter = ILeafVoter(
+            new LeafVoter({
+                _factoryRegistry: address(factoryRegistry),
+                _emergencyCouncil: users.owner, // emergency council
+                _messageBridge: address(leafMessageBridge) // message bridge
+            })
+        );
 
         address deployer = users.deployer;
         poolImplementation = CLPool(
@@ -139,7 +195,8 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         );
 
         vm.prank(deployer);
-        leafGaugeFactory = CLLeafGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: deployer}));
+        leafGaugeFactory =
+            CLLeafGaugeFactory(CL_LEAF_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: deployer}));
         nft = NonfungiblePositionManager(payable(NFT_POSITION_MANAGER.computeCreate3Address({_deployer: deployer})));
 
         poolFactory = CLFactory(
@@ -203,15 +260,14 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         // deploy gauges
         leafGaugeFactory = CLLeafGaugeFactory(
             cx.deployCreate3({
-                salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: deployer}),
+                salt: CL_LEAF_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: deployer}),
                 initCode: abi.encodePacked(
                     type(CLLeafGaugeFactory).creationCode,
                     abi.encode(
                         address(leafVoter), // voter
                         address(nft), // nft (nfpm)
-                        address(poolFactory), // factory
-                        address(rewardToken), // xerc20
-                        address(0) // bridge
+                        address(xVelo), // xerc20
+                        address(leafMessageBridge) // bridge
                     )
                 )
             })
@@ -275,6 +331,9 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         rootMessageBridge = IRootMessageBridge(vm.parseJsonAddress(addresses, ".MessageBridge"));
         rootMessageModule = IRootHLMessageModule(vm.parseJsonAddress(addresses, ".MessageModule"));
         rootLockbox = IXERC20Lockbox(vm.parseJsonAddress(addresses, ".Lockbox"));
+
+        // set root message bridge limits
+        setLimits(type(uint112).max, 0);
     }
 
     function deployRootDependencies() public virtual {
@@ -294,12 +353,14 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         //     })
         // );
         rootVoter = IVoter(new MockVoter({_rewardToken: address(0), _factoryRegistry: address(0), _ve: address(0)}));
+        rootVotingRewardsFactory =
+            IRootVotingRewardsFactory(new MockRootVotingRewardsFactory(address(rootMessageBridge)));
         //_governor: users.owner
+        vm.stopPrank();
     }
 
     function setUpRootChain() public virtual {
-        deployRootDependencies();
-
+        vm.startPrank(users.deployer);
         rootPoolImplementation = new RootCLPool();
         rootPoolFactory = RootCLPoolFactory(
             cx.deployCreate3({
@@ -314,6 +375,24 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
                 )
             })
         );
+
+        rootGaugeFactory = CLRootGaugeFactory(
+            cx.deployCreate3({
+                salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: users.deployer}),
+                initCode: abi.encodePacked(
+                    type(CLRootGaugeFactory).creationCode,
+                    abi.encode(
+                        address(rootVoter), // root voter
+                        address(xVelo), // xerc20
+                        address(rootLockbox), // lockbox
+                        address(rootMessageBridge), // message bridge
+                        address(rootPoolFactory), // pool factory
+                        address(rootVotingRewardsFactory), // voting rewards factory
+                        users.owner // notify admin
+                    )
+                )
+            })
+        );
         vm.stopPrank();
     }
 
@@ -324,16 +403,6 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         votingRewardsFactory = IVotingRewardsFactory(new MockVotingRewardsFactory());
         weth = IERC20(address(new MockWETH()));
         escrow = IVotingEscrow(new MockVotingEscrow(users.owner));
-
-        leafMessageBridge = ILeafMessageBridge(address(0)); // TODO: for now it is zero address, later it should be from a fork
-
-        leafVoter = ILeafVoter(
-            new LeafVoter({
-                _factoryRegistry: address(factoryRegistry),
-                _emergencyCouncil: users.owner, // emergency council
-                _messageBridge: address(leafMessageBridge) // message bridge
-            })
-        );
     }
 
     /// @dev Helper utility to forward time to next week
@@ -348,11 +417,11 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
 
     /// @dev Helper function to add rewards to gauge from voter
     function addRewardToGauge(address _voter, address _gauge, uint256 _amount) internal {
-        deal(address(rewardToken), _voter, _amount);
-        vm.startPrank(_voter);
+        deal(address(xVelo), leafMessageModule, _amount);
+        vm.startPrank(leafMessageModule);
         // do not overwrite approvals if already set
-        if (rewardToken.allowance(_voter, _gauge) < _amount) {
-            rewardToken.approve(_gauge, _amount);
+        if (xVelo.allowance(leafMessageModule, _gauge) < _amount) {
+            xVelo.approve(_gauge, _amount);
         }
         CLLeafGauge(_gauge).notifyRewardAmount(_amount);
         vm.stopPrank();
@@ -414,6 +483,16 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         vm.label({account: address(cx), newLabel: "Create X"});
         vm.label({account: address(rootPoolFactory), newLabel: "Root Pool Factory"});
         vm.label({account: address(rootPoolImplementation), newLabel: "Root Pool Implementation"});
+        vm.label({account: address(rootGaugeFactory), newLabel: "Root Gauge Factory"});
+        vm.label({account: address(rootVotingRewardsFactory), newLabel: "Root Voting Rewards Factory"});
+
+        vm.label({account: address(xVelo), newLabel: "Root xVelo"});
+        vm.label({account: address(rootMessageBridge), newLabel: "Root Message Bridge"});
+        vm.label({account: address(rootMessageModule), newLabel: "Root Message Module"});
+        vm.label({account: address(rootLockbox), newLabel: "Root Lockbox"});
+
+        vm.label({account: address(leafMessageBridge), newLabel: "Leaf Message Bridge"});
+        vm.label({account: address(leafMessageModule), newLabel: "Leaf Message Module"});
     }
 
     function createUser(string memory name) internal returns (address payable user) {
@@ -430,5 +509,54 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
             charlie: createUser("Charlie"),
             deployer: createUser("Deployer")
         });
+    }
+
+    /// @dev Helper function that adds root & leaf bridge limits
+    function setLimits(uint256 _rootBufferCap, uint256 _leafBufferCap) internal {
+        vm.stopPrank();
+        // uint256 activeFork = vm.activeFork();
+        //
+        vm.startPrank(Ownable(address(rootMessageBridge)).owner());
+        // vm.selectFork({forkId: rootId});
+
+        uint112 rootBufferCap = uint112(_rootBufferCap);
+        // replenish limits in 1 day, avoid max rate limit per second
+        uint128 rps = uint128(Math.min((rootBufferCap / 2) / DAY, xVelo.maxRateLimitPerSecond()));
+        // xVelo.addBridge(
+        //     MintLimits.RateLimitMidPointInfo({
+        //         bufferCap: rootBufferCap,
+        //         bridge: address(rootTokenBridge),
+        //         rateLimitPerSecond: rps
+        //     })
+        // );
+        xVelo.addBridge(
+            IXERC20.RateLimitMidPointInfo({
+                bufferCap: rootBufferCap,
+                bridge: address(rootMessageBridge),
+                rateLimitPerSecond: rps
+            })
+        );
+
+        // vm.selectFork({forkId: leafId});
+        // uint112 leafBufferCap = _leafBufferCap.toUint112();
+        // // replenish limits in 1 day, avoid max rate limit per second
+        // rps = Math.min((leafBufferCap / 2) / DAY, leafXVelo.maxRateLimitPerSecond()).toUint128();
+        // leafXVelo.addBridge(
+        //     MintLimits.RateLimitMidPointInfo({
+        //         bufferCap: leafBufferCap,
+        //         bridge: address(leafTokenBridge),
+        //         rateLimitPerSecond: rps
+        //     })
+        // );
+        // leafXVelo.addBridge(
+        //     MintLimits.RateLimitMidPointInfo({
+        //         bufferCap: leafBufferCap,
+        //         bridge: address(leafMessageBridge),
+        //         rateLimitPerSecond: rps
+        //     })
+        // );
+        //
+        // vm.selectFork({forkId: activeFork});
+        vm.stopPrank();
     }
 }

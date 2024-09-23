@@ -27,30 +27,27 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
         skipToNextEpoch(0);
     }
 
-    // function test_RevertIf_NotNotifyAdmin() public {
-    //     vm.startPrank(users.charlie);
-    //     vm.expectRevert(abi.encodePacked("NA"));
-    //     gauge.notifyRewardWithoutClaim(TOKEN_1);
-    // }
+    function test_RevertIf_NotModule() public {
+        vm.startPrank(users.charlie);
+        vm.expectRevert(abi.encodePacked("NM"));
+        gauge.notifyRewardWithoutClaim(TOKEN_1);
+    }
 
-    // function test_RevertIf_NotBridge() public {
-    //     vm.startPrank(users.charlie);
-    //     vm.expectRevert(abi.encodePacked("NB"));
-    //     gauge.notifyRewardWithoutClaim(TOKEN_1);
-    // }
+    modifier whenCallerIsModule() {
+        vm.startPrank(address(leafMessageModule));
+        _;
+    }
 
-    function test_RevertIf_ZeroAmount() public {
-        vm.startPrank(users.owner);
+    function test_RevertIf_ZeroAmount() public whenCallerIsModule {
         vm.expectRevert(abi.encodePacked("ZR"));
         gauge.notifyRewardWithoutClaim(0);
     }
 
-    function test_NotifyRewardWithoutClaimWithNonZeroAmount() public {
+    function test_NotifyRewardWithoutClaimWithNonZeroAmount() public whenCallerIsModule {
         uint256 reward = TOKEN_1;
 
-        vm.startPrank(users.owner);
-        deal(address(rewardToken), users.owner, reward);
-        rewardToken.approve(address(gauge), reward);
+        deal(address(xVelo), leafMessageModule, reward);
+        xVelo.approve(address(gauge), reward);
         // check collect fees not called
         vm.expectCall(address(pool), abi.encodeWithSelector(CLPool.collectFees.selector), 0);
         gauge.notifyRewardWithoutClaim(reward);
@@ -77,9 +74,9 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
         assertEq(_token0, 3e15);
         assertEq(_token1, 0);
 
-        vm.startPrank(users.owner);
-        deal(address(rewardToken), users.owner, reward);
-        rewardToken.approve(address(gauge), reward);
+        vm.startPrank(leafMessageModule);
+        deal(address(xVelo), leafMessageModule, reward);
+        xVelo.approve(address(gauge), reward);
         // check collect fees not called
         vm.expectCall(address(pool), abi.encodeWithSelector(CLPool.collectFees.selector), 0);
         gauge.notifyRewardWithoutClaim(reward);
@@ -94,14 +91,16 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
         assertEq(token1.balanceOf(address(feesVotingReward)), 0);
     }
 
-    function test_NotifyRewardWithoutClaimUpdatesGaugeStateCorrectlyOnAdditionalRewardInSameEpoch() public {
+    function test_NotifyRewardWithoutClaimUpdatesGaugeStateCorrectlyOnAdditionalRewardInSameEpoch()
+        public
+        whenCallerIsModule
+    {
         uint256 epochStart = block.timestamp;
         skip(1 days);
         uint256 reward = TOKEN_1;
-        deal(address(rewardToken), users.owner, reward * 3);
+        deal(address(xVelo), leafMessageModule, reward * 3);
 
-        vm.startPrank(users.owner);
-        rewardToken.approve(address(gauge), reward * 3);
+        xVelo.approve(address(gauge), reward * 3);
         gauge.notifyRewardWithoutClaim(reward);
 
         assertEq(gauge.rewardRate(), reward / (6 days));
@@ -112,7 +111,7 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
         skip(1 days);
         gauge.notifyRewardWithoutClaim(reward2);
 
-        assertEq(rewardToken.balanceOf(address(gauge)), reward + reward2);
+        assertEq(xVelo.balanceOf(address(gauge)), reward + reward2);
         assertEq(gauge.rewardRate(), (reward + reward2) / (5 days));
         assertEq(gauge.rewardRateByEpoch(epochStart), (reward + reward2) / (5 days));
         assertEq(gauge.periodFinish(), block.timestamp + (5 days));
@@ -133,9 +132,9 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
         clCallee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
 
         skip(1 days);
-        vm.startPrank(users.owner);
-        deal(address(rewardToken), users.owner, reward);
-        rewardToken.approve(address(gauge), reward);
+        vm.startPrank(leafMessageModule);
+        deal(address(xVelo), leafMessageModule, reward);
+        xVelo.approve(address(gauge), reward);
         gauge.notifyRewardWithoutClaim(reward);
 
         assertEq(gauge.rewardRate(), reward / (6 days));
@@ -183,9 +182,9 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
         skip(4 days);
 
         // add additional rewards in the same epoch
-        vm.startPrank(users.owner);
-        deal(address(rewardToken), users.owner, reward2);
-        rewardToken.approve(address(gauge), reward2);
+        vm.startPrank(leafMessageModule);
+        deal(address(xVelo), leafMessageModule, reward2);
+        xVelo.approve(address(gauge), reward2);
         gauge.notifyRewardWithoutClaim(reward2);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
@@ -200,20 +199,19 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        assertApproxEqAbs(rewardToken.balanceOf(users.alice), reward * 3, 1e6);
-        assertLe(rewardToken.balanceOf(address(gauge)), 1e6);
+        assertApproxEqAbs(xVelo.balanceOf(users.alice), reward * 3, 1e6);
+        assertLe(xVelo.balanceOf(address(gauge)), 1e6);
     }
 
-    function test_NotifyRewardWithoutClaimBeforeNotifyRewardAmountWithRewardRollover() public {
+    function test_NotifyRewardWithoutClaimBeforeNotifyRewardAmountWithRewardRollover() public whenCallerIsModule {
         uint256 reward = TOKEN_1;
         uint256 reward2 = TOKEN_1 * 2;
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // add initial rewards
-        vm.startPrank(users.owner);
-        deal(address(rewardToken), users.owner, reward2);
-        rewardToken.approve(address(gauge), reward2);
+        deal(address(xVelo), leafMessageModule, reward2);
+        xVelo.approve(address(gauge), reward2);
         gauge.notifyRewardWithoutClaim(reward2);
 
         skip(2 days);
@@ -244,7 +242,7 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        assertApproxEqAbs(rewardToken.balanceOf(users.alice), reward * 3, 1e6);
-        assertLe(rewardToken.balanceOf(address(gauge)), 1e6);
+        assertApproxEqAbs(xVelo.balanceOf(users.alice), reward * 3, 1e6);
+        assertLe(xVelo.balanceOf(address(gauge)), 1e6);
     }
 }

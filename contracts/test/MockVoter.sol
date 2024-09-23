@@ -30,12 +30,14 @@ contract MockVoter is IVoter {
     IFactoryRegistry public immutable override factoryRegistry;
     IVotingEscrow public immutable override ve;
     address public immutable override emergencyCouncil;
+    address public immutable override governor;
 
     constructor(address _rewardToken, address _factoryRegistry, address _ve) {
         rewardToken = IERC20(_rewardToken);
         factoryRegistry = IFactoryRegistry(_factoryRegistry);
         ve = IVotingEscrow(_ve);
         emergencyCouncil = msg.sender;
+        governor = msg.sender;
     }
 
     function claimFees(address[] memory, address[][] memory, uint256) external override {}

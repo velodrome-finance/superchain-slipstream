@@ -88,7 +88,6 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
     mockVoter.address,
     constants.AddressZero, //nft address
-    mockTimePoolDeployer.address,
     constants.AddressZero, //xerc20 address
     constants.AddressZero //bridge address
   )) as CLLeafGaugeFactory

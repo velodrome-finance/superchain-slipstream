@@ -108,7 +108,6 @@ const v3CoreFactoryFixture: Fixture<{
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
     mockVoter.address,
     nft.address,
-    factory.address,
     constants.AddressZero, // xerc20 address
     constants.AddressZero // bridge address
   )) as CLLeafGaugeFactory

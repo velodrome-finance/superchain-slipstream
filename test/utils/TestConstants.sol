@@ -29,6 +29,7 @@ abstract contract TestConstants is Constants {
     address public constant forwarder = address(11);
 
     uint256 constant WEEK = 1 weeks;
+    uint256 constant DAY = 1 days;
 
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
     uint256 internal constant Q96 = 0x1000000000000000000000000;

@@ -99,7 +99,7 @@ contract WithdrawTest is CLLeafGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726099200);
+        assertEq(gauge.lastUpdateTime(tokenId), 1726704000);
 
         (uint128 nftLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(nft), -TICK_SPACING_60, TICK_SPACING_60)));
@@ -152,7 +152,7 @@ contract WithdrawTest is CLLeafGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(2 * TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726099200);
+        assertEq(gauge.lastUpdateTime(tokenId), 1726704000);
 
         (uint128 nftLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(nft), TICK_SPACING_60, 2 * TICK_SPACING_60)));
@@ -205,7 +205,7 @@ contract WithdrawTest is CLLeafGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726099200);
+        assertEq(gauge.lastUpdateTime(tokenId), 1726704000);
 
         (uint128 nftLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(nft), -2 * TICK_SPACING_60, -TICK_SPACING_60)));
@@ -249,7 +249,7 @@ contract WithdrawTest is CLLeafGaugeTest {
         emit Withdraw({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.withdraw({tokenId: tokenId});
 
-        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
 
         assertEq(nft.balanceOf(address(gauge)), 0);
@@ -266,7 +266,7 @@ contract WithdrawTest is CLLeafGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726876800);
+        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
     }
 
     function test_WithdrawUpdatesPositionCorrectly() public {

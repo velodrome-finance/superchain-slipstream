@@ -24,14 +24,29 @@ abstract contract BaseForkFixture is BaseFixture {
         vm.stopPrank();
     }
 
-    function deployDependencies() public virtual override {
+    function deployRootDependencies() public override {
         factoryRegistry = IFactoryRegistry(vm.parseJsonAddress(addresses, ".FactoryRegistry"));
         weth = IERC20(vm.parseJsonAddress(addresses, ".WETH"));
         op = IERC20(vm.parseJsonAddress(addresses, ".OP"));
         rootVoter = IVoter(vm.parseJsonAddress(addresses, ".Voter"));
         rewardToken = ERC20(vm.parseJsonAddress(addresses, ".Velo"));
-        votingRewardsFactory = IVotingRewardsFactory(vm.parseJsonAddress(addresses, ".VotingRewardsFactory"));
         escrow = IVotingEscrow(vm.parseJsonAddress(addresses, ".VotingEscrow"));
         minter = IMinter(vm.parseJsonAddress(addresses, ".Minter"));
+        // rootVotingRewardsFactory = IRootVotingRewardsFactory(vm.parseJsonAddress(addresses, ".VotingRewardsFactory"));
+        rootVotingRewardsFactory =
+            IRootVotingRewardsFactory(new MockRootVotingRewardsFactory(address(rootMessageBridge)));
+        rootMailbox = IMailbox(vm.parseJsonAddress(addresses, ".Mailbox"));
+    }
+
+    function deployDependencies() public virtual override {
+        // factoryRegistry = IFactoryRegistry(vm.parseJsonAddress(addresses, ".FactoryRegistry"));
+        // weth = IERC20(vm.parseJsonAddress(addresses, ".WETH"));
+        // op = IERC20(vm.parseJsonAddress(addresses, ".OP"));
+        // rootVoter = IVoter(vm.parseJsonAddress(addresses, ".Voter"));
+        // rewardToken = ERC20(vm.parseJsonAddress(addresses, ".Velo"));
+        votingRewardsFactory = IVotingRewardsFactory(vm.parseJsonAddress(addresses, ".VotingRewardsFactory"));
+        // escrow = IVotingEscrow(vm.parseJsonAddress(addresses, ".VotingEscrow"));
+        // minter = IMinter(vm.parseJsonAddress(addresses, ".Minter"));
+        // rootVotingRewardsFactory = IRootVotingRewardsFactory(vm.parseJsonAddress(addresses, ".VotingRewardsFactory"));
     }
 }
