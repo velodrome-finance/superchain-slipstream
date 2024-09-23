@@ -1,8 +1,7 @@
-import { ethers, waffle } from 'hardhat'
+import { ethers, network, waffle } from 'hardhat'
 import { Wallet } from 'ethers'
 import { MockTimeCLPool } from '../../typechain/MockTimeCLPool'
 import { expect } from './shared/expect'
-
 import { poolFixture } from './shared/fixtures'
 import snapshotGasCost from './shared/snapshotGasCost'
 
@@ -30,6 +29,17 @@ describe('CLPool gas tests', () => {
   let loadFixture: ReturnType<typeof createFixtureLoader>
 
   before('create fixture loader', async () => {
+    await network.provider.request({
+      method: 'hardhat_reset',
+      params: [
+        {
+          forking: {
+            jsonRpcUrl: process.env.OPTIMISM_RPC_URL,
+            blockNumber: Number(process.env.FORK_BLOCK_NUMBER),
+          },
+        },
+      ],
+    })
     ;[wallet, other] = await (ethers as any).getSigners()
     loadFixture = createFixtureLoader([wallet, other])
   })

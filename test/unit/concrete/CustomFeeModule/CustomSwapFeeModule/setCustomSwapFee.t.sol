@@ -78,6 +78,7 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+
         uint24 initialFee = poolFactory.getSwapFee(pool);
         uint24 maxFee = 100_000;
 

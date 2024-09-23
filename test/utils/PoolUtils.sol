@@ -24,40 +24,6 @@ abstract contract PoolUtils is Test, TestConstants, Events {
         });
     }
 
-    /// @dev Use only with test addresses
-    function createAndCheckPool(
-        CLFactory factory,
-        address token0,
-        address token1,
-        int24 tickSpacing,
-        uint160 sqrtPriceX96
-    ) internal returns (address _pool) {
-        address create2Addr =
-            computeAddress({factory: address(factory), tokenA: token0, tokenB: token1, tickSpacing: tickSpacing});
-
-        vm.expectEmit(true, true, true, true, address(factory));
-        emit PoolCreated({token0: TEST_TOKEN_0, token1: TEST_TOKEN_1, tickSpacing: tickSpacing, pool: create2Addr});
-
-        CLPool pool = CLPool(factory.createPool(token0, token1, tickSpacing, sqrtPriceX96));
-        (uint160 _sqrtPriceX96,,,,,) = pool.slot0();
-
-        assertGt(factory.allPoolsLength(), 0);
-        assertEq(factory.allPools(factory.allPoolsLength() - 1), create2Addr);
-        assertEq(factory.getPool(token0, token1, tickSpacing), create2Addr);
-        assertEq(factory.getPool(token1, token0, tickSpacing), create2Addr);
-        assertEq(factory.isPair(create2Addr), true);
-        assertEq(pool.factory(), address(factory));
-        assertEq(pool.token0(), TEST_TOKEN_0);
-        assertEq(pool.token1(), TEST_TOKEN_1);
-        assertEq(pool.tickSpacing(), tickSpacing);
-        assertEq(pool.factoryRegistry(), address(factory.factoryRegistry()));
-        assertEq(pool.gauge(), address(0));
-        assertEq(pool.nft(), address(0));
-        assertEq(uint256(_sqrtPriceX96), uint256(sqrtPriceX96));
-
-        return address(pool);
-    }
-
     function encodePriceSqrt(uint256 reserve1, uint256 reserve0) public pure returns (uint160) {
         reserve1 = reserve1 * 2 ** 192;
         uint256 division = reserve1 / reserve0;

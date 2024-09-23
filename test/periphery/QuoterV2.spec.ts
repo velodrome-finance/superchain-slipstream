@@ -1,6 +1,6 @@
 import { Fixture } from 'ethereum-waffle'
 import { constants, Wallet } from 'ethers'
-import { ethers, waffle } from 'hardhat'
+import { ethers, network, waffle } from 'hardhat'
 import { MockTimeNonfungiblePositionManager, QuoterV2, TestERC20 } from '../../typechain'
 import completeFixture from './shared/completeFixture'
 import { FeeAmount, MaxUint128, TICK_SPACINGS } from './shared/constants'
@@ -48,6 +48,17 @@ describe('QuoterV2', function () {
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
 
   before('create fixture loader', async () => {
+    await network.provider.request({
+      method: 'hardhat_reset',
+      params: [
+        {
+          forking: {
+            jsonRpcUrl: `${process.env.OPTIMISM_RPC_URL}`,
+            blockNumber: Number(process.env.FORK_BLOCK_NUMBER),
+          },
+        },
+      ],
+    })
     const wallets = await (ethers as any).getSigners()
     ;[wallet, trader] = wallets
     loadFixture = waffle.createFixtureLoader(wallets)

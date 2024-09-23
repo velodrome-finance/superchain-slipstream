@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLFactory.t.sol";
+import {CLFactoryTest, ICLPool, CLLeafGauge} from "./CLFactory.t.sol";
 
 contract CreatePoolTest is CLFactoryTest {
     function test_RevertIf_SameTokens() public {
@@ -51,7 +51,7 @@ contract CreatePoolTest is CLFactoryTest {
     }
 
     function test_CreatePoolWithReversedTokens() public {
-        createAndCheckPool({
+        address pool = createAndCheckPool({
             factory: poolFactory,
             token0: TEST_TOKEN_1,
             token1: TEST_TOKEN_0,
@@ -68,6 +68,7 @@ contract CreatePoolTest is CLFactoryTest {
             tickSpacing: TICK_SPACING_STABLE,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+
         assertEqUint(poolFactory.getSwapFee(pool), 100);
     }
 
@@ -79,6 +80,7 @@ contract CreatePoolTest is CLFactoryTest {
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+
         assertEqUint(poolFactory.getSwapFee(pool), 500);
     }
 
@@ -90,11 +92,13 @@ contract CreatePoolTest is CLFactoryTest {
             tickSpacing: TICK_SPACING_MEDIUM,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+
         assertEqUint(poolFactory.getSwapFee(pool), 500);
 
         CLLeafGauge gauge =
             CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
         address feesVotingReward = leafVoter.gaugeToFees(address(gauge));
+
         assertEq(address(gauge.pool()), address(pool));
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));
@@ -109,11 +113,13 @@ contract CreatePoolTest is CLFactoryTest {
             tickSpacing: TICK_SPACING_HIGH,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+
         assertEqUint(poolFactory.getSwapFee(pool), 3_000);
 
         CLLeafGauge gauge =
             CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
         address feesVotingReward = leafVoter.gaugeToFees(address(gauge));
+
         assertEq(address(gauge.pool()), address(pool));
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));
@@ -128,11 +134,13 @@ contract CreatePoolTest is CLFactoryTest {
             tickSpacing: TICK_SPACING_VOLATILE,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+
         assertEqUint(poolFactory.getSwapFee(pool), 10_000);
 
         CLLeafGauge gauge =
             CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
         address feesVotingReward = leafVoter.gaugeToFees(address(gauge));
+
         assertEq(address(gauge.pool()), address(pool));
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));

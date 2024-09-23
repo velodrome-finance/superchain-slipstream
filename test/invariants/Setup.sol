@@ -118,7 +118,9 @@ contract SetupCL {
             _swapFeeManager: address(this),
             _unstakedFeeManager: address(this),
             _voter: address(voter),
-            _poolImplementation: address(poolImplementation)
+            _poolImplementation: address(poolImplementation),
+            _gaugeFactory: address(0), // TODO: fix this, adding address(0) to hide compilation error
+            _nft: address(0) // TODO: fix this, adding address(0) to hide compilation error
         });
 
         poolFactory.enableTickSpacing(10, 500);

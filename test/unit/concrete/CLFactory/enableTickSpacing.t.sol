@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {CLFactoryTest} from "./CLFactory.t.sol";
+import {CLFactoryTest, ICLPool} from "./CLFactory.t.sol";
 
 contract EnableTickSpacingTest is CLFactoryTest {
     function setUp() public override {
@@ -50,7 +50,7 @@ contract EnableTickSpacingTest is CLFactoryTest {
         assertEq(poolFactory.tickSpacings().length, 8);
         assertEq(poolFactory.tickSpacings()[7], 250);
 
-        createAndCheckPool({
+        address pool = createAndCheckPool({
             factory: poolFactory,
             token0: TEST_TOKEN_0,
             token1: TEST_TOKEN_1,

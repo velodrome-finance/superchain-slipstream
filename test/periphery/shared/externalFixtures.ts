@@ -8,10 +8,10 @@ import {
   TestERC20,
   NonfungibleTokenPositionDescriptor,
   MockTimeNonfungiblePositionManager,
+  CLLeafGaugeFactory,
 } from '../../../typechain'
 import { MockVoter } from '../../../typechain/MockVoter'
 import { CustomUnstakedFeeModule, MockVotingRewardsFactory } from '../../../typechain'
-import { CLLeafGaugeFactory } from '../../../typechain/CLLeafGaugeFactory'
 import { constants } from 'ethers'
 
 import WETH9 from '../contracts/WETH9.json'
@@ -72,7 +72,9 @@ const v3CoreFactoryFixture: Fixture<{
     wallet.address,
     wallet.address,
     mockVoter.address,
-    pool.address
+    pool.address,
+    constants.AddressZero, //leafGaugeFactory
+    constants.AddressZero //nft
   )) as ICLFactory
 
   const customUnstakedFeeModule = (await CustomUnstakedFeeModuleFactory.deploy(

@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import {CreateXLibrary} from "contracts/libraries/CreateXLibrary.sol";
 import {ICLRootGaugeFactory} from "contracts/mainnet/gauge/ICLRootGaugeFactory.sol";
-import {ICLRootPool} from "contracts/mainnet/pool/ICLRootPool.sol";
+import {IRootCLPool} from "contracts/mainnet/pool/IRootCLPool.sol";
 import {CLRootGauge} from "contracts/mainnet/gauge/CLRootGauge.sol";
 import {IRootBribeVotingReward} from "contracts/mainnet/interfaces/rewards/IRootBribeVotingReward.sol";
 import {IRootFeesVotingReward} from "contracts/mainnet/interfaces/rewards/IRootFeesVotingReward.sol";
@@ -38,10 +38,10 @@ contract CLRootGaugeFactory is ICLRootGaugeFactory {
         returns (address gauge)
     {
         require(msg.sender == voter, "NV");
-        address token0 = ICLRootPool(_pool).token0();
-        address token1 = ICLRootPool(_pool).token1();
-        int24 tickSpacing = ICLRootPool(_pool).tickSpacing();
-        uint256 chainId = ICLRootPool(_pool).chainId();
+        address token0 = IRootCLPool(_pool).token0();
+        address token1 = IRootCLPool(_pool).token1();
+        int24 tickSpacing = IRootCLPool(_pool).tickSpacing();
+        uint256 chainId = IRootCLPool(_pool).chainId();
         bytes32 salt = keccak256(abi.encodePacked(chainId, token0, token1, tickSpacing));
         bytes11 entropy = bytes11(salt);
 

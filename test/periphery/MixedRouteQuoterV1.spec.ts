@@ -72,7 +72,7 @@ describe('MixedRouteQuoterV1', function () {
         {
           forking: {
             jsonRpcUrl: `${process.env.OPTIMISM_RPC_URL}`,
-            blockNumber: 114000000,
+            blockNumber: Number(process.env.FORK_BLOCK_NUMBER),
           },
         },
       ],

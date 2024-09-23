@@ -1,25 +1,31 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity =0.7.6;
 
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@nomad-xyz/src/ExcessivelySafeCall.sol";
 import "./interfaces/ICLFactory.sol";
 import "./interfaces/fees/IFeeModule.sol";
 import "./interfaces/IVoter.sol";
 import "./interfaces/IFactoryRegistry.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@nomad-xyz/src/ExcessivelySafeCall.sol";
 import "./CLPool.sol";
+import {CreateXLibrary} from "../libraries/CreateXLibrary.sol";
+import {NonfungiblePositionManager} from "../periphery/NonfungiblePositionManager.sol";
+import {ICLLeafGaugeFactory} from "../gauge/interfaces/ICLLeafGaugeFactory.sol";
 
 /// @title Canonical CL factory
 /// @notice Deploys CL pools and manages ownership and control over pool protocol fees
 contract CLFactory is ICLFactory {
     using ExcessivelySafeCall for address;
+    using CreateXLibrary for bytes11;
 
     /// @inheritdoc ICLFactory
     IVoter public immutable override voter;
     /// @inheritdoc ICLFactory
     address public immutable override poolImplementation;
     /// @inheritdoc ICLFactory
-    IFactoryRegistry public immutable override factoryRegistry;
+    address public immutable override gaugeFactory;
+    /// @inheritdoc ICLFactory
+    address public immutable override nft;
     /// @inheritdoc ICLFactory
     address public override owner;
     /// @inheritdoc ICLFactory
@@ -42,19 +48,29 @@ contract CLFactory is ICLFactory {
     int24[] private _tickSpacings;
     mapping(address => mapping(address => mapping(int24 => address))) internal _getPool;
 
+    struct PoolCreateX {
+        uint256 chainId;
+        bytes32 salt;
+        address gauge;
+        bytes11 entropy;
+    }
+
     constructor(
         address _owner,
         address _swapFeeManager,
         address _unstakedFeeManager,
         address _voter,
-        address _poolImplementation
+        address _poolImplementation,
+        address _gaugeFactory,
+        address _nft
     ) {
         owner = _owner;
         swapFeeManager = _swapFeeManager;
         unstakedFeeManager = _unstakedFeeManager;
         voter = IVoter(_voter);
-        factoryRegistry = IVoter(_voter).factoryRegistry();
         poolImplementation = _poolImplementation;
+        gaugeFactory = _gaugeFactory;
+        nft = _nft;
         defaultUnstakedFee = 100_000;
         emit OwnerChanged(address(0), _owner);
         emit SwapFeeManagerChanged(address(0), _swapFeeManager);
@@ -93,13 +109,26 @@ contract CLFactory is ICLFactory {
             master: poolImplementation,
             salt: keccak256(abi.encode(token0, token1, tickSpacing))
         });
+
+        // calculate gauge address corresponding to the pool
+        PoolCreateX memory pcx;
+
+        assembly {
+            let chainId := chainid()
+            mstore(add(pcx, 0x20), chainId)
+        }
+        pcx.salt = keccak256(abi.encodePacked(pcx.chainId, token0, token1, tickSpacing));
+        pcx.entropy = bytes11(pcx.salt);
+        pcx.gauge = pcx.entropy.computeCreate3Address({_deployer: gaugeFactory});
+
         CLPool(pool).initialize({
             _factory: address(this),
             _token0: token0,
             _token1: token1,
             _tickSpacing: tickSpacing,
-            _factoryRegistry: address(factoryRegistry),
-            _sqrtPriceX96: sqrtPriceX96
+            _sqrtPriceX96: sqrtPriceX96,
+            _gauge: pcx.gauge,
+            _nft: nft
         });
         allPools.push(pool);
         _isPool[pool] = true;

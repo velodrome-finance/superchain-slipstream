@@ -1,0 +1,96 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+pragma solidity >=0.5.0;
+
+import {IVoter} from "../../core/interfaces/IVoter.sol";
+
+/// @title The interface for the CL Factory
+/// @notice The CL Factory facilitates creation of CL pools and control over the protocol fees
+interface IRootCLPoolFactory {
+    /// @notice Emitted when the owner of the factory is changed
+    /// @param oldOwner The owner before the owner was changed
+    /// @param newOwner The owner after the owner was changed
+    event OwnerChanged(address indexed oldOwner, address indexed newOwner);
+
+    /// @notice Emitted when a root pool is created
+    /// @param token0 The first token of the pool by address sort order
+    /// @param token1 The second token of the pool by address sort order
+    /// @param tickSpacing The minimum number of ticks between initialized ticks
+    /// @param pool The address of the created pool
+    event RootPoolCreated(address indexed token0, address indexed token1, int24 indexed tickSpacing, address pool);
+
+    /// @notice Emitted when a new tick spacing is enabled for pool creation via the factory
+    /// @param tickSpacing The minimum number of ticks between initialized ticks for pools
+    /// @param fee The default fee for a pool created with a given tickSpacing
+    event TickSpacingEnabled(int24 indexed tickSpacing, uint24 indexed fee);
+
+    /// @notice The address of the pool implementation contract used to deploy proxies / clones
+    /// @return The address of the pool implementation contract
+    function poolImplementation() external view returns (address);
+
+    /// @notice Address of the bridge contract
+    /// @dev Used as a registry of chains
+    function bridge() external view returns (address);
+
+    /// @notice Returns the current owner of the factory
+    /// @dev Can be changed by the current owner via setOwner
+    /// @return The address of the factory owner
+    function owner() external view returns (address);
+
+    /// @notice Returns a default fee for a tick spacing.
+    /// @dev Use getFee for the most up to date fee for a given pool.
+    /// A tick spacing can never be removed, so this value should be hard coded or cached in the calling context
+    /// @param tickSpacing The enabled tick spacing. Returns 0 if not enabled
+    /// @return fee The default fee for the given tick spacing
+    function tickSpacingToFee(int24 tickSpacing) external view returns (uint24 fee);
+
+    /// @notice Returns a list of enabled tick spacings. Used to iterate through pools created by the factory
+    /// @dev Tick spacings cannot be removed. Tick spacings are not ordered
+    /// @return List of enabled tick spacings
+    function tickSpacings() external view returns (int24[] memory);
+
+    /// @notice Returns the pool address for a given pair of tokens and a tick spacing, or address 0 if it does not exist
+    /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
+    /// @param tokenA The contract address of either token0 or token1
+    /// @param tokenB The contract address of the other token
+    /// @param tickSpacing The tick spacing of the pool
+    /// @return pool The pool address
+    function getPool(address tokenA, address tokenB, int24 tickSpacing) external view returns (address pool);
+
+    /// @notice Return address of pool created by this factory given its `index`
+    /// @param index Index of the pool
+    /// @return The pool address in the given index
+    function allPools(uint256 index) external view returns (address);
+
+    /// @notice Returns the number of pools created from this factory
+    /// @return Number of pools created from this factory
+    function allPoolsLength() external view returns (uint256);
+
+    /// @notice Used in VotingEscrow to determine if a contract is a valid pool of the factory
+    /// @param pool The address of the pool to check
+    /// @return Whether the pool is a valid pool of the factory
+    function isPair(address pool) external view returns (bool);
+
+    /// @notice Creates a root pool for the given two tokens and fee
+    /// @param chainid leaf chain's chainid
+    /// @param tokenA One of the two tokens in the desired pool
+    /// @param tokenB The other of the two tokens in the desired pool
+    /// @param tickSpacing The desired tick spacing for the pool
+    /// @param sqrtPriceX96 The initial sqrt price of the pool, as a Q64.96
+    /// @dev tokenA and tokenB may be passed in either order: token0/token1 or token1/token0. The call will
+    /// revert if the pool already exists, the tick spacing is invalid, or the token arguments are invalid
+    /// @return pool The address of the newly created pool
+    function createPool(uint256 chainid, address tokenA, address tokenB, int24 tickSpacing, uint160 sqrtPriceX96)
+        external
+        returns (address pool);
+
+    /// @notice Updates the owner of the factory
+    /// @dev Must be called by the current owner
+    /// @param _owner The new owner of the factory
+    function setOwner(address _owner) external;
+
+    /// @notice Enables a certain tickSpacing
+    /// @dev Tick spacings may never be removed once enabled
+    /// @param tickSpacing The spacing between ticks to be enforced in the pool
+    /// @param fee The default fee associated with a given tick spacing
+    function enableTickSpacing(int24 tickSpacing, uint24 fee) external;
+}

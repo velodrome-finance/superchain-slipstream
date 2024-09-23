@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, Wallet } from 'ethers'
+import { BigNumber, BigNumberish, utils, Wallet } from 'ethers'
 import { ethers } from 'hardhat'
 import { constants } from 'ethers'
 import { MockTimeCLPool } from '../../../typechain/MockTimeCLPool'
@@ -10,7 +10,6 @@ import { MockVoter } from '../../../typechain/MockVoter'
 import { CustomUnstakedFeeModule, MockFactoryRegistry, MockVotingRewardsFactory } from '../../../typechain'
 import { CLLeafGaugeFactory } from '../../../typechain/CLLeafGaugeFactory'
 import { encodePriceSqrt } from './utilities'
-
 import { Fixture } from 'ethereum-waffle'
 
 interface FactoryFixture {
@@ -81,7 +80,9 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     wallet.address,
     wallet.address,
     mockVoter.address,
-    mockTimePool.address
+    mockTimePool.address,
+    constants.AddressZero, // leafGaugeFactory
+    constants.AddressZero // nft
   )) as CLFactory
 
   const gaugeFactory = (await GaugeFactoryFactory.deploy(

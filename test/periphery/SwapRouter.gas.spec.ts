@@ -1,4 +1,5 @@
 import { Fixture } from 'ethereum-waffle'
+import env, { network } from 'hardhat'
 import { BigNumber, constants, ContractTransaction, Wallet } from 'ethers'
 import { ethers, waffle, artifacts } from 'hardhat'
 import { ICLPool, IWETH9, MockTimeSwapRouter, TestERC20 } from '../../typechain'
@@ -102,6 +103,18 @@ describe('SwapRouter gas tests', function () {
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
 
   before('create fixture loader', async () => {
+    await network.provider.request({
+      method: 'hardhat_reset',
+      params: [
+        {
+          forking: {
+            jsonRpcUrl: `${process.env.OPTIMISM_RPC_URL}`,
+            blockNumber: Number(process.env.FORK_BLOCK_NUMBER),
+          },
+        },
+      ],
+    })
+
     const wallets = await (ethers as any).getSigners()
     ;[wallet, trader] = wallets
 

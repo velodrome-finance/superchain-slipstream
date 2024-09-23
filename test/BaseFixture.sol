@@ -1,11 +1,12 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import "forge-std/Test.sol";
+
+import {CLFactory} from "contracts/core/CLFactory.sol";
 import {CreateXLibrary} from "contracts/libraries/CreateXLibrary.sol";
 import {ICreateX} from "contracts/libraries/ICreateX.sol";
-
-import "forge-std/Test.sol";
-import {CLFactory} from "contracts/core/CLFactory.sol";
 import {ICLPool, CLPool} from "contracts/core/CLPool.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
 import {
@@ -37,9 +38,35 @@ import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol
 import {Constants} from "script/constants/Constants.sol";
 
 import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
+import {IXERC20} from "contracts/superchain/IXERC20.sol";
+import {IXERC20Lockbox} from "contracts/superchain/IXERC20Lockbox.sol";
+import {IChainRegistry} from "contracts/mainnet/interfaces/bridge/IChainRegistry.sol";
+import {IRootMessageBridge} from "contracts/mainnet/interfaces/bridge/IRootMessageBridge.sol";
+import {IRootHLMessageModule} from "contracts/mainnet/interfaces/bridge/hyperlane/IRootHLMessageModule.sol";
+import {RootCLPool} from "contracts/mainnet/pool/RootCLPool.sol";
+import {RootCLPoolFactory} from "contracts/mainnet/pool/RootCLPoolFactory.sol";
+
+import {TestERC20} from "contracts/periphery/test/TestERC20.sol";
 
 abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     using CreateXLibrary for bytes11;
+
+    string public addresses;
+
+    // root variables
+    uint32 public rootChainId = 10; // root chain id
+    uint256 public rootId; // root fork id (used by foundry)
+    uint256 public rootStartTime; // root fork start time (set to start of epoch for simplicity)
+
+    // root superchain contracts
+    IXERC20 public xVelo;
+    IRootMessageBridge public rootMessageBridge;
+    IRootHLMessageModule public rootMessageModule;
+
+    // root-only contracts
+    IXERC20Lockbox public rootLockbox;
+    RootCLPoolFactory public rootPoolFactory;
+    RootCLPool public rootPoolImplementation;
 
     CLFactory public poolFactory;
     CLPool public poolImplementation;
@@ -80,11 +107,13 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     /// mocks
     ICreateX public cx = ICreateX(0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed);
 
-    uint256 public blockNumber = 125312540;
-
-    uint256 public rootStartTime; // root fork start time (set to start of epoch for simplicity)
+    uint256 public blockNumber = vm.envUint("FORK_BLOCK_NUMBER");
 
     function setUp() public virtual {
+        string memory root = vm.projectRoot();
+        string memory path = string(abi.encodePacked(root, "/test/fork/addresses.json"));
+        addresses = vm.readFile(path);
+
         //createX block is 113736815
         require(blockNumber >= 113736816, "BlockNumber too low");
 
@@ -97,6 +126,8 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
 
         rewardToken = new ERC20("", "");
 
+        setUpDependencyForks();
+        setUpRootChain();
         deployDependencies();
 
         address deployer = users.deployer;
@@ -106,6 +137,10 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
                 initCode: abi.encodePacked(type(CLPool).creationCode)
             })
         );
+
+        vm.prank(deployer);
+        leafGaugeFactory = CLLeafGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: deployer}));
+        nft = NonfungiblePositionManager(payable(NFT_POSITION_MANAGER.computeCreate3Address({_deployer: deployer})));
 
         poolFactory = CLFactory(
             cx.deployCreate3({
@@ -117,7 +152,9 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
                         users.owner, // swap fee manager
                         users.owner, // unstaked fee manager
                         address(leafVoter), // leaf voter
-                        address(poolImplementation) // pool implementation
+                        address(poolImplementation), // pool implementation
+                        address(leafGaugeFactory),
+                        address(nft)
                     )
                 )
             })
@@ -128,6 +165,8 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         poolFactory.enableTickSpacing(60, 3_000);
         // 200 tick spacing fee is manually overriden in tests as it is part of default settings
         vm.stopPrank();
+
+        vm.startPrank(deployer);
 
         // deploy nft contracts
         nftDescriptor = NonfungibleTokenPositionDescriptor(
@@ -231,6 +270,53 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         labelContracts();
     }
 
+    function setUpDependencyForks() public virtual {
+        xVelo = IXERC20(vm.parseJsonAddress(addresses, ".XVelo"));
+        rootMessageBridge = IRootMessageBridge(vm.parseJsonAddress(addresses, ".MessageBridge"));
+        rootMessageModule = IRootHLMessageModule(vm.parseJsonAddress(addresses, ".MessageModule"));
+        rootLockbox = IXERC20Lockbox(vm.parseJsonAddress(addresses, ".Lockbox"));
+    }
+
+    function deployRootDependencies() public virtual {
+        // deploy root mocks
+        vm.startPrank(users.deployer); // switch to deployer for now to avoid collisions with the Leaf Pools
+        // rootMailbox = new MultichainMockMailbox(root);
+        // rootIsm = new TestIsm();
+        // rootRewardToken = new TestERC20("Reward Token", "RWRD", 18);
+        // mockFactoryRegistry = new MockFactoryRegistry();
+        // mockEscrow = new MockVotingEscrow();
+        // rootVoter = IVoter(
+        //     new MockVoter({
+        //         _rewardToken: address(rewardToken),
+        //         _factoryRegistry: address(factoryRegistry),
+        //         _ve: address(escrow)
+        //         //_governor: users.owner
+        //     })
+        // );
+        rootVoter = IVoter(new MockVoter({_rewardToken: address(0), _factoryRegistry: address(0), _ve: address(0)}));
+        //_governor: users.owner
+    }
+
+    function setUpRootChain() public virtual {
+        deployRootDependencies();
+
+        rootPoolImplementation = new RootCLPool();
+        rootPoolFactory = RootCLPoolFactory(
+            cx.deployCreate3({
+                salt: CreateXLibrary.calculateSalt({_entropy: CL_POOL_FACTORY_ENTROPY, _deployer: users.deployer}),
+                initCode: abi.encodePacked(
+                    type(RootCLPoolFactory).creationCode,
+                    abi.encode(
+                        users.owner,
+                        address(rootPoolImplementation), // root pool implementation
+                        address(rootMessageBridge) // message bridge
+                    )
+                )
+            })
+        );
+        vm.stopPrank();
+    }
+
     /// @dev Deploys mocks of external dependencies
     ///      Override if using a fork test
     function deployDependencies() public virtual {
@@ -272,6 +358,45 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         vm.stopPrank();
     }
 
+    /// @dev Use only with test addresses
+    function createAndCheckPool(
+        CLFactory factory,
+        address token0,
+        address token1,
+        int24 tickSpacing,
+        uint160 sqrtPriceX96
+    ) internal returns (address _pool) {
+        address create2Addr =
+            computeAddress({factory: address(factory), tokenA: token0, tokenB: token1, tickSpacing: tickSpacing});
+
+        vm.expectEmit(true, true, true, true, address(factory));
+        emit PoolCreated({token0: TEST_TOKEN_0, token1: TEST_TOKEN_1, tickSpacing: tickSpacing, pool: create2Addr});
+
+        CLPool pool = CLPool(factory.createPool(token0, token1, tickSpacing, sqrtPriceX96));
+        (uint160 _sqrtPriceX96,,,,,) = pool.slot0();
+
+        assertGt(factory.allPoolsLength(), 0);
+        assertEq(factory.allPools(factory.allPoolsLength() - 1), create2Addr);
+        assertEq(factory.getPool(token0, token1, tickSpacing), create2Addr);
+        assertEq(factory.getPool(token1, token0, tickSpacing), create2Addr);
+        assertEq(factory.isPair(create2Addr), true);
+        assertEq(pool.factory(), address(factory));
+        assertEq(pool.token0(), TEST_TOKEN_0);
+        assertEq(pool.token1(), TEST_TOKEN_1);
+        assertEq(pool.tickSpacing(), tickSpacing);
+        assertEq(ICLPool(pool).nft(), address(nft));
+
+        //NOTE: vm.chainId(rootChainId) is not working to set the correct chainId for chainid()
+        bytes32 salt = keccak256(abi.encodePacked(uint256(0), TEST_TOKEN_0, TEST_TOKEN_1, tickSpacing));
+        bytes11 entropy = bytes11(salt);
+        address expectedGauge = entropy.computeCreate3Address({_deployer: address(leafGaugeFactory)});
+
+        assertEq(pool.gauge(), expectedGauge);
+        assertEq(uint256(_sqrtPriceX96), uint256(sqrtPriceX96));
+
+        return address(pool);
+    }
+
     function labelContracts() internal virtual {
         vm.label({account: address(weth), newLabel: "WETH"});
         vm.label({account: address(leafVoter), newLabel: "Leaf Voter"});
@@ -287,6 +412,8 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         vm.label({account: address(customUnstakedFeeModule), newLabel: "Custom Unstaked Fee Module"});
         vm.label({account: address(lpMigrator), newLabel: "Lp Migrator"});
         vm.label({account: address(cx), newLabel: "Create X"});
+        vm.label({account: address(rootPoolFactory), newLabel: "Root Pool Factory"});
+        vm.label({account: address(rootPoolImplementation), newLabel: "Root Pool Implementation"});
     }
 
     function createUser(string memory name) internal returns (address payable user) {

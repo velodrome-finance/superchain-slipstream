@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLFactory.t.sol";
+import {CLFactoryTest, ICLPool, CLLeafGauge} from "./CLFactory.t.sol";
 
 contract GetUnstakedFeeTest is CLFactoryTest {
     CLLeafGauge public gauge;

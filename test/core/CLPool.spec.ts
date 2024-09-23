@@ -1,4 +1,4 @@
-import { ethers, waffle } from 'hardhat'
+import { ethers, network, waffle } from 'hardhat'
 import { BigNumber, BigNumberish, constants, Wallet } from 'ethers'
 import { CoreTestERC20 } from '../../typechain/CoreTestERC20'
 import { CLFactory } from '../../typechain/CLFactory'
@@ -71,6 +71,17 @@ describe('CLPool', () => {
   let createPool: ThenArg<ReturnType<typeof poolFixture>>['createPool']
 
   before('create fixture loader', async () => {
+    await network.provider.request({
+      method: 'hardhat_reset',
+      params: [
+        {
+          forking: {
+            jsonRpcUrl: process.env.OPTIMISM_RPC_URL,
+            blockNumber: Number(process.env.FORK_BLOCK_NUMBER),
+          },
+        },
+      ],
+    })
     ;[wallet, other] = await (ethers as any).getSigners()
     loadFixture = createFixtureLoader([wallet, other])
   })
@@ -131,8 +142,9 @@ describe('CLPool', () => {
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
-        mockFactoryRegistry.address,
-        encodePriceSqrt(1, 1)
+        encodePriceSqrt(1, 1),
+        ethers.constants.AddressZero,
+        ethers.constants.AddressZero
       )
       await expect(
         pool.initialize(
@@ -140,8 +152,9 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          mockFactoryRegistry.address,
-          encodePriceSqrt(1, 1)
+          encodePriceSqrt(1, 1),
+          ethers.constants.AddressZero,
+          ethers.constants.AddressZero
         )
       ).to.be.reverted
     })
@@ -152,8 +165,9 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          mockFactoryRegistry.address,
-          1
+          1,
+          ethers.constants.AddressZero,
+          ethers.constants.AddressZero
         )
       ).to.be.revertedWith('R')
       await expect(
@@ -162,8 +176,9 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          mockFactoryRegistry.address,
-          MIN_SQRT_RATIO.sub(1)
+          MIN_SQRT_RATIO.sub(1),
+          ethers.constants.AddressZero,
+          ethers.constants.AddressZero
         )
       ).to.be.revertedWith('R')
     })
@@ -174,8 +189,9 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          mockFactoryRegistry.address,
-          MAX_SQRT_RATIO
+          MAX_SQRT_RATIO,
+          ethers.constants.AddressZero,
+          ethers.constants.AddressZero
         )
       ).to.be.revertedWith('R')
       await expect(
@@ -184,8 +200,9 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          mockFactoryRegistry.address,
-          BigNumber.from(2).pow(160).sub(1)
+          BigNumber.from(2).pow(160).sub(1),
+          ethers.constants.AddressZero,
+          ethers.constants.AddressZero
         )
       ).to.be.revertedWith('R')
     })
@@ -195,8 +212,9 @@ describe('CLPool', () => {
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
-        mockFactoryRegistry.address,
-        MIN_SQRT_RATIO
+        MIN_SQRT_RATIO,
+        ethers.constants.AddressZero,
+        ethers.constants.AddressZero
       )
       expect((await pool.slot0()).tick).to.eq(getMinTick(1))
     })
@@ -206,8 +224,9 @@ describe('CLPool', () => {
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
-        mockFactoryRegistry.address,
-        MAX_SQRT_RATIO.sub(1)
+        MAX_SQRT_RATIO.sub(1),
+        ethers.constants.AddressZero,
+        ethers.constants.AddressZero
       )
       expect((await pool.slot0()).tick).to.eq(getMaxTick(1) - 1)
     })
@@ -218,8 +237,9 @@ describe('CLPool', () => {
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
-        mockFactoryRegistry.address,
-        price
+        price,
+        ethers.constants.AddressZero,
+        ethers.constants.AddressZero
       )
 
       const { sqrtPriceX96, observationIndex } = await pool.slot0()
@@ -233,8 +253,9 @@ describe('CLPool', () => {
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
-        mockFactoryRegistry.address,
-        encodePriceSqrt(1, 1)
+        encodePriceSqrt(1, 1),
+        ethers.constants.AddressZero,
+        ethers.constants.AddressZero
       )
 
       checkObservationEquals(await pool.observations(0), {
@@ -253,8 +274,9 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          mockFactoryRegistry.address,
-          sqrtPriceX96
+          sqrtPriceX96,
+          ethers.constants.AddressZero,
+          ethers.constants.AddressZero
         )
       )
         .to.emit(pool, 'Initialize')
@@ -294,8 +316,9 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          mockFactoryRegistry.address,
-          encodePriceSqrt(1, 10)
+          encodePriceSqrt(1, 10),
+          ethers.constants.AddressZero,
+          ethers.constants.AddressZero
         )
         await mint(wallet.address, minTick, maxTick, 3161)
       })
@@ -1154,7 +1177,15 @@ describe('CLPool', () => {
     const p0 = (await sqrtTickMath.getSqrtRatioAtTick(-24081)).add(1)
     // initialize at a price of ~0.3 token1/token0
     // meaning if you swap in 2 token0, you should end up getting 0 token1
-    await pool.initialize(factory.address, token0.address, token1.address, 1, mockFactoryRegistry.address, p0)
+    await pool.initialize(
+      factory.address,
+      token0.address,
+      token1.address,
+      1,
+      p0,
+      ethers.constants.AddressZero,
+      ethers.constants.AddressZero
+    )
     expect(await pool.liquidity(), 'current pool liquidity is 1').to.eq(0)
     expect((await pool.slot0()).tick, 'pool tick is -24081').to.eq(-24081)
 
@@ -1316,8 +1347,9 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          mockFactoryRegistry.address,
-          encodePriceSqrt(1, 1)
+          encodePriceSqrt(1, 1),
+          ethers.constants.AddressZero,
+          ethers.constants.AddressZero
         )
       })
       it('oracle starting state after initialization', async () => {

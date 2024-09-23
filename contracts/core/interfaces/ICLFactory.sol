@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import {IVoter} from "contracts/core/interfaces/IVoter.sol";
-import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
+import {IVoter} from "./IVoter.sol";
 
 /// @title The interface for the CL Factory
 /// @notice The CL Factory facilitates creation of CL pools and control over the protocol fees
@@ -57,9 +56,13 @@ interface ICLFactory {
     /// @return The address of the pool implementation contract
     function poolImplementation() external view returns (address);
 
-    /// @notice Factory registry for valid pool / gauge / rewards factories
-    /// @return The address of the factory registry
-    function factoryRegistry() external view returns (IFactoryRegistry);
+    /// @notice The gauge factory to create gauges
+    /// @return The address of the gauge factory
+    function gaugeFactory() external view returns (address);
+
+    /// @notice Address of the NonfungiblePositionManager used to create nfts
+    /// @return The address of the NonfungiblePositionManager
+    function nft() external view returns (address);
 
     /// @notice Returns the current owner of the factory
     /// @dev Can be changed by the current owner via setOwner

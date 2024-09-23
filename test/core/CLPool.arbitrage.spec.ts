@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js'
 import { BigNumber, BigNumberish, Wallet } from 'ethers'
+import env, { network } from 'hardhat'
 import { ethers, waffle } from 'hardhat'
 import { MockTimeCLPool } from '../../typechain/MockTimeCLPool'
 import { TickMathTest } from '../../typechain/TickMathTest'
@@ -54,6 +55,17 @@ describe('CLPool arbitrage tests', () => {
   let loadFixture: ReturnType<typeof createFixtureLoader>
 
   before('create fixture loader', async () => {
+    await network.provider.request({
+      method: 'hardhat_reset',
+      params: [
+        {
+          forking: {
+            jsonRpcUrl: process.env.OPTIMISM_RPC_URL,
+            blockNumber: Number(process.env.FORK_BLOCK_NUMBER),
+          },
+        },
+      ],
+    })
     ;[wallet, arbitrageur] = await (ethers as any).getSigners()
     loadFixture = createFixtureLoader([wallet, arbitrageur])
   })

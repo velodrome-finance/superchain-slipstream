@@ -1,4 +1,4 @@
-import { ethers, waffle } from 'hardhat'
+import { ethers, network, waffle } from 'hardhat'
 import { BigNumber } from 'ethers'
 import { MockTimeNonfungiblePositionManager, PairFlash, TestERC20, ICLFactory, Quoter } from '../../typechain'
 import completeFixture from './shared/completeFixture'
@@ -72,6 +72,17 @@ describe('PairFlash test', () => {
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
 
   before('create fixture loader', async () => {
+    await network.provider.request({
+      method: 'hardhat_reset',
+      params: [
+        {
+          forking: {
+            jsonRpcUrl: `${process.env.OPTIMISM_RPC_URL}`,
+            blockNumber: Number(process.env.FORK_BLOCK_NUMBER),
+          },
+        },
+      ],
+    })
     loadFixture = waffle.createFixtureLoader(wallets)
   })
 

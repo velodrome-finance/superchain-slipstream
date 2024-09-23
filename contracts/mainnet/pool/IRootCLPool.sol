@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity >=0.5.0;
+pragma solidity =0.7.6;
 
-/// @title Pool state that never changes
-/// @notice These parameters are not defined as immutable (due to proxy pattern) but are effectively immutable.
-/// @notice i.e., the methods will always return the same values
-interface ICLPoolConstants {
+interface IRootCLPool {
+    /// @notice Chain Id this pool links to
+    function chainId() external view returns (uint256);
+
     /// @notice The contract that deployed the pool, which must adhere to the ICLFactory interface
     /// @return The contract address
     function factory() external view returns (address);
@@ -17,14 +17,6 @@ interface ICLPoolConstants {
     /// @return The token contract address
     function token1() external view returns (address);
 
-    /// @notice The gauge corresponding to this pool
-    /// @return The gauge contract address
-    function gauge() external view returns (address);
-
-    /// @notice The nft manager
-    /// @return The nft manager contract address
-    function nft() external view returns (address);
-
     /// @notice The pool tick spacing
     /// @dev Ticks can only be used at multiples of this value, minimum of 1 and always positive
     /// e.g.: a tickSpacing of 3 means ticks can be initialized every 3rd tick, i.e., ..., -6, -3, 0, 3, 6, ...
@@ -32,9 +24,15 @@ interface ICLPoolConstants {
     /// @return The tick spacing
     function tickSpacing() external view returns (int24);
 
-    /// @notice The maximum amount of position liquidity that can use any tick in the range
-    /// @dev This parameter is enforced per tick to prevent liquidity from overflowing a uint128 at any point, and
-    /// also prevents out-of-range liquidity from being used to prevent adding in-range liquidity to a pool
-    /// @return The max amount of liquidity per tick
-    function maxLiquidityPerTick() external view returns (uint128);
+    /// @notice Initialize function used in proxy deployment
+    /// @dev Can be called once only
+    /// Price is represented as a sqrt(amountToken1/amountToken0) Q64.96 value
+    /// @dev not locked because it initializes unlocked
+    /// @param _chainId Chain Id this pool links to
+    /// @param _factory The CL factory contract address
+    /// @param _token0 The first token of the pool by address sort order
+    /// @param _token1 The second token of the pool by address sort order
+    /// @param _tickSpacing The pool tick spacing
+    function initialize(uint256 _chainId, address _factory, address _token0, address _token1, int24 _tickSpacing)
+        external;
 }

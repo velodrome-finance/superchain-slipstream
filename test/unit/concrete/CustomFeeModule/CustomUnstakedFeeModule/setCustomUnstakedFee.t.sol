@@ -42,6 +42,7 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+
         leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)});
 
         vm.expectEmit(true, true, false, false, address(customUnstakedFeeModule));
@@ -79,7 +80,9 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+
         leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)});
+
         uint24 maxFee = 1_000_000;
         uint24 defaultFee = 100_000;
 

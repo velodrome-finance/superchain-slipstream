@@ -84,7 +84,5 @@ contract CLLeafGaugeFactory is ICLLeafGaugeFactory {
                 )
             )
         });
-
-        ICLPool(gcx.pool).setGaugeAndPositionManager({_gauge: gauge, _nft: nft});
     }
 }
