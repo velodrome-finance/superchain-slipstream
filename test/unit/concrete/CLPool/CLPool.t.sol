@@ -1,6 +1,6 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../../BaseFixture.sol";
+import "../../../BaseForkFixture.sol";
 
-abstract contract CLPoolTest is BaseFixture {}
+abstract contract CLPoolTest is BaseForkFixture {}

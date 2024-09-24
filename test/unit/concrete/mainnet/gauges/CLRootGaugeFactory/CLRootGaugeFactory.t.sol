@@ -2,7 +2,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../../../../fork/BaseForkFixture.sol";
+import "../../../../../BaseForkFixture.sol";
 
 abstract contract CLRootGaugeFactoryTest is BaseForkFixture {
     using CreateXLibrary for bytes11;

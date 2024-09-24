@@ -1,9 +1,9 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../../BaseFixture.sol";
+import "../../../BaseForkFixture.sol";
 
-contract CLLeafGaugeFactoryTest is BaseFixture {
+contract CLLeafGaugeFactoryTest is BaseForkFixture {
     function test_InitialState() public {
         assertEq(leafGaugeFactory.voter(), address(leafVoter));
         assertEq(leafGaugeFactory.xerc20(), address(xVelo));

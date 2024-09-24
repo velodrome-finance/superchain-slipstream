@@ -2,9 +2,9 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
-import "../../../../BaseFixture.sol";
+import "../../../../BaseForkFixture.sol";
 
-contract CustomSwapFeeModuleTest is BaseFixture {
+contract CustomSwapFeeModuleTest is BaseForkFixture {
     function setUp() public virtual override {
         super.setUp();
         customSwapFeeModule = new CustomSwapFeeModule({_factory: address(poolFactory)});

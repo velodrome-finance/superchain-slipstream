@@ -2,10 +2,10 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import "../../../BaseFixture.sol";
+import "../../../BaseForkFixture.sol";
 import {TickTest, Tick} from "contracts/core/test/TickTest.sol";
 
-contract TickTestBase is BaseFixture {
+contract TickTestBase is BaseForkFixture {
     TickTest public tickTest;
 
     function setUp() public virtual override {

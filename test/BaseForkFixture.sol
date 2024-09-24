@@ -56,7 +56,7 @@ import {IMailbox} from "contracts/test/interfaces/IMailbox.sol";
 
 import {TestERC20} from "contracts/periphery/test/TestERC20.sol";
 
-abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
+abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     using CreateXLibrary for bytes11;
     using SafeCast for uint256;
 
@@ -120,10 +120,13 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     ERC20 public token0;
     ERC20 public token1;
 
+    IERC20 public op;
+
     Users internal users;
 
     TestCLCallee public clCallee;
     NFTManagerCallee public nftCallee;
+    NFTManagerCallee public e2eNftCallee;
 
     CustomSwapFeeModule public customSwapFeeModule;
     CustomUnstakedFeeModule public customUnstakedFeeModule;
@@ -311,7 +314,17 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         deal({token: address(token0), to: users.charlie, give: TOKEN_1 * 100});
         deal({token: address(token1), to: users.charlie, give: TOKEN_1 * 100});
 
+        // e2e specific setup
+        e2eNftCallee = new NFTManagerCallee(address(weth), address(op), address(nft));
+
+        deal({token: address(op), to: users.alice, give: TOKEN_1 * 100});
+        deal({token: address(weth), to: users.alice, give: TOKEN_1 * 100});
+
         vm.startPrank(users.alice);
+        op.approve(address(e2eNftCallee), type(uint256).max);
+        weth.approve(address(e2eNftCallee), type(uint256).max);
+        // e2e specific setup
+
         token0.approve(address(nft), type(uint256).max);
         token1.approve(address(nft), type(uint256).max);
         token0.approve(address(clCallee), type(uint256).max);
@@ -331,6 +344,15 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
         rootMessageBridge = IRootMessageBridge(vm.parseJsonAddress(addresses, ".MessageBridge"));
         rootMessageModule = IRootHLMessageModule(vm.parseJsonAddress(addresses, ".MessageModule"));
         rootLockbox = IXERC20Lockbox(vm.parseJsonAddress(addresses, ".Lockbox"));
+        rootMailbox = IMailbox(vm.parseJsonAddress(addresses, ".Mailbox"));
+
+        factoryRegistry = IFactoryRegistry(vm.parseJsonAddress(addresses, ".FactoryRegistry"));
+        weth = IERC20(vm.parseJsonAddress(addresses, ".WETH"));
+        op = IERC20(vm.parseJsonAddress(addresses, ".OP"));
+        rootVoter = IVoter(vm.parseJsonAddress(addresses, ".Voter"));
+        rewardToken = ERC20(vm.parseJsonAddress(addresses, ".Velo"));
+        escrow = IVotingEscrow(vm.parseJsonAddress(addresses, ".VotingEscrow"));
+        minter = IMinter(vm.parseJsonAddress(addresses, ".Minter"));
 
         // set root message bridge limits
         setLimits(type(uint112).max, 0);
@@ -338,25 +360,8 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
 
     function deployRootDependencies() public virtual {
         // deploy root mocks
-        vm.startPrank(users.deployer); // switch to deployer for now to avoid collisions with the Leaf Pools
-        // rootMailbox = new MultichainMockMailbox(root);
-        // rootIsm = new TestIsm();
-        // rootRewardToken = new TestERC20("Reward Token", "RWRD", 18);
-        // mockFactoryRegistry = new MockFactoryRegistry();
-        // mockEscrow = new MockVotingEscrow();
-        // rootVoter = IVoter(
-        //     new MockVoter({
-        //         _rewardToken: address(rewardToken),
-        //         _factoryRegistry: address(factoryRegistry),
-        //         _ve: address(escrow)
-        //         //_governor: users.owner
-        //     })
-        // );
-        rootVoter = IVoter(new MockVoter({_rewardToken: address(0), _factoryRegistry: address(0), _ve: address(0)}));
         rootVotingRewardsFactory =
             IRootVotingRewardsFactory(new MockRootVotingRewardsFactory(address(rootMessageBridge)));
-        //_governor: users.owner
-        vm.stopPrank();
     }
 
     function setUpRootChain() public virtual {
@@ -399,10 +404,7 @@ abstract contract BaseFixture is Test, TestConstants, Events, PoolUtils {
     /// @dev Deploys mocks of external dependencies
     ///      Override if using a fork test
     function deployDependencies() public virtual {
-        factoryRegistry = IFactoryRegistry(new MockFactoryRegistry());
         votingRewardsFactory = IVotingRewardsFactory(new MockVotingRewardsFactory());
-        weth = IERC20(address(new MockWETH()));
-        escrow = IVotingEscrow(new MockVotingEscrow(users.owner));
     }
 
     /// @dev Helper utility to forward time to next week

@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./BaseForkFixture.sol";
+import "../BaseForkFixture.sol";
 
 contract NotifyRewardAmountWithoutClaimForkTest is BaseForkFixture {
     CLPool public pool;

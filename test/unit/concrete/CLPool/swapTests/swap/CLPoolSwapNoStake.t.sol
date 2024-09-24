@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../../../../BaseFixture.sol";
+import "../../../../../BaseForkFixture.sol";
 import {CLPoolSwapTests} from "../CLPoolSwapTests.t.sol";
 
 /// @dev The CLPool swap snapshot was translated into swap_asserts.json

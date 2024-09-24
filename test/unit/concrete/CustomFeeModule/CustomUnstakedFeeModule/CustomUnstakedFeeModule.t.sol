@@ -1,9 +1,9 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../../../BaseFixture.sol";
+import "../../../../BaseForkFixture.sol";
 
-abstract contract CustomUnstakedFeeModuleTest is BaseFixture {
+abstract contract CustomUnstakedFeeModuleTest is BaseForkFixture {
     function setUp() public virtual override {
         super.setUp();
         customUnstakedFeeModule = new CustomUnstakedFeeModule({_factory: address(poolFactory)});

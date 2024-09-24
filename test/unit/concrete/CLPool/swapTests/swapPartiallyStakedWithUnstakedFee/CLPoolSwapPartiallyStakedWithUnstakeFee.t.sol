@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../../../../BaseFixture.sol";
+import "../../../../../BaseForkFixture.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
 import {CLPoolSwapTests} from "../CLPoolSwapTests.t.sol";
 import "forge-std/StdJson.sol";

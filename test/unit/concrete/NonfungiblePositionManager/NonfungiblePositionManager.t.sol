@@ -1,9 +1,9 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../../BaseFixture.sol";
+import "../../../BaseForkFixture.sol";
 
-contract NonfungiblePositionManagerTest is BaseFixture {
+contract NonfungiblePositionManagerTest is BaseForkFixture {
     CLPool public pool;
     CLLeafGauge public gauge;
 

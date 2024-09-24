@@ -1,9 +1,9 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../../BaseFixture.sol";
+import "../../../BaseForkFixture.sol";
 
-contract CLFactoryTest is BaseFixture {
+contract CLFactoryTest is BaseForkFixture {
     function test_InitialState() public virtual {
         assertEq(address(poolFactory.voter()), address(leafVoter));
         assertEq(poolFactory.poolImplementation(), address(poolImplementation));
