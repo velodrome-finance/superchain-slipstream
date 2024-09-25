@@ -10,7 +10,7 @@ import {IVotingEscrow} from "../core/interfaces/IVotingEscrow.sol";
 import {IFactoryRegistry} from "../core/interfaces/IFactoryRegistry.sol";
 import {IRootCLPool} from "../mainnet/pool/IRootCLPool.sol";
 import {IRootCLPoolFactory} from "../mainnet/pool/IRootCLPoolFactory.sol";
-import {IVotingRewardsFactory} from "../test/interfaces/IVotingRewardsFactory.sol";
+import {IRootVotingRewardsFactory} from "../mainnet/interfaces/rewards/IRootVotingRewardsFactory.sol";
 
 contract MockVoter is IVoter {
     // mock addresses used for testing gauge creation, a copy is stored in Constants.sol
@@ -63,7 +63,7 @@ contract MockVoter is IVoter {
         rewards[0] = IRootCLPool(_pool).token0();
         rewards[1] = IRootCLPool(_pool).token1();
         (address feesVotingReward, address bribeVotingReward) =
-            IVotingRewardsFactory(votingRewardsFactory).createRewards(forwarder, rewards);
+            IRootVotingRewardsFactory(votingRewardsFactory).createRewards(forwarder, rewards);
 
         address gauge =
             CLRootGaugeFactory(gaugeFactory).createGauge(forwarder, _pool, feesVotingReward, address(rewardToken), true);

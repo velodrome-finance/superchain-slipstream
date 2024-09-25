@@ -18,7 +18,15 @@ contract NonfungiblePositionManagerTest is BaseForkFixture {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        vm.prank(address(leafMessageModule));
+        gauge = CLLeafGauge(
+            leafVoter.createGauge({
+                _poolFactory: address(poolFactory),
+                _pool: address(pool),
+                _votingRewardsFactory: address(votingRewardsFactory),
+                _gaugeFactory: address(leafGaugeFactory)
+            })
+        );
 
         vm.startPrank(users.alice);
         token0.approve(address(gauge), type(uint256).max);

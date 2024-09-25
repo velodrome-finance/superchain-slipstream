@@ -18,7 +18,15 @@ contract EarnedTest is CLLeafGaugeTest {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        vm.prank(address(leafMessageModule));
+        gauge = CLLeafGauge(
+            leafVoter.createGauge({
+                _poolFactory: address(poolFactory),
+                _pool: address(pool),
+                _votingRewardsFactory: address(votingRewardsFactory),
+                _gaugeFactory: address(leafGaugeFactory)
+            })
+        );
 
         vm.startPrank(users.bob);
         deal({token: address(token0), to: users.bob, give: TOKEN_1 * 10});

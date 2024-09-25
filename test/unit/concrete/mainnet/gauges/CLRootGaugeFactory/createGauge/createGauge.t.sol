@@ -33,7 +33,7 @@ contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
         assertEq(rootGauge.voter(), address(rootVoter));
         assertEq(rootGauge.lockbox(), address(rootLockbox));
         assertEq(rootGauge.bridge(), address(rootMessageBridge));
-        assertEq(rootGauge.chainid(), leaf);
+        assertEq(rootGauge.chainid(), leafChainId);
 
         // vm.selectFork({forkId: leafId});
         //

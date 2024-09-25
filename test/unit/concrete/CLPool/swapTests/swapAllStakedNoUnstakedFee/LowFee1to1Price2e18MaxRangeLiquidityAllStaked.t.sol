@@ -25,8 +25,15 @@ contract LowFee1to1Price2e18MaxRangeLiquidityAllStakedTest is CLPoolSwapAllStake
         stakedPositions.push(
             Position({tickLower: getMinTick(tickSpacing), tickUpper: getMaxTick(tickSpacing), liquidity: liquidity})
         );
-
-        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        vm.startPrank(address(leafMessageModule));
+        gauge = CLLeafGauge(
+            leafVoter.createGauge({
+                _poolFactory: address(poolFactory),
+                _pool: address(pool),
+                _votingRewardsFactory: address(votingRewardsFactory),
+                _gaugeFactory: address(leafGaugeFactory)
+            })
+        );
 
         vm.stopPrank();
 

@@ -95,8 +95,15 @@ contract CreatePoolTest is CLFactoryTest {
 
         assertEqUint(poolFactory.getSwapFee(pool), 500);
 
-        CLLeafGauge gauge =
-            CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        vm.prank(address(leafMessageModule));
+        CLLeafGauge gauge = CLLeafGauge(
+            leafVoter.createGauge({
+                _poolFactory: address(poolFactory),
+                _pool: address(pool),
+                _votingRewardsFactory: address(votingRewardsFactory),
+                _gaugeFactory: address(leafGaugeFactory)
+            })
+        );
         address feesVotingReward = leafVoter.gaugeToFees(address(gauge));
 
         assertEq(address(gauge.pool()), address(pool));
@@ -115,9 +122,15 @@ contract CreatePoolTest is CLFactoryTest {
         });
 
         assertEqUint(poolFactory.getSwapFee(pool), 3_000);
-
-        CLLeafGauge gauge =
-            CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        vm.prank(address(leafMessageModule));
+        CLLeafGauge gauge = CLLeafGauge(
+            leafVoter.createGauge({
+                _poolFactory: address(poolFactory),
+                _pool: address(pool),
+                _votingRewardsFactory: address(votingRewardsFactory),
+                _gaugeFactory: address(leafGaugeFactory)
+            })
+        );
         address feesVotingReward = leafVoter.gaugeToFees(address(gauge));
 
         assertEq(address(gauge.pool()), address(pool));
@@ -136,9 +149,15 @@ contract CreatePoolTest is CLFactoryTest {
         });
 
         assertEqUint(poolFactory.getSwapFee(pool), 10_000);
-
-        CLLeafGauge gauge =
-            CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        vm.prank(address(leafMessageModule));
+        CLLeafGauge gauge = CLLeafGauge(
+            leafVoter.createGauge({
+                _poolFactory: address(poolFactory),
+                _pool: address(pool),
+                _votingRewardsFactory: address(votingRewardsFactory),
+                _gaugeFactory: address(leafGaugeFactory)
+            })
+        );
         address feesVotingReward = leafVoter.gaugeToFees(address(gauge));
 
         assertEq(address(gauge.pool()), address(pool));

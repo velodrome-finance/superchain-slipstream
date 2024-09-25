@@ -24,7 +24,15 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
 
-        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        vm.prank(address(leafMessageModule));
+        gauge = CLLeafGauge(
+            leafVoter.createGauge({
+                _poolFactory: address(poolFactory),
+                _pool: address(pool),
+                _votingRewardsFactory: address(votingRewardsFactory),
+                _gaugeFactory: address(leafGaugeFactory)
+            })
+        );
         feesVotingReward = leafVoter.gaugeToFees(address(gauge));
 
         skipToNextEpoch(0);
@@ -37,7 +45,7 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
     }
 
     modifier whenCallerIsModule() {
-        vm.startPrank(leafMessageModule);
+        vm.startPrank(address(leafMessageModule));
         _;
     }
 
@@ -246,8 +254,8 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
         assertEq(token1.balanceOf(address(feesVotingReward)), 0);
 
         skip(1 days);
-        vm.startPrank(leafMessageModule);
-        deal(address(xVelo), leafMessageModule, reward);
+        vm.startPrank(address(leafMessageModule));
+        deal(address(xVelo), address(leafMessageModule), reward);
         xVelo.approve(address(gauge), reward);
         gauge.notifyRewardWithoutClaim(reward);
 

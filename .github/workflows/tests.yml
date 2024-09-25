@@ -74,5 +74,7 @@ jobs:
         run: OUTPUT_FILENAME=Optimism.json CONSTANTS_FILENAME=Optimism.json forge test -vvv
         env: 
           OPTIMISM_RPC_URL: ${{ secrets.OPTIMISM_RPC_URL }}
+          MODE_RPC_URL: https://mainnet.mode.network
           PRIVATE_KEY_DEPLOY: ${{ secrets.PRIVATE_KEY_DEPLOY }}
           FORK_BLOCK_NUMBER: 125588630 
+          LEAF_FORK_BLOCK_NUMBER: 13512406

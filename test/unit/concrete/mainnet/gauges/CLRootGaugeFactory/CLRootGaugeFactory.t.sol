@@ -11,17 +11,18 @@ abstract contract CLRootGaugeFactoryTest is BaseForkFixture {
 
     function setUp() public virtual override {
         super.setUp();
+        vm.selectFork({forkId: rootId});
         // use users.alice as tx.origin
         deal({token: address(weth), to: users.alice, give: MESSAGE_FEE});
         vm.prank(users.alice);
         weth.approve({spender: address(rootMessageBridge), amount: MESSAGE_FEE});
 
         vm.prank(Ownable(address(rootMessageBridge)).owner());
-        IChainRegistry(address(rootMessageBridge)).registerChain({_chainid: leaf});
+        IChainRegistry(address(rootMessageBridge)).registerChain({_chainid: leafChainId});
 
         rootPool = RootCLPool(
             rootPoolFactory.createPool({
-                chainid: leaf,
+                chainid: leafChainId,
                 tokenA: address(token0),
                 tokenB: address(token1),
                 tickSpacing: 1,

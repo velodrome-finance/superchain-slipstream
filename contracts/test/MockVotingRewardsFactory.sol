@@ -10,7 +10,6 @@ import {MockBribeVotingReward} from "./MockBribeVotingReward.sol";
 contract MockVotingRewardsFactory is IVotingRewardsFactory {
     /// @inheritdoc IVotingRewardsFactory
     function createRewards(
-        address, // _forwarder
         address[] memory // _rewards
     ) external override returns (address feesVotingReward, address bribeVotingReward) {
         feesVotingReward = address(new MockFeesVotingReward());

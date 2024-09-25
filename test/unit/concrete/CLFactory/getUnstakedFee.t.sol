@@ -14,8 +14,15 @@ contract GetUnstakedFeeTest is CLFactoryTest {
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
-
-        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        vm.startPrank(address(leafMessageModule));
+        gauge = CLLeafGauge(
+            leafVoter.createGauge({
+                _poolFactory: address(poolFactory),
+                _pool: address(pool),
+                _votingRewardsFactory: address(votingRewardsFactory),
+                _gaugeFactory: address(leafGaugeFactory)
+            })
+        );
 
         assertEq(leafVoter.isAlive(address(gauge)), true);
         assertEq(uint256(poolFactory.getUnstakedFee(pool)), 100_000);

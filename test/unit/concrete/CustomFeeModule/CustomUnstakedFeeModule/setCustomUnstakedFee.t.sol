@@ -42,8 +42,15 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+        vm.startPrank(address(leafMessageModule));
+        leafVoter.createGauge({
+            _poolFactory: address(poolFactory),
+            _pool: address(pool),
+            _votingRewardsFactory: address(votingRewardsFactory),
+            _gaugeFactory: address(leafGaugeFactory)
+        });
 
-        leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)});
+        vm.startPrank(users.feeManager);
 
         vm.expectEmit(true, true, false, false, address(customUnstakedFeeModule));
         emit SetCustomFee({pool: pool, fee: 5_000});
@@ -80,8 +87,14 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
-
-        leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)});
+        vm.startPrank(address(leafMessageModule));
+        leafVoter.createGauge({
+            _poolFactory: address(poolFactory),
+            _pool: address(pool),
+            _votingRewardsFactory: address(votingRewardsFactory),
+            _gaugeFactory: address(leafGaugeFactory)
+        });
+        vm.startPrank(users.feeManager);
 
         uint24 maxFee = 1_000_000;
         uint24 defaultFee = 100_000;

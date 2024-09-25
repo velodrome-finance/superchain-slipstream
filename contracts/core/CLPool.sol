@@ -179,6 +179,11 @@ contract CLPool is ICLPool {
         return ICLFactory(factory).getUnstakedFee(address(this));
     }
 
+    /// @inheritdoc ICLPoolConstants
+    function tokens() external view override returns (address token0_, address token1_) {
+        return (token0, token1);
+    }
+
     /// @dev Common checks for valid tick inputs.
     function checkTicks(int24 tickLower, int24 tickUpper) private pure {
         require(tickLower < tickUpper, "TLU");

@@ -21,7 +21,15 @@ contract DepositTest is CLLeafGaugeTest {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        vm.startPrank(address(leafMessageModule));
+        gauge = CLLeafGauge(
+            leafVoter.createGauge({
+                _poolFactory: address(poolFactory),
+                _pool: address(pool),
+                _votingRewardsFactory: address(votingRewardsFactory),
+                _gaugeFactory: address(leafGaugeFactory)
+            })
+        );
 
         vm.startPrank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
@@ -89,7 +97,13 @@ contract DepositTest is CLLeafGaugeTest {
             tickSpacing: TICK_SPACING_60,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
-        leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool2)});
+        vm.startPrank(address(leafMessageModule));
+        leafVoter.createGauge({
+            _poolFactory: address(poolFactory),
+            _pool: address(pool2),
+            _votingRewardsFactory: address(votingRewardsFactory),
+            _gaugeFactory: address(leafGaugeFactory)
+        });
 
         vm.startPrank(users.charlie);
         testToken0.approve(address(nft), type(uint256).max);
@@ -123,7 +137,13 @@ contract DepositTest is CLLeafGaugeTest {
             tickSpacing: TICK_SPACING_10,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
-        leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool2)});
+        vm.startPrank(address(leafMessageModule));
+        leafVoter.createGauge({
+            _poolFactory: address(poolFactory),
+            _pool: address(pool2),
+            _votingRewardsFactory: address(votingRewardsFactory),
+            _gaugeFactory: address(leafGaugeFactory)
+        });
 
         vm.startPrank(users.charlie);
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({

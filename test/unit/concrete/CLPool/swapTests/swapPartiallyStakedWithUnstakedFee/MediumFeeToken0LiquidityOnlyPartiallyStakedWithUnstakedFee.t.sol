@@ -31,8 +31,15 @@ contract MediumFeeToken0LiquidityOnlyPartiallyStakedWithUnstakedFeeTest is
         stakedPositions.push(Position({tickLower: 0, tickUpper: 2_000 * tickSpacing, liquidity: liquidity / 2}));
 
         unstakedPositions.push(Position({tickLower: 0, tickUpper: 2_000 * tickSpacing, liquidity: liquidity / 2}));
-
-        gauge = CLLeafGauge(leafVoter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        vm.startPrank(address(leafMessageModule));
+        gauge = CLLeafGauge(
+            leafVoter.createGauge({
+                _poolFactory: address(poolFactory),
+                _pool: address(pool),
+                _votingRewardsFactory: address(votingRewardsFactory),
+                _gaugeFactory: address(leafGaugeFactory)
+            })
+        );
 
         vm.stopPrank();
 

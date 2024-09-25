@@ -11,11 +11,12 @@ abstract contract CLRootGaugeTest is BaseForkFixture {
     function setUp() public virtual override {
         super.setUp();
 
+        vm.selectFork({forkId: rootId});
         vm.prank(Ownable(address(rootMessageBridge)).owner());
-        IChainRegistry(address(rootMessageBridge)).registerChain({_chainid: leaf});
+        IChainRegistry(address(rootMessageBridge)).registerChain({_chainid: leafChainId});
         address rootPool = address(
             rootPoolFactory.createPool({
-                chainid: leaf,
+                chainid: leafChainId,
                 tokenA: address(token0),
                 tokenB: address(token1),
                 tickSpacing: 1,

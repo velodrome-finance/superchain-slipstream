@@ -17,6 +17,11 @@ interface ICLPoolConstants {
     /// @return The token contract address
     function token1() external view returns (address);
 
+    /// @notice The two tokens of the pool
+    /// @return The token0 contract address
+    /// @return The token1 contract address
+    function tokens() external view returns (address, address);
+
     /// @notice The gauge corresponding to this pool
     /// @return The gauge contract address
     function gauge() external view returns (address);

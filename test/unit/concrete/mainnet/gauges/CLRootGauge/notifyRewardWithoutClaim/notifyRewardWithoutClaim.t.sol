@@ -27,7 +27,7 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
     }
 
     modifier whenTheAmountIsGreaterThanOrEqualToTheTimeInAWeek() {
-        amount = VelodromeTimeLibrary.WEEK;
+        amount = TOKEN_1 * 1_000;
         _;
     }
 
@@ -49,8 +49,12 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
         deal({token: address(rewardToken), to: users.owner, give: amount});
         rewardToken.approve({spender: address(rootGauge), amount: amount});
 
+        uint256 bufferCap = amount * 2;
+        setLimits({_rootBufferCap: bufferCap, _leafBufferCap: bufferCap});
+
         assertEq(rootGauge.rewardToken(), address(rewardToken));
 
+        vm.startPrank({msgSender: users.owner, txOrigin: users.alice});
         vm.expectEmit(address(rootGauge));
         emit NotifyReward({from: users.owner, amount: amount});
         rootGauge.notifyRewardWithoutClaim({_amount: amount});
@@ -90,7 +94,11 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
         deal({token: address(rewardToken), to: users.owner, give: amount * 2});
         rewardToken.approve({spender: address(rootGauge), amount: amount * 2});
 
+        uint256 bufferCap = amount * 2;
+        setLimits({_rootBufferCap: bufferCap * 2, _leafBufferCap: bufferCap * 2});
+
         // inital deposit of partial amount
+        vm.prank({msgSender: users.owner, txOrigin: users.alice});
         rootGauge.notifyRewardWithoutClaim({_amount: amount});
         // vm.selectFork({forkId: leafId});
         // leafMailbox.processNextInboundMessage();
@@ -98,7 +106,7 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
         // skipTime(WEEK / 7 * 5);
         //
         // vm.selectFork({forkId: rootId});
-        // vm.prank({msgSender: users.owner, txOrigin: users.alice});
+        vm.prank({msgSender: users.owner, txOrigin: users.alice});
         vm.expectEmit(address(rootGauge));
         emit NotifyReward({from: users.owner, amount: amount});
         rootGauge.notifyRewardWithoutClaim({_amount: amount});
