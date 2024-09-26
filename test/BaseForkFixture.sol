@@ -19,12 +19,11 @@ import {
 } from "contracts/periphery/NonfungiblePositionManager.sol";
 import {CLLeafGaugeFactory} from "contracts/gauge/CLLeafGaugeFactory.sol";
 import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
-import {MockWETH} from "contracts/test/MockWETH.sol";
 import {ILeafVoter} from "contracts/test/interfaces/ILeafVoter.sol";
-import {IVoter, MockVoter} from "contracts/test/MockVoter.sol";
-import {IVotingEscrow, MockVotingEscrow} from "contracts/test/MockVotingEscrow.sol";
-import {IFactoryRegistry, MockFactoryRegistry} from "contracts/test/MockFactoryRegistry.sol";
-import {IVotingRewardsFactory, MockVotingRewardsFactory} from "contracts/test/MockVotingRewardsFactory.sol";
+import {IVoter} from "contracts/core/interfaces/IVoter.sol";
+import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
+import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
+import {IVotingRewardsFactory} from "contracts/test/interfaces/IVotingRewardsFactory.sol";
 import {TestConstants} from "./utils/TestConstants.sol";
 import {Events} from "./utils/Events.sol";
 import {PoolUtils} from "./utils/PoolUtils.sol";
@@ -50,10 +49,8 @@ import {RootCLPool} from "contracts/mainnet/pool/RootCLPool.sol";
 import {RootCLPoolFactory} from "contracts/mainnet/pool/RootCLPoolFactory.sol";
 import {ICLRootGaugeFactory, CLRootGaugeFactory} from "contracts/mainnet/gauge/CLRootGaugeFactory.sol";
 import {ICLRootGauge, CLRootGauge} from "contracts/mainnet/gauge/CLRootGauge.sol";
-import {
-    IRootVotingRewardsFactory, MockRootVotingRewardsFactory
-} from "contracts/test/MockRootVotingRewardsFactory.sol";
-import {ILeafMessageBridge, MockLeafMessageBridge} from "contracts/test/MockLeafMessageBridge.sol";
+import {IRootVotingRewardsFactory} from "contracts/mainnet/interfaces/rewards/IRootVotingRewardsFactory.sol";
+import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
 import {IMailbox} from "contracts/test/interfaces/IMailbox.sol";
 
 import {TestERC20} from "contracts/periphery/test/TestERC20.sol";
@@ -103,7 +100,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     CLLeafGaugeFactory public leafGaugeFactory;
     LpMigrator public lpMigrator;
 
-    // root mocks
+    // root dependencies
     IVoter public rootVoter;
     IFactoryRegistry public factoryRegistry;
     IVotingEscrow public escrow;
@@ -111,7 +108,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     IMailbox public rootMailbox;
     IERC20 public rewardToken;
 
-    // leaf mocks
+    // leaf dependencies
     ILeafVoter public leafVoter;
     IERC20 public weth;
 
@@ -132,7 +129,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     string public nftName = "Slipstream Position NFT v1";
     string public nftSymbol = "CL-POS";
 
-    /// mocks
+    /// CreateX
     ICreateX public cx = ICreateX(0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed);
 
     uint256 public blockNumber = vm.envUint("FORK_BLOCK_NUMBER");
@@ -178,10 +175,9 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         rootLockbox = IXERC20Lockbox(vm.parseJsonAddress(addresses, ".Lockbox"));
         rootMessageBridge = IRootMessageBridge(vm.parseJsonAddress(addresses, ".MessageBridge"));
         rootMessageModule = IRootHLMessageModule(vm.parseJsonAddress(addresses, ".MessageModule"));
-        rootVotingRewardsFactory =
-            IRootVotingRewardsFactory(new MockRootVotingRewardsFactory(address(rootMessageBridge)));
+        rootVotingRewardsFactory = IRootVotingRewardsFactory(vm.parseJsonAddress(addresses, ".VotingRewardsFactory"));
 
-        // deploy root mocks
+        // root dependencies
         rootVoter = IVoter(vm.parseJsonAddress(addresses, ".Voter"));
         factoryRegistry = IFactoryRegistry(vm.parseJsonAddress(addresses, ".FactoryRegistry"));
         escrow = IVotingEscrow(vm.parseJsonAddress(addresses, ".VotingEscrow"));
