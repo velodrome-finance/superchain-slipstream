@@ -20,12 +20,6 @@ contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
         // It should call createGauge with leaf pool and factory on corresponding leaf voter
         // It should create a new gauge on leaf chain with same address as root gauge
         // It should emit a {GaugeCreated} event
-        vm.prank(address(rootVoter));
-        (address rootFVR,) = rootVotingRewardsFactory.createRewards(address(0), new address[](0));
-        vm.prank({msgSender: address(rootVoter), txOrigin: users.alice});
-        CLRootGauge rootGauge = CLRootGauge(
-            rootGaugeFactory.createGauge(address(0), address(rootPool), address(rootFVR), address(rewardToken), true)
-        );
 
         assertEq(rootGauge.gaugeFactory(), address(rootGaugeFactory));
         assertEq(rootGauge.rewardToken(), address(rewardToken));
@@ -34,6 +28,7 @@ contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
         assertEq(rootGauge.lockbox(), address(rootLockbox));
         assertEq(rootGauge.bridge(), address(rootMessageBridge));
         assertEq(rootGauge.chainid(), leafChainId);
+        assertEq(rootGauge.minter(), address(minter));
 
         // vm.selectFork({forkId: leafId});
         //

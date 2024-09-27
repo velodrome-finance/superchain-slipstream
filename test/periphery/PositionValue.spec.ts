@@ -1,4 +1,4 @@
-import { waffle, ethers, artifacts } from 'hardhat'
+import { waffle, ethers, artifacts, network } from 'hardhat'
 import { constants, BigNumberish, Contract } from 'ethers'
 import { Fixture } from 'ethereum-waffle'
 import {
@@ -58,6 +58,17 @@ describe('PositionValue', async () => {
 
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
   before('create fixture loader', async () => {
+    await network.provider.request({
+      method: 'hardhat_reset',
+      params: [
+        {
+          forking: {
+            jsonRpcUrl: `${process.env.OPTIMISM_RPC_URL}`,
+            blockNumber: Number(process.env.FORK_BLOCK_NUMBER),
+          },
+        },
+      ],
+    })
     loadFixture = waffle.createFixtureLoader(wallets)
   })
 

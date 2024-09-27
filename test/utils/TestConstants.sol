@@ -33,4 +33,6 @@ abstract contract TestConstants is Constants {
 
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
     uint256 internal constant Q96 = 0x1000000000000000000000000;
+
+    uint256 public constant MAX_BPS = 10_000;
 }

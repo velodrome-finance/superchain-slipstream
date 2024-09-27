@@ -71,7 +71,8 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   const mockVoter = (await MockVoterFactory.deploy(
     token2.address,
     mockFactoryRegistry.address,
-    mockVotingEscrow.address
+    mockVotingEscrow.address,
+    constants.AddressZero // minter
   )) as MockVoter
 
   const mockTimePool = (await MockTimeCLPoolFactory.deploy()) as MockTimeCLPool

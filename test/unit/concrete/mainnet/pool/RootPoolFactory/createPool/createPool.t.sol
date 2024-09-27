@@ -125,6 +125,6 @@ contract CreatePoolConcreteTest is RootCLPoolFactoryTest {
         assertEq(pool, expected);
         assertEq(rootPoolFactory.getPool(address(tokenA), address(tokenB), _tickSpacing), pool);
         assertEq(rootPoolFactory.getPool(address(tokenB), address(tokenA), _tickSpacing), pool);
-        assertEq(rootPoolFactory.allPools(0), pool);
+        assertEq(rootPoolFactory.allPools(1), pool);
     }
 }

@@ -88,9 +88,11 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     IVotingRewardsFactory public votingRewardsFactory;
 
     // root slipstream contracts
-    RootCLPool public rootPoolImplementation;
     RootCLPoolFactory public rootPoolFactory;
+    RootCLPool public rootPoolImplementation;
+    RootCLPool public rootPool;
     CLRootGaugeFactory public rootGaugeFactory;
+    CLRootGauge public rootGauge;
 
     // leaf slipstream contracts
     CLPool public poolImplementation;
@@ -141,6 +143,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         setUpPreCommon();
         setUpRootChain();
         setUpLeafChain();
+        setUpPostCommon();
 
         labelContracts();
 
@@ -230,7 +233,9 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
                         address(rootMessageBridge), // message bridge
                         address(rootPoolFactory), // pool factory
                         address(rootVotingRewardsFactory), // voting rewards factory
-                        users.owner // notify admin
+                        users.owner, // notify admin
+                        users.owner, // emission admin
+                        100 // 1% default cap
                     )
                 )
             })
@@ -243,13 +248,6 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
             poolFactory: address(rootPoolFactory),
             votingRewardsFactory: address(rootVotingRewardsFactory),
             gaugeFactory: address(rootGaugeFactory)
-        });
-
-        // mock calls to dispatch
-        vm.mockCall({
-            callee: address(rootMailbox),
-            data: abi.encode(bytes4(keccak256("quoteDispatch(uint32,bytes32,bytes)"))),
-            returnData: abi.encode(MESSAGE_FEE)
         });
     }
 
@@ -391,6 +389,37 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.stopPrank();
     }
 
+    function setUpPostCommon() public virtual {
+        vm.selectFork({forkId: rootId});
+
+        // mock calls to dispatch
+        vm.mockCall({
+            callee: address(rootMailbox),
+            data: abi.encode(bytes4(keccak256("quoteDispatch(uint32,bytes32,bytes)"))),
+            returnData: abi.encode(MESSAGE_FEE)
+        });
+
+        vm.prank(Ownable(address(rootMessageBridge)).owner());
+        IChainRegistry(address(rootMessageBridge)).registerChain({_chainid: leafChainId});
+        rootPool = RootCLPool(
+            rootPoolFactory.createPool({
+                chainid: leafChainId,
+                tokenA: address(token0),
+                tokenB: address(token1),
+                tickSpacing: 1,
+                sqrtPriceX96: 79228162514264337593543950336
+            })
+        );
+        // fund alice for gauge creation below
+        deal({token: address(weth), to: users.alice, give: MESSAGE_FEE * 10});
+        vm.prank(users.alice);
+        weth.approve({spender: address(rootMessageBridge), amount: MESSAGE_FEE * 10});
+
+        vm.prank({msgSender: rootVoter.governor(), txOrigin: users.alice});
+        rootGauge =
+            CLRootGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
+    }
+
     /// @dev Helper utility to forward time to next week
     ///      note epoch requires at least one second to have
     ///      passed into the new epoch
@@ -501,6 +530,17 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.label({account: address(token0), newLabel: "Token 0"});
         vm.label({account: address(token1), newLabel: "Token 1"});
 
+        vm.label({account: address(xVelo), newLabel: "Root xVelo"});
+        vm.label({account: address(rootMessageBridge), newLabel: "Root Message Bridge"});
+        vm.label({account: address(rootMessageModule), newLabel: "Root Message Module"});
+        vm.label({account: address(rootLockbox), newLabel: "Root Lockbox"});
+        vm.label({account: address(rootVoter), newLabel: "Root Voter"});
+
+        vm.label({account: address(leafMessageBridge), newLabel: "Leaf Message Bridge"});
+        vm.label({account: address(leafMessageModule), newLabel: "Leaf Message Module"});
+
+        vm.label({account: address(rootPool), newLabel: "Root Pool"});
+        vm.label({account: address(rootGauge), newLabel: "Root Gauge"});
         vm.label({account: address(clCallee), newLabel: "CL Callee"});
         vm.label({account: address(nftCallee), newLabel: "NFT Callee"});
     }
@@ -555,5 +595,17 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
         vm.selectFork({forkId: activeFork});
         vm.stopPrank();
+    }
+
+    /// @dev Move time forward on all chains
+    function skipTime(uint256 _time) internal {
+        uint256 activeFork = vm.activeFork();
+        vm.selectFork({forkId: rootId});
+        vm.warp({newTimestamp: block.timestamp + _time});
+        vm.roll({newHeight: block.number + _time / 2});
+        vm.selectFork({forkId: leafId});
+        vm.warp({newTimestamp: block.timestamp + _time});
+        vm.roll({newHeight: block.number + _time / 2});
+        vm.selectFork({forkId: activeFork});
     }
 }

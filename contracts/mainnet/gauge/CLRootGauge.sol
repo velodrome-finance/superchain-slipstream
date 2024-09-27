@@ -5,19 +5,21 @@ pragma abicoder v2;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import {ICLRootGauge} from "contracts/mainnet/gauge/ICLRootGauge.sol";
-import {ICLRootGaugeFactory} from "contracts/mainnet/gauge/ICLRootGaugeFactory.sol";
-
-import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
-import {IXERC20Lockbox} from "contracts/superchain/IXERC20Lockbox.sol";
-import {IBridge} from "contracts/superchain/IBridge.sol";
-import {IRootMessageBridge} from "contracts/mainnet/interfaces/bridge/IRootMessageBridge.sol";
-import {Commands} from "contracts/libraries/Commands.sol";
+import {ICLRootGauge} from "../../mainnet/gauge/ICLRootGauge.sol";
+import {ICLRootGaugeFactory} from "../../mainnet/gauge/ICLRootGaugeFactory.sol";
+import {VelodromeTimeLibrary} from "../../libraries/VelodromeTimeLibrary.sol";
+import {IXERC20Lockbox} from "../../superchain/IXERC20Lockbox.sol";
+import {IBridge} from "../../superchain/IBridge.sol";
+import {IRootMessageBridge} from "../../mainnet/interfaces/bridge/IRootMessageBridge.sol";
+import {Commands} from "../../libraries/Commands.sol";
+import {IVoter} from "../../core/interfaces/IVoter.sol";
 
 /// @notice RootGauge that forward emissions to the corresponding LeafGauge on the leaf chain
 contract CLRootGauge is ICLRootGauge {
     using SafeERC20 for IERC20;
 
+    /// @inheritdoc ICLRootGauge
+    address public immutable override minter;
     /// @inheritdoc ICLRootGauge
     address public immutable override gaugeFactory;
     /// @inheritdoc ICLRootGauge
@@ -49,6 +51,7 @@ contract CLRootGauge is ICLRootGauge {
         bridge = _bridge;
         voter = _voter;
         chainid = _chainid;
+        minter = IVoter(_voter).minter();
     }
 
     /// @inheritdoc ICLRootGauge
@@ -59,6 +62,12 @@ contract CLRootGauge is ICLRootGauge {
     /// @inheritdoc ICLRootGauge
     function notifyRewardAmount(uint256 _amount) external override {
         require(msg.sender == voter, "NV");
+        uint256 maxAmount = ICLRootGaugeFactory(gaugeFactory).calculateMaxEmissions({_gauge: address(this)});
+        /// @dev If emission cap is exceeded, transfer excess emissions back to Minter
+        if (_amount > maxAmount) {
+            IERC20(rewardToken).transferFrom(msg.sender, minter, _amount - maxAmount);
+            _amount = maxAmount;
+        }
         _notify({_command: Commands.NOTIFY, _amount: _amount});
     }
 

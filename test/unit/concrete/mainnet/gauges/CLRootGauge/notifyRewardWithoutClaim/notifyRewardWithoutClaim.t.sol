@@ -46,6 +46,8 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
         // It should update the period finish timestamp
         // It should emit a {NotifyReward} event
 
+        uint256 amount = TOKEN_1 * 1_000;
+
         deal({token: address(rewardToken), to: users.owner, give: amount});
         rewardToken.approve({spender: address(rootGauge), amount: amount});
 
@@ -90,6 +92,8 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
         // It should update the last update timestamp
         // It should update the period finish timestamp
         // It should emit a {NotifyReward} event
+
+        uint256 amount = TOKEN_1 * 1_000;
 
         deal({token: address(rewardToken), to: users.owner, give: amount * 2});
         rewardToken.approve({spender: address(rootGauge), amount: amount * 2});

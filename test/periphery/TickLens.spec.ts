@@ -1,6 +1,6 @@
 import { Fixture } from 'ethereum-waffle'
 import { BigNumber, BigNumberish, constants, Contract, Wallet } from 'ethers'
-import { ethers, waffle } from 'hardhat'
+import { ethers, network, waffle } from 'hardhat'
 import { MockTimeNonfungiblePositionManager, TestERC20, TickLensTest } from '../../typechain'
 import completeFixture from './shared/completeFixture'
 import { FeeAmount, TICK_SPACINGS } from './shared/constants'
@@ -40,6 +40,17 @@ describe('TickLens', () => {
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
 
   before('create fixture loader', async () => {
+    await network.provider.request({
+      method: 'hardhat_reset',
+      params: [
+        {
+          forking: {
+            jsonRpcUrl: `${process.env.OPTIMISM_RPC_URL}`,
+            blockNumber: Number(process.env.FORK_BLOCK_NUMBER),
+          },
+        },
+      ],
+    })
     wallets = await (ethers as any).getSigners()
     loadFixture = waffle.createFixtureLoader(wallets)
   })

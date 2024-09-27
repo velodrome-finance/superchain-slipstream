@@ -88,6 +88,10 @@ interface IXERC20 {
 
     function maxRateLimitPerSecond() external pure returns (uint128);
 
+    /// @notice the minimum buffer cap, non inclusive
+    /// must be overridden by child contract
+    function minBufferCap() external pure returns (uint112);
+
     function addBridge(RateLimitMidPointInfo memory _newBridge) external;
 
     ///

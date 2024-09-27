@@ -64,7 +64,8 @@ const v3CoreFactoryFixture: Fixture<{
   const mockVoter = (await MockVoterFactory.deploy(
     rewardToken.address,
     mockFactoryRegistry.address,
-    mockVotingEscrow.address
+    mockVotingEscrow.address,
+    constants.AddressZero // minter
   )) as MockVoter
 
   const factory = (await Factory.deploy(

@@ -4,6 +4,9 @@ pragma solidity =0.7.6;
 interface ICLRootGauge {
     event NotifyReward(address indexed from, uint256 amount);
 
+    /// @notice Minter contract used to mint emissions
+    function minter() external view returns (address);
+
     /// @notice Root gauge factory that created this gauge
     function gaugeFactory() external view returns (address);
 
