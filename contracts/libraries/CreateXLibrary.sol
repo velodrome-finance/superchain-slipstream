@@ -14,7 +14,7 @@ library CreateXLibrary {
         }
     }
 
-    function computeCreate3Address(bytes11 _entropy, address _deployer) internal view returns (address _address) {
+    function computeCreate3Address(bytes11 _entropy, address _deployer) internal pure returns (address _address) {
         bytes32 salt = calculateSalt({_entropy: _entropy, _deployer: _deployer});
         bytes32 guardedSalt = keccak256(abi.encodePacked(uint256(uint160(_deployer)), salt));
         _address = CREATEX.computeCreate3Address({salt: guardedSalt, deployer: address(CREATEX)});

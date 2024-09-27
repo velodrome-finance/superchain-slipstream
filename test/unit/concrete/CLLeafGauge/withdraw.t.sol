@@ -245,7 +245,7 @@ contract WithdrawTest is CLLeafGaugeTest {
         gauge.deposit({tokenId: tokenId});
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         vm.startPrank(users.alice);
 

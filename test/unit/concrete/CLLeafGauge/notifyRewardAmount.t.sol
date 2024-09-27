@@ -130,7 +130,7 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
         skipToNextEpoch(0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(leafMessageModule), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         // in collectFees() we substract 1 from the fee for gas optimization
         assertEq(token0.balanceOf(address(feesVotingReward)), 3e15 - 1);
@@ -160,7 +160,7 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
         skipToNextEpoch(0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         // in collectFees() we substract 1 from the fee for gas optimization
         assertEq(token0.balanceOf(address(feesVotingReward)), 15e14 - 1);
@@ -191,7 +191,7 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
         skipToNextEpoch(0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         assertApproxEqAbs(token0.balanceOf(address(feesVotingReward)), 3e15, 1);
         assertEq(token1.balanceOf(address(feesVotingReward)), 6e15);
@@ -216,7 +216,7 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
         skipToNextEpoch(0);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         assertApproxEqAbs(token0.balanceOf(address(feesVotingReward)), 15e14, 1);
         assertApproxEqAbs(token1.balanceOf(address(feesVotingReward)), 3e15, 1);
@@ -241,7 +241,7 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
         clCallee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
 
         skip(1 days);
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         assertEq(gauge.rewardRate(), reward / (6 days));
         assertEq(gauge.rewardRateByEpoch(epochStart), reward / (6 days));
@@ -276,7 +276,7 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
         gauge.deposit(tokenId);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         skipToNextEpoch(0);
         // no notifyRewardAmount happens for 1 entire epoch
@@ -301,7 +301,7 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
         aliceRewardBalance = xVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1, 1e6);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
         skipToNextEpoch(0);
 
         vm.startPrank(users.alice);
@@ -320,11 +320,11 @@ contract NotifyRewardAmountTest is CLLeafGaugeTest {
         skip(1 days);
 
         uint256 reward = TOKEN_1;
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         skip(1 days);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         assertEq(pool.rewardRate(), (reward * 2) / 5 days);
         // loss from requeueing

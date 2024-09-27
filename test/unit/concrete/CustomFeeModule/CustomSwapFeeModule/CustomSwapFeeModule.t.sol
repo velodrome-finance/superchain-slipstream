@@ -15,7 +15,7 @@ contract CustomSwapFeeModuleTest is BaseForkFixture {
         vm.label({account: address(customSwapFeeModule), newLabel: "Custom Swap Fee Module"});
     }
 
-    function test_InitialState() public {
+    function test_InitialState() public view {
         assertEq(customSwapFeeModule.MAX_FEE(), 30_000);
         assertEq(address(customSwapFeeModule.factory()), address(poolFactory));
     }

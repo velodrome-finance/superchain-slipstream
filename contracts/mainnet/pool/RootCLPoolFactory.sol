@@ -42,7 +42,7 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
     }
 
     /// @inheritdoc IRootCLPoolFactory
-    function createPool(uint256 chainid, address tokenA, address tokenB, int24 tickSpacing, uint160 sqrtPriceX96)
+    function createPool(uint256 chainid, address tokenA, address tokenB, int24 tickSpacing)
         external
         override
         returns (address pool)

@@ -52,7 +52,7 @@ contract MockVoter is IVoter {
         revert("Not implemented");
     }
 
-    function distribute(address gauge) external override {
+    function distribute(address) external pure override {
         revert("Not implemented");
     }
 

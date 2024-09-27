@@ -12,7 +12,7 @@ contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
         rootGaugeFactory.createGauge(address(0), address(rootPool), address(0), address(rewardToken), true);
     }
 
-    function test_WhenTheCallerIsVoter() external {
+    function test_WhenTheCallerIsVoter() external view {
         // It creates a new gauge on root chain
         // It should encode the root pool configuration
         // It should create new pool on leaf chain with same config

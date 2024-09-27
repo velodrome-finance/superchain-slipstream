@@ -14,7 +14,7 @@ abstract contract CustomUnstakedFeeModuleTest is BaseForkFixture {
         vm.label({account: address(customUnstakedFeeModule), newLabel: "Custom Unstaked Fee Module"});
     }
 
-    function test_InitialState() public {
+    function test_InitialState() public view {
         assertEq(customUnstakedFeeModule.MAX_FEE(), 500_000);
         assertEq(address(customUnstakedFeeModule.factory()), address(poolFactory));
     }

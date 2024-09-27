@@ -34,7 +34,7 @@ abstract contract CLPoolSwapPartiallyStakedNoUnstakeFeeTest is CLPoolSwapTests {
         labelContracts();
     }
 
-    function assertSwapData(AssertSwapData memory asd, SuccessfulSwap memory ss) internal override {
+    function assertSwapData(AssertSwapData memory asd, SuccessfulSwap memory ss) internal pure override {
         assertApproxEqAbs(asd.amount0Before, ss.amount0Before, 1);
         assertApproxEqAbs(asd.amount1Before, ss.amount1Before, 1);
         assertApproxEqAbs(asd.amount0Delta, ss.amount0Delta, 1);
@@ -86,7 +86,7 @@ abstract contract CLPoolSwapPartiallyStakedNoUnstakeFeeTest is CLPoolSwapTests {
 
         // sanity check
         skip(WEEK);
-        addRewardToGauge(address(leafVoter), address(gauge), 1e18);
+        addRewardToLeafGauge(address(gauge), 1e18);
     }
 
     function burnUnstakedPosition() internal {

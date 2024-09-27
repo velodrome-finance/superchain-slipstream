@@ -51,10 +51,10 @@ contract CreatePoolTest is CLFactoryTest {
     }
 
     function test_CreatePoolWithReversedTokens() public {
-        address pool = createAndCheckPool({
+        createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_1,
-            token1: TEST_TOKEN_0,
+            _token0: TEST_TOKEN_1,
+            _token1: TEST_TOKEN_0,
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
@@ -63,8 +63,8 @@ contract CreatePoolTest is CLFactoryTest {
     function test_CreatePoolWithTickSpacingStable() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_STABLE,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
@@ -75,8 +75,8 @@ contract CreatePoolTest is CLFactoryTest {
     function test_CreatePoolWithTickSpacingLow() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
@@ -87,8 +87,8 @@ contract CreatePoolTest is CLFactoryTest {
     function test_CreatePoolWithTickSpacingMedium() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_MEDIUM,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
@@ -115,8 +115,8 @@ contract CreatePoolTest is CLFactoryTest {
     function test_CreatePoolWithTickSpacingHigh() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_HIGH,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
@@ -142,8 +142,8 @@ contract CreatePoolTest is CLFactoryTest {
     function test_CreatePoolWithTickSpacingVolatile() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_VOLATILE,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });

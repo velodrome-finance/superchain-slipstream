@@ -33,7 +33,7 @@ contract NonfungiblePositionManagerTest is BaseForkFixture {
         token1.approve(address(gauge), type(uint256).max);
     }
 
-    function test_InitialState() public {
+    function test_InitialState() public view {
         assertEq(nft.factory(), address(poolFactory));
         assertEq(nft.WETH9(), address(weth));
         assertEq(nft.name(), "Slipstream Position NFT v1");

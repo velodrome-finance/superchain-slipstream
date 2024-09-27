@@ -26,7 +26,7 @@ abstract contract CLPoolSwapNoStakeTest is CLPoolSwapTests {
         labelContracts();
     }
 
-    function assertSwapData(AssertSwapData memory asd, SuccessfulSwap memory ss) internal override {
+    function assertSwapData(AssertSwapData memory asd, SuccessfulSwap memory ss) internal pure override {
         assertEq(asd.amount0Before, ss.amount0Before);
         assertEq(asd.amount1Before, ss.amount1Before);
         assertEq(asd.amount0Delta, ss.amount0Delta);

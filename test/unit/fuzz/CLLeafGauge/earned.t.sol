@@ -60,7 +60,7 @@ contract EarnedTest is CLLeafGaugeTest {
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         skip(2 days);
 
@@ -122,7 +122,7 @@ contract EarnedTest is CLLeafGaugeTest {
 
         skip(WEEK / 2);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         skipToNextEpoch(0);
         // half the epoch has passed, all rewards distributed
@@ -136,7 +136,7 @@ contract EarnedTest is CLLeafGaugeTest {
         assertEq(aliceRewardBalance, aliceClaimableFirst);
 
         skip(1 days);
-        addRewardToGauge(address(leafVoter), address(gauge), reward2);
+        addRewardToLeafGauge(address(gauge), reward2);
 
         skip(1 days);
 
@@ -186,7 +186,7 @@ contract EarnedTest is CLLeafGaugeTest {
         nft.approve(address(gauge), aliceTokenId);
         gauge.deposit({tokenId: aliceTokenId});
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         skip(1 days);
 

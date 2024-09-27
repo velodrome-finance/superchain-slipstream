@@ -155,7 +155,7 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
         assertEq(token1.balanceOf(address(feesVotingReward)), 0);
 
         skip(1 days);
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         assertEq(gauge.rewardRate(), reward / (6 days) + reward / (5 days));
         assertEq(gauge.rewardRateByEpoch(epochStart), reward / (6 days) + reward / (5 days));
@@ -174,7 +174,7 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // add initial rewards
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         skip(2 days);
         vm.startPrank(users.alice);
@@ -236,7 +236,7 @@ contract NotifyRewardWithoutClaimTest is CLLeafGaugeTest {
         skip(4 days);
 
         // add additional rewards in the same epoch
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
         rollover = reward2 * (2 days) / WEEK; // amount to rollover (i.e. time with no staked liquidity)

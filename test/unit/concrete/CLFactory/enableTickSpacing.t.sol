@@ -50,10 +50,10 @@ contract EnableTickSpacingTest is CLFactoryTest {
         assertEq(poolFactory.tickSpacings().length, 8);
         assertEq(poolFactory.tickSpacings()[7], 250);
 
-        address pool = createAndCheckPool({
+        createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: 250,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });

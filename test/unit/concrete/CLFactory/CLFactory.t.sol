@@ -4,7 +4,7 @@ pragma abicoder v2;
 import "../../../BaseForkFixture.sol";
 
 contract CLFactoryTest is BaseForkFixture {
-    function test_InitialState() public virtual {
+    function test_InitialState() public view virtual {
         assertEq(address(poolFactory.voter()), address(leafVoter));
         assertEq(poolFactory.poolImplementation(), address(poolImplementation));
         assertEq(poolFactory.owner(), users.owner);

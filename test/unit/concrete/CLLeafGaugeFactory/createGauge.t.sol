@@ -39,8 +39,7 @@ contract CreateGaugeTest is CLLeafGaugeFactoryTest {
         address[] memory rewards = new address[](2);
         rewards[0] = ICLPool(pool).token0();
         rewards[1] = ICLPool(pool).token1();
-        (address feesVotingReward, address bribeVotingReward) =
-            IVotingRewardsFactory(votingRewardsFactory).createRewards(rewards);
+        (address feesVotingReward,) = IVotingRewardsFactory(votingRewardsFactory).createRewards(rewards);
         CLLeafGauge gauge = CLLeafGauge(
             leafGaugeFactory.createGauge({_pool: address(pool), _feesVotingReward: feesVotingReward, _isPool: true})
         );

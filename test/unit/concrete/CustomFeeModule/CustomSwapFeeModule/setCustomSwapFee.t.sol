@@ -19,8 +19,8 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
     function test_RevertIf_FeeTooHigh() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
@@ -37,8 +37,8 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
     function test_SetCustomFee() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
@@ -73,8 +73,8 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
     function test_CannotExceedMaxSwapFee() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });

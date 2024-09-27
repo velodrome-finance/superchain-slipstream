@@ -11,7 +11,6 @@ contract CreatePoolConcreteTest is RootCLPoolFactoryTest {
     uint256 _chainid = 1_000;
 
     int24 _tickSpacing = TICK_SPACING_LOW;
-    uint160 startingPrice = encodePriceSqrt(1, 1);
 
     function setUp() public override {
         super.setUp();
@@ -27,8 +26,7 @@ contract CreatePoolConcreteTest is RootCLPoolFactoryTest {
             chainid: _chainid,
             tokenA: address(tokenA),
             tokenB: address(tokenB),
-            tickSpacing: _tickSpacing,
-            sqrtPriceX96: startingPrice
+            tickSpacing: _tickSpacing
         });
     }
 
@@ -45,8 +43,7 @@ contract CreatePoolConcreteTest is RootCLPoolFactoryTest {
             chainid: _chainid,
             tokenA: address(tokenA),
             tokenB: address(tokenA),
-            tickSpacing: _tickSpacing,
-            sqrtPriceX96: startingPrice
+            tickSpacing: _tickSpacing
         });
     }
 
@@ -56,14 +53,12 @@ contract CreatePoolConcreteTest is RootCLPoolFactoryTest {
 
     function test_WhenToken0IsTheZeroAddress() external whenChainIdIsRegistered whenTokenAIsNotTheSameAsTokenB {
         // It reverts with {ZeroAddress}
-        (, address token1) = tokenA < tokenB ? (address(tokenA), address(tokenB)) : (address(tokenB), address(tokenA));
         vm.expectRevert(bytes("Z_A"));
         rootPoolFactory.createPool({
             chainid: _chainid,
             tokenA: address(0),
             tokenB: address(tokenB),
-            tickSpacing: _tickSpacing,
-            sqrtPriceX96: startingPrice
+            tickSpacing: _tickSpacing
         });
     }
 
@@ -82,8 +77,7 @@ contract CreatePoolConcreteTest is RootCLPoolFactoryTest {
             chainid: _chainid,
             tokenA: address(tokenA),
             tokenB: address(tokenB),
-            tickSpacing: _tickSpacing,
-            sqrtPriceX96: startingPrice
+            tickSpacing: _tickSpacing
         });
 
         vm.expectRevert(bytes("AE"));
@@ -91,8 +85,7 @@ contract CreatePoolConcreteTest is RootCLPoolFactoryTest {
             chainid: _chainid,
             tokenA: address(tokenA),
             tokenB: address(tokenB),
-            tickSpacing: _tickSpacing,
-            sqrtPriceX96: startingPrice
+            tickSpacing: _tickSpacing
         });
     }
 
@@ -110,8 +103,7 @@ contract CreatePoolConcreteTest is RootCLPoolFactoryTest {
             chainid: _chainid,
             tokenA: address(tokenA),
             tokenB: address(tokenB),
-            tickSpacing: _tickSpacing,
-            sqrtPriceX96: startingPrice
+            tickSpacing: _tickSpacing
         });
 
         (address token0, address token1) =

@@ -43,7 +43,7 @@ contract CalculateFeesTest is CLPoolTest {
         skipToNextEpoch(0);
     }
 
-    function assertFees(uint256 t0, uint256 t1, uint256 fg0, uint256 fg1) internal {
+    function assertFees(uint256 t0, uint256 t1, uint256 fg0, uint256 fg1) internal view {
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertApproxEqAbs(_token0, t0, 2);
         assertApproxEqAbs(_token1, t1, 2);

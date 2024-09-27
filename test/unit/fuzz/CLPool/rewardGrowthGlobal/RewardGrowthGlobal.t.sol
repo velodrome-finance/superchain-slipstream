@@ -64,7 +64,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         uint256 stakedLiquidity,
         uint256 timeElapsed,
         uint256 delay
-    ) internal {
+    ) internal view {
         uint256 rewardRate = reward / (WEEK - delay);
         uint256 rollover = rewardRate * timeNoStakedLiq;
 
@@ -115,7 +115,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         notifySkip = bound(notifySkip, 0, WEEK - getRewardSkip - 1);
         skip(notifySkip);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward2);
+        addRewardToLeafGauge(address(gauge), reward2);
 
         // rewardRate and rewardReserve should account for stuck rewards from previous epoch
         assertEqUint(pool.rewardRate(), (reward2 + rollover) / (WEEK - (getRewardSkip + notifySkip)));
@@ -140,7 +140,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         // reward states should be set
         assertEqUint(pool.lastUpdated(), block.timestamp);
@@ -173,7 +173,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         // needs to be 0 since there are no rewards
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         // reward states should be set
         assertEqUint(pool.lastUpdated(), block.timestamp);
@@ -218,7 +218,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         // still 0 since no action triggered update on the accumulator
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
@@ -269,7 +269,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, rewardRate * time, 1e6);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         uint256 newRewardRate = pool.rewardRate();
 
@@ -327,7 +327,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         // withdraw after skip to remove stakedLiquidity
         skip(time);
@@ -398,7 +398,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         uint256 oldAliceBal;
         uint256 aliceRewardBalance;
         uint256 timeNoStakedLiquidity;
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
         assertEq(pool.rewardRate(), reward / epochDistributionTime);
         // for this test an epoch is split into time chunks, each with `timeChunkSize` seconds of duration
         // each timeChunk will have a period of time with and without liquidity
@@ -469,7 +469,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         // skip and swap to move out of active stakedLiquidity range
         skip(time / 2);
@@ -525,7 +525,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         uint256 rewardRate = reward / (WEEK - delay);
         assertEq(gauge.rewardRate(), rewardRate);
@@ -541,7 +541,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         // no stake, nothing happens
         skipToNextEpoch(time2);
-        addRewardToGauge(address(leafVoter), address(gauge), reward2);
+        addRewardToLeafGauge(address(gauge), reward2);
 
         uint256 rollover = rewardRate * (WEEK - (time + delay));
         assertApproxEqAbs(gauge.rewardRate(), (reward2 + rollover) / (WEEK - time2), 1e6);
@@ -577,7 +577,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         skip(time);
 
@@ -599,7 +599,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skipToNextEpoch(200);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward2);
+        addRewardToLeafGauge(address(gauge), reward2);
         assertEqUint(pool.rollover(), 0);
         assertApproxEqAbs(
             pool.rewardRate(), (reward2 + reward - (rewardRate * (WEEK - (time + time2 + delay)))) / (WEEK - 200), 1e4
@@ -626,7 +626,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         // no staked liquidity after reward distribution
         skip(time2);
@@ -650,7 +650,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         // skip to next epoch without staked liq and perform delayed reward distribution
         skipToNextEpoch(time);
-        addRewardToGauge(address(leafVoter), address(gauge), reward2);
+        addRewardToLeafGauge(address(gauge), reward2);
 
         uint256 rollover = prevRewardRate * (time + time2);
         uint256 rewardReserve = reward2 + rollover; // rewards were rolled over
@@ -683,7 +683,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         assertApproxEqAbs(pool.rewardReserve(), rewardReserve, 1e6);
 
         // distribute rewards to reserves
-        addRewardToGauge(address(leafVoter), address(gauge), reward / 2);
+        addRewardToLeafGauge(address(gauge), reward / 2);
         // rewards were rolled over and distributed correctly
         assertEqUint(pool.rollover(), 0);
         rewardReserve = reward / 2 + rollover + rewardReserve;
@@ -711,11 +711,11 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(1 days);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         skip(1 days);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward2);
+        addRewardToLeafGauge(address(gauge), reward2);
 
         assertApproxEqAbs(pool.rewardRate(), (reward + reward2) / 5 days, 2);
         assertEqUint(pool.rewardReserve(), reward2 + (reward / 6 days) * 6 days);
@@ -743,7 +743,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         uint256 rewardRate = reward / epochDistributionTime;
         assertEqUint(pool.lastUpdated(), block.timestamp);
@@ -757,7 +757,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skipToNextEpoch(time2);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward2);
+        addRewardToLeafGauge(address(gauge), reward2);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
         assertApproxEqAbs(pool.rewardRate(), (rewardRate * time + reward2) / (WEEK - time2), 5);
@@ -785,7 +785,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         uint256 rewardRate = reward / epochDistributionTime;
         assertEqUint(pool.lastUpdated(), block.timestamp);
@@ -800,7 +800,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         skipToNextEpoch(0);
         skipToNextEpoch(time2);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward2);
+        addRewardToLeafGauge(address(gauge), reward2);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
         assertApproxEqAbs(pool.rewardRate(), (rewardRate * time + reward2) / (WEEK - time2), 5);
@@ -819,7 +819,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         uint256 rewardRate = reward / epochDistributionTime;
         assertEq(gauge.rewardRate(), rewardRate);
@@ -837,7 +837,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         skipToNextEpoch(0);
         // one epoch skipped entirely
         skipToNextEpoch(time2);
-        addRewardToGauge(address(leafVoter), address(gauge), reward * 2);
+        addRewardToLeafGauge(address(gauge), reward * 2);
 
         assertApproxEqAbs(gauge.rewardRate(), (reward * 2 + rewardRate * (WEEK - (time + delay))) / (WEEK - time2), 1e6);
 
@@ -871,7 +871,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(delay);
 
-        addRewardToGauge(address(leafVoter), address(gauge), reward);
+        addRewardToLeafGauge(address(gauge), reward);
 
         skip(time);
 

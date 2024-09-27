@@ -525,7 +525,7 @@ abstract contract CLPoolSwapTests is CLPoolTest {
         uint256 liquidityAfter;
     }
 
-    function assertSwapEvents(AssertSwapEvent memory ase) internal {
+    function assertSwapEvents(AssertSwapEvent memory ase) internal view {
         // 3 type of event orders in case of swaps:
         // first case: 5 events: Transfer, SwapCallback, Transfer, Approve, Swap
         // second case: 4 events: SwapCallback, Transfer, Approve, Swap

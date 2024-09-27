@@ -7,6 +7,7 @@ contract Other {
     // prop #30
     function testEchidna_getNextSqrtPriceFromInAndOutput(uint160 sqrtPX96, uint128 liquidity, uint256 amount, bool add)
         public
+        pure
     {
         require(sqrtPX96 >= TickMath.MIN_SQRT_RATIO && sqrtPX96 < TickMath.MAX_SQRT_RATIO);
         require(liquidity < 3121856577256316178563069792952001939); // max liquidity per tick

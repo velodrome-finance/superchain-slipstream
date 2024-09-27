@@ -19,8 +19,8 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
     function test_RevertIf_FeeTooHigh() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
@@ -37,8 +37,8 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
     function test_SetCustomFee() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
@@ -82,8 +82,8 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
     function test_CannotExceedMaxUnstakedFee() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
-            token0: TEST_TOKEN_0,
-            token1: TEST_TOKEN_1,
+            _token0: TEST_TOKEN_0,
+            _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
