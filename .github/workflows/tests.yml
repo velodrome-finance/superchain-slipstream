@@ -76,5 +76,5 @@ jobs:
           OPTIMISM_RPC_URL: ${{ secrets.OPTIMISM_RPC_URL }}
           MODE_RPC_URL: https://mainnet.mode.network
           PRIVATE_KEY_DEPLOY: ${{ secrets.PRIVATE_KEY_DEPLOY }}
-          FORK_BLOCK_NUMBER: 125588630 
-          LEAF_FORK_BLOCK_NUMBER: 13512406
+          FORK_BLOCK_NUMBER: 125878637 
+          LEAF_FORK_BLOCK_NUMBER: 13594277

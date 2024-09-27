@@ -41,4 +41,18 @@ abstract contract Events {
     event SetEmissionAdmin(address indexed emissionAdmin);
     event SetDefaultCap(uint256 indexed newDefaultCap);
     event SetEmissionCap(address indexed gauge, uint256 newEmissionCap);
+
+    ///
+    /// LeafVoter Events
+    ///
+    event GaugeCreated(
+        address indexed poolFactory,
+        address indexed votingRewardsFactory,
+        address indexed gaugeFactory,
+        address pool,
+        address bribeVotingReward,
+        address feeVotingReward,
+        address gauge,
+        address creator
+    );
 }

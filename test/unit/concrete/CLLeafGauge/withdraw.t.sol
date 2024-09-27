@@ -107,7 +107,7 @@ contract WithdrawTest is CLLeafGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726704000);
+        assertEq(gauge.lastUpdateTime(tokenId), 1727308800);
 
         (uint128 nftLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(nft), -TICK_SPACING_60, TICK_SPACING_60)));
@@ -160,7 +160,7 @@ contract WithdrawTest is CLLeafGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(2 * TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726704000);
+        assertEq(gauge.lastUpdateTime(tokenId), 1727308800);
 
         (uint128 nftLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(nft), TICK_SPACING_60, 2 * TICK_SPACING_60)));
@@ -213,7 +213,7 @@ contract WithdrawTest is CLLeafGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1726704000);
+        assertEq(gauge.lastUpdateTime(tokenId), 1727308800);
 
         (uint128 nftLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(nft), -2 * TICK_SPACING_60, -TICK_SPACING_60)));
@@ -274,7 +274,7 @@ contract WithdrawTest is CLLeafGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
+        assertEq(gauge.lastUpdateTime(tokenId), 1728086400);
     }
 
     function test_WithdrawUpdatesPositionCorrectly() public {

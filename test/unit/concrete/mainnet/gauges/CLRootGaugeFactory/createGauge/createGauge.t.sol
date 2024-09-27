@@ -5,6 +5,25 @@ pragma abicoder v2;
 import "../CLRootGaugeFactory.t.sol";
 
 contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
+    function setUp() public override {
+        super.setUp();
+
+        // we use stable = true to avoid collision with existing pool
+        rootPool = RootCLPool(
+            rootPoolFactory.createPool({
+                chainid: leafChainId,
+                tokenA: address(token0),
+                tokenB: address(token1),
+                tickSpacing: 10
+            })
+        );
+
+        // use users.alice as tx.origin
+        deal({token: address(weth), to: users.alice, give: MESSAGE_FEE});
+        vm.prank(users.alice);
+        weth.approve({spender: address(rootMessageBridge), amount: MESSAGE_FEE});
+    }
+
     function test_WhenTheCallerIsNotVoter() external {
         // It reverts with NotVoter
         vm.prank(users.charlie);
@@ -12,7 +31,7 @@ contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
         rootGaugeFactory.createGauge(address(0), address(rootPool), address(0), address(rewardToken), true);
     }
 
-    function test_WhenTheCallerIsVoter() external view {
+    function test_WhenTheCallerIsVoter() external {
         // It creates a new gauge on root chain
         // It should encode the root pool configuration
         // It should create new pool on leaf chain with same config
@@ -30,46 +49,41 @@ contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
         assertEq(rootGauge.chainid(), leafChainId);
         assertEq(rootGauge.minter(), address(minter));
 
-        // vm.selectFork({forkId: leafId});
-        //
-        // address pool = Clones.predictDeterministicAddress({
-        //     deployer: address(leafPoolFactory),
-        //     implementation: leafPoolFactory.implementation(),
-        //     salt: keccak256(abi.encodePacked(address(token0), address(token1), true))
-        // });
-        // assertFalse(leafPoolFactory.isPool(pool));
-        //
-        // vm.expectEmit(address(leafPoolFactory));
-        // emit IPoolFactory.PoolCreated(
-        //     address(token0), address(token1), true, pool, leafPoolFactory.allPoolsLength() + 1
-        // );
-        // vm.expectEmit(true, true, true, false, address(leafVoter));
-        // emit ILeafVoter.GaugeCreated({
-        //     poolFactory: address(leafPoolFactory),
-        //     votingRewardsFactory: address(leafVotingRewardsFactory),
-        //     gaugeFactory: address(leafGaugeFactory),
-        //     pool: pool,
-        //     bribeVotingReward: address(13),
-        //     feeVotingReward: address(12),
-        //     gauge: address(11),
-        //     creator: address(leafMessageBridge)
-        // });
-        // leafMailbox.processNextInboundMessage();
-        //
-        // assertTrue(leafPoolFactory.isPool(pool));
-        //
-        // leafPool = Pool(pool);
-        // assertEq(leafPool.token0(), address(token0));
-        // assertEq(leafPool.token1(), address(token1));
-        // assertTrue(leafPool.stable());
-        //
-        // leafGauge = LeafGauge(leafVoter.gauges(pool));
-        // assertEq(leafGauge.stakingToken(), pool);
-        // assertNotEq(leafGauge.feesVotingReward(), address(0));
-        // assertEq(leafGauge.rewardToken(), address(leafXVelo));
-        // assertEq(leafGauge.bridge(), address(leafMessageBridge));
-        // assertEq(leafGauge.gaugeFactory(), address(leafGaugeFactory));
-        //
-        // assertEq(address(leafGauge), address(rootGauge));
+        vm.selectFork({forkId: leafId});
+
+        address pool = Clones.predictDeterministicAddress({
+            deployer: address(poolFactory),
+            master: poolFactory.poolImplementation(),
+            salt: keccak256(abi.encode(address(token0), address(token1), int24(1)))
+        });
+
+        vm.expectEmit(address(poolFactory));
+        emit PoolCreated({token0: address(token0), token1: address(token1), tickSpacing: int24(1), pool: pool});
+        vm.expectEmit(true, true, true, false, address(leafVoter));
+        emit GaugeCreated({
+            poolFactory: address(poolFactory),
+            votingRewardsFactory: address(votingRewardsFactory),
+            gaugeFactory: address(leafGaugeFactory),
+            pool: pool,
+            bribeVotingReward: address(13),
+            feeVotingReward: address(12),
+            gauge: address(11),
+            creator: address(leafMessageBridge)
+        });
+        leafMailbox.processNextInboundMessage();
+
+        assertTrue(poolFactory.isPool(pool));
+
+        leafPool = CLPool(pool);
+        assertEq(leafPool.token0(), address(token0));
+        assertEq(leafPool.token1(), address(token1));
+        assertEq(uint256(uint24(leafPool.tickSpacing())), 1);
+
+        leafGauge = CLLeafGauge(leafVoter.gauges(pool));
+        assertNotEq(leafGauge.feesVotingReward(), address(0));
+        assertEq(leafGauge.rewardToken(), address(leafXVelo));
+        assertEq(leafGauge.bridge(), address(leafMessageBridge));
+
+        assertEq(address(leafGauge), address(rootGauge));
     }
 }

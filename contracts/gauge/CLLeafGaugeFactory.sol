@@ -51,7 +51,7 @@ contract CLLeafGaugeFactory is ICLLeafGaugeFactory {
 
         assembly {
             let chainId := chainid()
-            mstore(add(gcx, 0x20), chainId)
+            mstore(gcx, chainId)
         }
 
         gcx.token0 = ICLPool(_pool).token0();

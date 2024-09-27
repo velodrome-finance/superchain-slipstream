@@ -9,7 +9,7 @@ import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {IWETH9} from "contracts/periphery/interfaces/external/IWETH9.sol";
 import "forge-std/Test.sol";
 
-import {CLFactory} from "contracts/core/CLFactory.sol";
+import {ICLFactory, CLFactory} from "contracts/core/CLFactory.sol";
 import {CreateXLibrary} from "contracts/libraries/CreateXLibrary.sol";
 import {ICreateX} from "contracts/libraries/ICreateX.sol";
 import {ICLPool, CLPool} from "contracts/core/CLPool.sol";
@@ -51,7 +51,7 @@ import {ICLRootGaugeFactory, CLRootGaugeFactory} from "contracts/mainnet/gauge/C
 import {ICLRootGauge, CLRootGauge} from "contracts/mainnet/gauge/CLRootGauge.sol";
 import {IRootVotingRewardsFactory} from "contracts/mainnet/interfaces/rewards/IRootVotingRewardsFactory.sol";
 import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
-import {IMailbox} from "contracts/test/interfaces/IMailbox.sol";
+import {IMultichainMockMailbox} from "contracts/test/interfaces/IMultichainMockMailbox.sol";
 
 import {TestERC20} from "contracts/periphery/test/TestERC20.sol";
 
@@ -96,9 +96,11 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
     // leaf slipstream contracts
     CLPool public poolImplementation;
+    CLPool public leafPool;
     CLFactory public poolFactory;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
+    CLLeafGauge public leafGauge;
     CLLeafGaugeFactory public leafGaugeFactory;
     LpMigrator public lpMigrator;
 
@@ -107,12 +109,13 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     IFactoryRegistry public factoryRegistry;
     IVotingEscrow public escrow;
     IMinter public minter;
-    IMailbox public rootMailbox;
+    IMultichainMockMailbox public rootMailbox;
     IERC20 public rewardToken;
 
     // leaf dependencies
     ILeafVoter public leafVoter;
     IERC20 public weth;
+    IMultichainMockMailbox public leafMailbox;
 
     ERC20 public token0;
     ERC20 public token1;
@@ -185,7 +188,8 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         factoryRegistry = IFactoryRegistry(vm.parseJsonAddress(addresses, ".FactoryRegistry"));
         escrow = IVotingEscrow(vm.parseJsonAddress(addresses, ".VotingEscrow"));
         minter = IMinter(vm.parseJsonAddress(addresses, ".Minter"));
-        rootMailbox = IMailbox(vm.parseJsonAddress(addresses, ".Mailbox"));
+        rootMailbox = IMultichainMockMailbox(vm.parseJsonAddress(addresses, ".Mailbox"));
+        vm.allowCheatcodes(address(rootMailbox));
         rewardToken = IERC20(vm.parseJsonAddress(addresses, ".Velo"));
     }
 
@@ -198,13 +202,16 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
         // leaf dependencies
         leafVoter = ILeafVoter(vm.parseJsonAddress(addresses, ".LeafVoter"));
+        leafMailbox = IMultichainMockMailbox(vm.parseJsonAddress(addresses, ".LeafMailbox"));
+        vm.allowCheatcodes(address(leafMailbox));
     }
 
     function setUpRootChain() public virtual {
         vm.selectFork({forkId: rootId});
-        vm.startPrank(users.deployer);
 
         deployRootDependencies();
+
+        vm.startPrank(users.deployer);
 
         rootPoolImplementation = new RootCLPool();
         rootPoolFactory = RootCLPoolFactory(
@@ -253,9 +260,10 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
     function setUpLeafChain() public {
         vm.selectFork({forkId: leafId});
-        vm.startPrank(users.deployer);
 
         deployLeafDependencies();
+
+        vm.startPrank(users.deployer);
 
         address deployer = users.deployer;
         poolImplementation = CLPool(
@@ -285,13 +293,6 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
                 )
             })
         );
-
-        vm.startPrank(users.owner);
-        // backward compatibility with the original uniV3 fee structure and tick spacing
-        poolFactory.enableTickSpacing(10, 500);
-        poolFactory.enableTickSpacing(60, 3_000);
-        // 200 tick spacing fee is manually overriden in tests as it is part of default settings
-        vm.stopPrank();
 
         vm.startPrank(deployer);
 
@@ -343,17 +344,21 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
             })
         );
 
-        lpMigrator = new LpMigrator();
-
         vm.stopPrank();
+
+        vm.startPrank(users.deployer2);
+        lpMigrator = new LpMigrator();
 
         customSwapFeeModule = new CustomSwapFeeModule(address(poolFactory));
         customUnstakedFeeModule = new CustomUnstakedFeeModule(address(poolFactory));
+        vm.stopPrank();
+
         vm.startPrank(users.feeManager);
         poolFactory.setSwapFeeModule(address(customSwapFeeModule));
         poolFactory.setUnstakedFeeModule(address(customUnstakedFeeModule));
         vm.stopPrank();
 
+        vm.startPrank(users.deployer2);
         ERC20 tokenA = new ERC20("", "");
         ERC20 tokenB = new ERC20("", "");
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
@@ -368,6 +373,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
         // e2e specific setup
         e2eNftCallee = new NFTManagerCallee(address(weth), address(op), address(nft));
+        vm.stopPrank();
 
         deal({token: address(op), to: users.alice, give: TOKEN_1 * 100});
         deal({token: address(weth), to: users.alice, give: TOKEN_1 * 100});
@@ -389,18 +395,26 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.stopPrank();
     }
 
-    function setUpPostCommon() public virtual {
+    function setUpPostCommon() public {
         vm.selectFork({forkId: rootId});
 
-        // mock calls to dispatch
-        vm.mockCall({
-            callee: address(rootMailbox),
-            data: abi.encode(bytes4(keccak256("quoteDispatch(uint32,bytes32,bytes)"))),
-            returnData: abi.encode(MESSAGE_FEE)
-        });
+        rootMailbox.addRemoteMailbox({_domain: leafChainId, _mailbox: address(leafMailbox)});
+        rootMailbox.setDomainForkId({_domain: leafChainId, _forkId: leafId});
 
-        vm.prank(Ownable(address(rootMessageBridge)).owner());
-        IChainRegistry(address(rootMessageBridge)).registerChain({_chainid: leafChainId});
+        vm.startPrank(users.owner);
+        // backward compatibility with the original uniV3 fee structure and tick spacing
+        rootPoolFactory.enableTickSpacing(10, 500);
+        rootPoolFactory.enableTickSpacing(60, 3_000);
+        // 200 tick spacing fee is manually overriden in tests as it is part of default settings
+        vm.stopPrank();
+
+        vm.startPrank(Ownable(address(rootMessageBridge)).owner());
+        IChainRegistry(address(rootMessageBridge)).addModule({_module: address(rootMessageModule)});
+        IChainRegistry(address(rootMessageBridge)).registerChain({
+            _chainid: leafChainId,
+            _module: address(leafMessageModule)
+        });
+        vm.stopPrank();
         rootPool = RootCLPool(
             rootPoolFactory.createPool({
                 chainid: leafChainId,
@@ -417,6 +431,13 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.prank({msgSender: rootVoter.governor(), txOrigin: users.alice});
         rootGauge =
             CLRootGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
+
+        vm.selectFork({forkId: leafId});
+
+        vm.startPrank(users.owner);
+        poolFactory.enableTickSpacing(10, 500);
+        poolFactory.enableTickSpacing(60, 3_000);
+        vm.stopPrank();
     }
 
     /// @dev Helper utility to forward time to next week
@@ -469,8 +490,11 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         assertEq(pool.tickSpacing(), tickSpacing);
         assertEq(ICLPool(pool).nft(), address(nft));
 
-        //NOTE: vm.chainId(rootChainId) is not working to set the correct chainId for chainid()
-        bytes32 salt = keccak256(abi.encodePacked(uint256(0), TEST_TOKEN_0, TEST_TOKEN_1, tickSpacing));
+        uint256 chainId;
+        assembly {
+            chainId := chainid()
+        }
+        bytes32 salt = keccak256(abi.encodePacked(chainId, TEST_TOKEN_0, TEST_TOKEN_1, tickSpacing));
         bytes11 entropy = bytes11(salt);
         address expectedGauge = entropy.computeCreate3Address({_deployer: address(leafGaugeFactory)});
 
@@ -500,9 +524,11 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.label({account: address(rootMailbox), newLabel: "Root Mailbox"});
         vm.label({account: address(rewardToken), newLabel: "Velo"});
 
+        vm.label({account: address(rootPool), newLabel: "Root Pool"});
         vm.label({account: address(rootPoolImplementation), newLabel: "Root Pool Implementation"});
         vm.label({account: address(rootPoolFactory), newLabel: "Root Pool Factory"});
         vm.label({account: address(rootGaugeFactory), newLabel: "Root Gauge Factory"});
+        vm.label({account: address(rootGauge), newLabel: "Root Gauge"});
 
         // leaf
         vm.selectFork({forkId: leafId});
@@ -529,17 +555,6 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.label({account: address(token0), newLabel: "Token 0"});
         vm.label({account: address(token1), newLabel: "Token 1"});
 
-        vm.label({account: address(xVelo), newLabel: "Root xVelo"});
-        vm.label({account: address(rootMessageBridge), newLabel: "Root Message Bridge"});
-        vm.label({account: address(rootMessageModule), newLabel: "Root Message Module"});
-        vm.label({account: address(rootLockbox), newLabel: "Root Lockbox"});
-        vm.label({account: address(rootVoter), newLabel: "Root Voter"});
-
-        vm.label({account: address(leafMessageBridge), newLabel: "Leaf Message Bridge"});
-        vm.label({account: address(leafMessageModule), newLabel: "Leaf Message Module"});
-
-        vm.label({account: address(rootPool), newLabel: "Root Pool"});
-        vm.label({account: address(rootGauge), newLabel: "Root Gauge"});
         vm.label({account: address(clCallee), newLabel: "CL Callee"});
         vm.label({account: address(nftCallee), newLabel: "NFT Callee"});
     }
@@ -556,7 +571,8 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
             alice: createUser("Alice"),
             bob: createUser("Bob"),
             charlie: createUser("Charlie"),
-            deployer: createUser("Deployer")
+            deployer: createUser("Deployer"),
+            deployer2: createUser("Deployer2")
         });
     }
 
@@ -574,7 +590,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         xVelo.addBridge(
             IXERC20.RateLimitMidPointInfo({
                 bufferCap: rootBufferCap,
-                bridge: address(rootMessageBridge),
+                bridge: address(rootMessageModule),
                 rateLimitPerSecond: rps
             })
         );
@@ -587,7 +603,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         leafXVelo.addBridge(
             IXERC20.RateLimitMidPointInfo({
                 bufferCap: leafBufferCap,
-                bridge: address(leafMessageBridge),
+                bridge: address(leafMessageModule),
                 rateLimitPerSecond: rps
             })
         );

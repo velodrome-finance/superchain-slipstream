@@ -47,7 +47,7 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
         override
         returns (address pool)
     {
-        require(IChainRegistry(bridge).contains(chainid), "NR");
+        require(IChainRegistry(bridge).containsChain(chainid), "NR");
         require(tokenA != tokenB, "S_A");
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), "Z_A");

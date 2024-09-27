@@ -31,8 +31,12 @@ contract CreatePoolConcreteTest is RootCLPoolFactoryTest {
     }
 
     modifier whenChainIdIsRegistered() {
-        vm.prank(Ownable(address(rootMessageBridge)).owner());
-        IChainRegistry(address(rootMessageBridge)).registerChain({_chainid: _chainid});
+        vm.startPrank(Ownable(address(rootMessageBridge)).owner());
+        IChainRegistry(address(rootMessageBridge)).registerChain({
+            _chainid: _chainid,
+            _module: address(rootMessageModule)
+        });
+        vm.stopPrank();
         _;
     }
 

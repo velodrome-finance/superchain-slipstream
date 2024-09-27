@@ -79,7 +79,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         // alice should have 2 days worth of rewards
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
+        assertEq(gauge.lastUpdateTime(tokenId), 1728086400);
     }
 
     function test_GetRewardOneDepositorWithPositionInCurrentPrice() public {
@@ -105,7 +105,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 7 * 5, 1e5);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
+        assertEq(gauge.lastUpdateTime(tokenId), 1728086400);
     }
 
     function test_GetRewardOneDepositorWithPositionRightOfCurrentPrice() public {
@@ -131,7 +131,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
+        assertEq(gauge.lastUpdateTime(tokenId), 1728086400);
     }
 
     function test_GetRewardOneDepositorWithPositionLeftOfCurrentPrice() public {
@@ -157,7 +157,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
+        assertEq(gauge.lastUpdateTime(tokenId), 1728086400);
     }
 
     function test_GetRewardWithMultipleDepositors() public {
@@ -185,7 +185,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
         assertEq(gauge.rewards(aliceTokenId), 0);
-        assertEq(gauge.lastUpdateTime(aliceTokenId), 1727481600);
+        assertEq(gauge.lastUpdateTime(aliceTokenId), 1728086400);
 
         uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice should have 1 day worth of rewards
@@ -196,7 +196,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
         assertEq(gauge.rewards(bobTokenId), 0);
-        assertEq(gauge.lastUpdateTime(bobTokenId), 1727913600);
+        assertEq(gauge.lastUpdateTime(bobTokenId), 1728518400);
 
         uint256 bobRewardBalance = xVelo.balanceOf(users.bob);
         // bob should have half an epoch worth of rewards
@@ -209,7 +209,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
         assertEq(gauge.rewards(aliceTokenId), 0);
-        assertEq(gauge.lastUpdateTime(aliceTokenId), 1727913600);
+        assertEq(gauge.lastUpdateTime(aliceTokenId), 1728518400);
 
         aliceRewardBalance = xVelo.balanceOf(users.alice);
         // alice should have half of the rewards
@@ -553,7 +553,7 @@ contract GetRewardTest is CLLeafGaugeTest {
         // alice should have 2 days worth of rewards
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
+        assertEq(gauge.lastUpdateTime(tokenId), 1728086400);
     }
 
     function test_GetRewardAsVoterWithMultipleDeposits() public {
@@ -584,8 +584,8 @@ contract GetRewardTest is CLLeafGaugeTest {
         // alice should have 2 days worth of rewards
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1727481600);
+        assertEq(gauge.lastUpdateTime(tokenId), 1728086400);
         assertEq(gauge.rewards(tokenId2), 0);
-        assertEq(gauge.lastUpdateTime(tokenId2), 1727481600);
+        assertEq(gauge.lastUpdateTime(tokenId2), 1728086400);
     }
 }

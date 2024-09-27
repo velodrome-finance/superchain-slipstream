@@ -115,7 +115,7 @@ contract CLFactory is ICLFactory {
 
         assembly {
             let chainId := chainid()
-            mstore(add(pcx, 0x20), chainId)
+            mstore(pcx, chainId)
         }
         pcx.salt = keccak256(abi.encodePacked(pcx.chainId, token0, token1, tickSpacing));
         pcx.entropy = bytes11(pcx.salt);
