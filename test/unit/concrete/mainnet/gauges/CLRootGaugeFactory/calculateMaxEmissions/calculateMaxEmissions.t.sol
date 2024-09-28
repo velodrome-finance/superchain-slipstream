@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import "../CLRootGaugeFactory.t.sol";
 
-contract CalculateMaxEmissionsConcreteTest is CLRootGaugeFactoryTest {
+contract CalculateMaxEmissionsIntegrationConcreteTest is CLRootGaugeFactoryTest {
     using stdStorage for StdStorage;
 
     uint256 public WEEKLY_DECAY;

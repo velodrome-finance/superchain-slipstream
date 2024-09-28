@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import "../RootCLPoolFactory.t.sol";
 
-contract CreatePoolConcreteTest is RootCLPoolFactoryTest {
+contract CreatePoolIntegrationConcreteTest is RootCLPoolFactoryTest {
     TestERC20 public tokenA;
     TestERC20 public tokenB;
 
