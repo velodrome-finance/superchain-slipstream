@@ -12,7 +12,7 @@ contract CLFactoryTest is BaseForkFixture {
         assertEq(poolFactory.unstakedFeeModule(), address(customUnstakedFeeModule));
         assertEq(poolFactory.swapFeeManager(), users.feeManager);
         assertEq(poolFactory.unstakedFeeManager(), users.feeManager);
-        assertEq(poolFactory.allPoolsLength(), 0);
+        assertEq(poolFactory.allPoolsLength(), 1);
 
         assertEqUint(poolFactory.defaultUnstakedFee(), 100_000);
         assertEqUint(poolFactory.tickSpacingToFee(TICK_SPACING_STABLE), 100);

@@ -433,6 +433,11 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
             CLRootGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
 
         vm.selectFork({forkId: leafId});
+        // set up leaf pool & gauge by processing pending `createGauge` message in mailbox
+        leafMailbox.processNextInboundMessage();
+        leafPool =
+            CLPool(poolFactory.getPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: int24(1)}));
+        leafGauge = CLLeafGauge(leafVoter.gauges(address(leafPool)));
 
         vm.startPrank(users.owner);
         poolFactory.enableTickSpacing(10, 500);
@@ -443,7 +448,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     /// @dev Helper utility to forward time to next week
     ///      note epoch requires at least one second to have
     ///      passed into the new epoch
-    function skipToNextEpoch(uint256 offset) public {
+    function skipToNextEpoch(uint256 offset) public virtual {
         uint256 ts = block.timestamp;
         uint256 nextEpoch = ts - (ts % (1 weeks)) + (1 weeks);
         vm.warp(nextEpoch + offset);

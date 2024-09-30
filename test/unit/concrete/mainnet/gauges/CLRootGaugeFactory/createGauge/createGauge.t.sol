@@ -8,13 +8,12 @@ contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
     function setUp() public override {
         super.setUp();
 
-        // we use stable = true to avoid collision with existing pool
         rootPool = RootCLPool(
             rootPoolFactory.createPool({
                 chainid: leafChainId,
                 tokenA: address(token0),
                 tokenB: address(token1),
-                tickSpacing: 10
+                tickSpacing: TICK_SPACING_10
             })
         );
 
@@ -39,6 +38,13 @@ contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
         // It should call createGauge with leaf pool and factory on corresponding leaf voter
         // It should create a new gauge on leaf chain with same address as root gauge
         // It should emit a {GaugeCreated} event
+        vm.prank(address(rootVoter));
+        (address rootFVR,) = rootVotingRewardsFactory.createRewards(address(0), new address[](0));
+
+        vm.prank({msgSender: address(rootVoter), txOrigin: users.alice});
+        rootGauge = CLRootGauge(
+            rootGaugeFactory.createGauge(address(0), address(rootPool), address(rootFVR), address(rewardToken), true)
+        );
 
         assertEq(rootGauge.gaugeFactory(), address(rootGaugeFactory));
         assertEq(rootGauge.rewardToken(), address(rewardToken));
@@ -50,25 +56,24 @@ contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
         assertEq(rootGauge.minter(), address(minter));
 
         vm.selectFork({forkId: leafId});
-
         address pool = Clones.predictDeterministicAddress({
             deployer: address(poolFactory),
             master: poolFactory.poolImplementation(),
-            salt: keccak256(abi.encode(address(token0), address(token1), int24(1)))
+            salt: keccak256(abi.encode(address(token0), address(token1), TICK_SPACING_10))
         });
 
         vm.expectEmit(address(poolFactory));
-        emit PoolCreated({token0: address(token0), token1: address(token1), tickSpacing: int24(1), pool: pool});
+        emit PoolCreated({token0: address(token0), token1: address(token1), tickSpacing: TICK_SPACING_10, pool: pool});
         vm.expectEmit(true, true, true, false, address(leafVoter));
         emit GaugeCreated({
             poolFactory: address(poolFactory),
             votingRewardsFactory: address(votingRewardsFactory),
             gaugeFactory: address(leafGaugeFactory),
-            pool: pool,
+            pool: address(pool),
             bribeVotingReward: address(13),
             feeVotingReward: address(12),
-            gauge: address(11),
-            creator: address(leafMessageBridge)
+            gauge: address(rootGauge),
+            creator: address(leafMessageModule)
         });
         leafMailbox.processNextInboundMessage();
 
@@ -77,7 +82,7 @@ contract CreateGaugeIntegrationConcreteTest is CLRootGaugeFactoryTest {
         leafPool = CLPool(pool);
         assertEq(leafPool.token0(), address(token0));
         assertEq(leafPool.token1(), address(token1));
-        assertEq(uint256(uint24(leafPool.tickSpacing())), 1);
+        assertEq(leafPool.tickSpacing(), TICK_SPACING_10);
 
         leafGauge = CLLeafGauge(leafVoter.gauges(pool));
         assertNotEq(leafGauge.feesVotingReward(), address(0));
