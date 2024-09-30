@@ -23,6 +23,9 @@ abstract contract DeployFixture is Script {
 
     string public jsonConstants;
 
+    /// @dev used by tests to disable logging of output
+    bool public isTest;
+
     function setUp() public virtual;
 
     function run() external {

@@ -9,7 +9,7 @@ contract DeployPositionDescriptor is DeployPositionDescriptorBaseFixture {
         _params = DeployPositionDescriptorBaseFixture.DeploymentParameters({
             weth: 0x4200000000000000000000000000000000000006,
             nativeCurrencyLabelBytes: 0x4554480000000000000000000000000000000000000000000000000000000000, // 'ETH' as bytes32 string
-            outputFilename: "DeployCL-Optimism.json"
+            outputFilename: "DeployCL-Mode.json"
         });
     }
 }

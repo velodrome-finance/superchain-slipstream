@@ -17,18 +17,19 @@ import {QuoterV2} from "contracts/periphery/lens/QuoterV2.sol";
 import {SwapRouter} from "contracts/periphery/SwapRouter.sol";
 import {Constants} from "script/constants/Constants.sol";
 
-abstract contract DeployBaseFixture is DeployFixture, Constants {
+abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
     using stdJson for string;
     using CreateXLibrary for bytes11;
 
     struct DeploymentParameters {
-        address team;
         address weth;
-        address voter;
+        address leafVoter;
+        address factoryV2;
+        address xVelo;
+        address messageBridge;
+        address team;
         address poolFactoryOwner;
         address feeManager;
-        address notifyAdmin;
-        address factoryV2;
         string nftName;
         string nftSymbol;
         string outputFilename;
@@ -40,7 +41,7 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
     CLLeafGauge public gaugeImplementation;
-    CLLeafGaugeFactory public leafGaugeFactory;
+    CLLeafGaugeFactory public gaugeFactory;
     CustomSwapFeeModule public swapFeeModule;
     CustomUnstakedFeeModule public unstakedFeeModule;
     MixedRouteQuoterV1 public mixedQuoter;
@@ -61,6 +62,9 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
         );
         checkAddress({_entropy: CL_POOL_ENTROPY, _output: address(poolImplementation)});
 
+        gaugeFactory = CLLeafGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: _deployer}));
+        nft = NonfungiblePositionManager(payable(NFT_POSITION_MANAGER.computeCreate3Address({_deployer: deployer})));
+
         poolFactory = CLFactory(
             cx.deployCreate3({
                 salt: CL_POOL_FACTORY_ENTROPY.calculateSalt({_deployer: _deployer}),
@@ -70,8 +74,10 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
                         _deployer, // owner
                         _deployer, // swapFeeManager
                         _deployer, // unstakedFeeManager
-                        _params.voter, // voter
-                        address(poolImplementation) // pool implementation
+                        _params.leafVoter, // voter
+                        address(poolImplementation), // pool implementation
+                        address(gaugeFactory), // gauge factory
+                        address(nft) // nft
                     )
                 )
             })
@@ -79,8 +85,19 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
         checkAddress({_entropy: CL_POOL_FACTORY_ENTROPY, _output: address(poolFactory)});
 
         // deploy nft contracts
-        nftDescriptor =
-            new NonfungibleTokenPositionDescriptor({_WETH9: _params.weth, _nativeCurrencyLabelBytes: bytes32("ETH")});
+        nftDescriptor = NonfungibleTokenPositionDescriptor(
+            cx.deployCreate3({
+                salt: NFT_POSITION_DESCRIPTOR.calculateSalt({_deployer: _deployer}),
+                initCode: abi.encodePacked(
+                    type(NonfungibleTokenPositionDescriptor).creationCode,
+                    abi.encode(
+                        _params.weth, // WETH9
+                        0x4554480000000000000000000000000000000000000000000000000000000000 // nativeCurrencyLabelBytes
+                    )
+                )
+            })
+        );
+        checkAddress({_entropy: NFT_POSITION_DESCRIPTOR, _output: address(nftDescriptor)});
 
         nft = NonfungiblePositionManager(
             payable(
@@ -102,21 +119,21 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
         );
         checkAddress({_entropy: NFT_POSITION_MANAGER, _output: address(nft)});
 
-        leafGaugeFactory = CLLeafGaugeFactory(
+        gaugeFactory = CLLeafGaugeFactory(
             cx.deployCreate3({
                 salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: _deployer}),
                 initCode: abi.encodePacked(
                     type(CLLeafGaugeFactory).creationCode,
                     abi.encode(
-                        _params.voter, // voter
+                        _params.leafVoter, // voter
                         address(nft), // nft (nfpm)
-                        address(0), // xerc20
-                        address(0) // bridge
+                        _params.xVelo, // xerc20
+                        _params.messageBridge // bridge
                     )
                 )
             })
         );
-        checkAddress({_entropy: CL_GAUGE_FACTORY_ENTROPY, _output: address(leafGaugeFactory)});
+        checkAddress({_entropy: CL_GAUGE_FACTORY_ENTROPY, _output: address(gaugeFactory)});
 
         // deploy fee modules
         swapFeeModule = new CustomSwapFeeModule({_factory: address(poolFactory)});
@@ -179,12 +196,13 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
     }
 
     function logParams() internal view override {
+        if (isTest) return;
         console2.log("poolImplementation: ", address(poolImplementation));
         console2.log("poolFactory: ", address(poolFactory));
         console2.log("nftDescriptor: ", address(nftDescriptor));
         console2.log("nft: ", address(nft));
         console2.log("gaugeImplementation: ", address(gaugeImplementation));
-        console2.log("leafGaugeFactory: ", address(leafGaugeFactory));
+        console2.log("gaugeFactory: ", address(gaugeFactory));
         console2.log("swapFeeModule: ", address(swapFeeModule));
         console2.log("unstakedFeeModule: ", address(unstakedFeeModule));
         console2.log("mixedQuoter: ", address(mixedQuoter));
@@ -193,6 +211,7 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
     }
 
     function logOutput() internal override {
+        if (isTest) return;
         string memory root = vm.projectRoot();
         string memory path = string(abi.encodePacked(root, "/deployment-addresses/", _params.outputFilename));
         /// @dev This might overwrite an existing output file
@@ -205,7 +224,7 @@ abstract contract DeployBaseFixture is DeployFixture, Constants {
                     stdJson.serialize("", "nftDescriptor", address(nftDescriptor)),
                     stdJson.serialize("", "nft", address(nft)),
                     stdJson.serialize("", "gaugeImplementation", address(gaugeImplementation)),
-                    stdJson.serialize("", "leafGaugeFactory", address(leafGaugeFactory)),
+                    stdJson.serialize("", "gaugeFactory", address(gaugeFactory)),
                     stdJson.serialize("", "swapFeeModule", address(swapFeeModule)),
                     stdJson.serialize("", "unstakedFeeModule", address(unstakedFeeModule)),
                     stdJson.serialize("", "mixedQuoter", address(mixedQuoter)),
