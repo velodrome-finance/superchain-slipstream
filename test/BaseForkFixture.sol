@@ -449,8 +449,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     ///      note epoch requires at least one second to have
     ///      passed into the new epoch
     function skipToNextEpoch(uint256 offset) public virtual {
-        uint256 ts = block.timestamp;
-        uint256 nextEpoch = ts - (ts % (1 weeks)) + (1 weeks);
+        uint256 nextEpoch = block.timestamp - (block.timestamp % (1 weeks)) + (1 weeks);
         vm.warp(nextEpoch + offset);
         vm.roll(block.number + 1);
     }
@@ -627,5 +626,15 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.warp({newTimestamp: block.timestamp + _time});
         vm.roll({newHeight: block.number + _time / 2});
         vm.selectFork({forkId: activeFork});
+    }
+
+    modifier syncForkTimestamps() {
+        uint256 fork = vm.activeFork();
+        vm.selectFork({forkId: rootId});
+        vm.warp({newTimestamp: rootStartTime});
+        vm.selectFork({forkId: leafId});
+        vm.warp({newTimestamp: leafStartTime});
+        vm.selectFork({forkId: fork});
+        _;
     }
 }

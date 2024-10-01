@@ -38,11 +38,9 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
     {
         // It should wrap the tokens to the XERC20 token
         // It should bridge the XERC20 token to the corresponding LeafGauge
-        // It should update rewardPerTokenStored
         // It should deposit the amount of XERC20 token
         // It should update the reward rate
         // It should cache the updated reward rate for this epoch
-        // It should update the last update timestamp
         // It should update the period finish timestamp
         // It should emit a {NotifyReward} event
 
@@ -63,17 +61,18 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
         assertEq(xVelo.balanceOf(address(rootGauge)), 0);
 
-        // vm.selectFork({forkId: leafId});
-        // vm.expectEmit(address(leafGauge));
-        // emit ILeafGauge.NotifyReward({_sender: address(leafMessageModule), _amount: amount});
-        // leafMailbox.processNextInboundMessage();
-        // assertEq(leafXVelo.balanceOf(address(leafGauge)), amount);
-        //
-        // assertEq(leafGauge.rewardPerTokenStored(), 0);
-        // assertEq(leafGauge.rewardRate(), amount / WEEK);
-        // assertEq(leafGauge.rewardRateByEpoch(VelodromeTimeLibrary.epochStart(block.timestamp)), amount / WEEK);
-        // assertEq(leafGauge.lastUpdateTime(), block.timestamp);
-        // assertEq(leafGauge.periodFinish(), block.timestamp + WEEK);
+        vm.selectFork({forkId: leafId});
+        vm.expectEmit(address(leafGauge));
+        emit NotifyReward({from: address(leafMessageModule), amount: amount});
+        leafMailbox.processNextInboundMessage();
+        assertEq(leafXVelo.balanceOf(address(leafGauge)), amount);
+
+        assertEq(leafGauge.rewardRate(), amount / WEEK);
+        assertEq(leafGauge.rewardRateByEpoch(VelodromeTimeLibrary.epochStart(block.timestamp)), amount / WEEK);
+        assertEq(leafGauge.periodFinish(), block.timestamp + WEEK);
+        assertEq(leafPool.rewardRate(), amount / WEEK);
+        assertEq(leafPool.rewardReserve(), amount);
+        assertEq(leafPool.periodFinish(), block.timestamp + WEEK);
     }
 
     function test_WhenTheCurrentTimestampIsLessThanPeriodFinish()
@@ -83,11 +82,9 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
     {
         // It should wrap the tokens to the XERC20 token
         // It should bridge the XERC20 token to the corresponding LeafGauge
-        // It should update rewardPerTokenStored
         // It should deposit the amount of XERC20 token
         // It should update the reward rate, including any existing rewards
         // It should cache the updated reward rate for this epoch
-        // It should update the last update timestamp
         // It should update the period finish timestamp
         // It should emit a {NotifyReward} event
 
@@ -100,12 +97,12 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
         // inital deposit of partial amount
         vm.prank({msgSender: users.owner, txOrigin: users.alice});
         rootGauge.notifyRewardWithoutClaim({_amount: amount});
-        // vm.selectFork({forkId: leafId});
-        // leafMailbox.processNextInboundMessage();
-        //
-        // skipTime(WEEK / 7 * 5);
-        //
-        // vm.selectFork({forkId: rootId});
+        vm.selectFork({forkId: leafId});
+        leafMailbox.processNextInboundMessage();
+
+        skipTime(WEEK / 7 * 5);
+
+        vm.selectFork({forkId: rootId});
         vm.prank({msgSender: users.owner, txOrigin: users.alice});
         vm.expectEmit(address(rootGauge));
         emit NotifyReward({from: users.owner, amount: amount});
@@ -115,18 +112,26 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is CLRootGaugeTest {
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
         assertEq(xVelo.balanceOf(address(rootGauge)), 0);
 
-        // vm.selectFork({forkId: leafId});
-        // vm.expectEmit(address(leafGauge));
-        // emit ILeafGauge.NotifyReward({_sender: address(leafMessageModule), _amount: amount});
-        // leafMailbox.processNextInboundMessage();
-        // assertEq(leafXVelo.balanceOf(address(leafGauge)), amount * 2);
-        //
-        // assertEq(leafGauge.rewardPerTokenStored(), 0);
-        // uint256 timeUntilNext = WEEK * 2 / 7;
-        // uint256 rewardRate = ((amount / WEEK) * timeUntilNext + amount) / timeUntilNext;
-        // assertEq(leafGauge.rewardRate(), rewardRate);
-        // assertEq(leafGauge.rewardRateByEpoch(VelodromeTimeLibrary.epochStart(block.timestamp)), rewardRate);
-        // assertEq(leafGauge.lastUpdateTime(), block.timestamp);
-        // assertEq(leafGauge.periodFinish(), block.timestamp + WEEK / 7 * 2);
+        vm.selectFork({forkId: leafId});
+        uint256 timeUntilNext = WEEK * 2 / 7;
+
+        assertEq(leafPool.rewardRate(), amount / WEEK);
+        assertEq(leafPool.rewardReserve(), amount);
+        assertEq(leafPool.periodFinish(), block.timestamp + timeUntilNext);
+
+        uint256 poolRollover = amount / WEEK * (WEEK / 7 * 5);
+
+        vm.expectEmit(address(leafGauge));
+        emit NotifyReward({from: address(leafMessageModule), amount: amount + poolRollover});
+        leafMailbox.processNextInboundMessage();
+        assertEq(leafXVelo.balanceOf(address(leafGauge)), amount * 2);
+
+        uint256 rewardRate = ((amount / WEEK) * timeUntilNext + amount + poolRollover) / timeUntilNext;
+        assertEq(leafGauge.rewardRate(), rewardRate);
+        assertEq(leafGauge.rewardRateByEpoch(VelodromeTimeLibrary.epochStart(block.timestamp)), rewardRate);
+        assertEq(leafGauge.periodFinish(), block.timestamp + WEEK / 7 * 2);
+        assertEq(leafPool.rewardRate(), rewardRate);
+        assertEq(leafPool.rewardReserve(), amount + poolRollover + ((amount / WEEK) * timeUntilNext));
+        assertEq(leafPool.periodFinish(), block.timestamp + (WEEK / 7 * 2));
     }
 }
