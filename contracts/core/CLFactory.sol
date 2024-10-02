@@ -10,7 +10,7 @@ import "./interfaces/IFactoryRegistry.sol";
 import "./CLPool.sol";
 import {CreateXLibrary} from "../libraries/CreateXLibrary.sol";
 import {NonfungiblePositionManager} from "../periphery/NonfungiblePositionManager.sol";
-import {ICLLeafGaugeFactory} from "../gauge/interfaces/ICLLeafGaugeFactory.sol";
+import {ILeafCLGaugeFactory} from "../gauge/interfaces/ILeafCLGaugeFactory.sol";
 
 /// @title Canonical CL factory
 /// @notice Deploys CL pools and manages ownership and control over pool protocol fees

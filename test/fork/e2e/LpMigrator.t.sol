@@ -20,14 +20,14 @@ contract LpMigratorTest is BaseForkFixture {
         );
         vm.prank({msgSender: rootVoter.governor(), txOrigin: users.alice});
         rootGauge =
-            CLRootGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
+            RootCLGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
 
         // set up leaf pool & gauge by processing pending `createGauge` message in mailbox
         vm.selectFork(leafId);
         leafMailbox.processNextInboundMessage();
         leafPool =
             CLPool(poolFactory.getPool({tokenA: address(weth), tokenB: address(op), tickSpacing: TICK_SPACING_200}));
-        leafGauge = CLLeafGauge(leafVoter.gauges(address(leafPool)));
+        leafGauge = LeafCLGauge(leafVoter.gauges(address(leafPool)));
 
         // setup new pool factory and nft manager for migration
         nftFrom = nft;

@@ -3,7 +3,7 @@ pragma abicoder v2;
 
 import {CLPoolTest} from "../CLPool.t.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
-import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
+import {LeafCLGauge} from "contracts/gauge/LeafCLGauge.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 import {UnsafeMath} from "contracts/core/libraries/UnsafeMath.sol";
 import {TickMath} from "contracts/core/libraries/TickMath.sol";
@@ -12,7 +12,7 @@ import {INonfungiblePositionManager} from "contracts/periphery/NonfungiblePositi
 // calculate fees is an internal function but we test the correct functionality here
 contract CalculateFeesTest is CLPoolTest {
     CLPool public pool;
-    CLLeafGauge public gauge;
+    LeafCLGauge public gauge;
 
     function setUp() public override {
         super.setUp();
@@ -29,7 +29,7 @@ contract CalculateFeesTest is CLPoolTest {
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
         vm.prank(address(leafMessageModule));
-        gauge = CLLeafGauge(
+        gauge = LeafCLGauge(
             leafVoter.createGauge({
                 _poolFactory: address(poolFactory),
                 _pool: address(pool),

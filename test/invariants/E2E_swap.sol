@@ -5,7 +5,7 @@ import "./Setup.sol";
 import "./helpers/Hevm.sol";
 import {CoreTestERC20} from "contracts/core/test/CoreTestERC20.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
-import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
+import {LeafCLGauge} from "contracts/gauge/LeafCLGauge.sol";
 import {
     INonfungiblePositionManager, NonfungiblePositionManager
 } from "contracts/periphery/NonfungiblePositionManager.sol";
@@ -17,7 +17,7 @@ contract E2E_swap {
     SetupCL cl;
 
     CLPool pool;
-    CLLeafGauge gauge;
+    LeafCLGauge gauge;
     NonfungiblePositionManager nft;
     IVoter voter;
 

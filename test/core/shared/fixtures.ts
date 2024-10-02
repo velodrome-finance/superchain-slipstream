@@ -8,7 +8,7 @@ import { TestCLCallee } from '../../../typechain/TestCLCallee'
 import { TestCLRouter } from '../../../typechain/TestCLRouter'
 import { MockVoter } from '../../../typechain/MockVoter'
 import { CustomUnstakedFeeModule, MockFactoryRegistry, MockVotingRewardsFactory } from '../../../typechain'
-import { CLLeafGaugeFactory } from '../../../typechain/CLLeafGaugeFactory'
+import { LeafCLGaugeFactory } from '../../../typechain/LeafCLGaugeFactory'
 import { encodePriceSqrt } from './utilities'
 import { Fixture } from 'ethereum-waffle'
 
@@ -59,7 +59,7 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   const MockTimeCLPoolDeployerFactory = await ethers.getContractFactory('CLFactory')
   const MockTimeCLPoolFactory = await ethers.getContractFactory('MockTimeCLPool')
   const MockVoterFactory = await ethers.getContractFactory('MockVoter')
-  const GaugeFactoryFactory = await ethers.getContractFactory('CLLeafGaugeFactory')
+  const GaugeFactoryFactory = await ethers.getContractFactory('LeafCLGaugeFactory')
   const MockFactoryRegistryFactory = await ethers.getContractFactory('MockFactoryRegistry')
   const MockVotingRewardsFactoryFactory = await ethers.getContractFactory('MockVotingRewardsFactory')
   const MockVotingEscrowFactory = await ethers.getContractFactory('MockVotingEscrow')
@@ -91,7 +91,7 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     constants.AddressZero, //nft address
     constants.AddressZero, //xerc20 address
     constants.AddressZero //bridge address
-  )) as CLLeafGaugeFactory
+  )) as LeafCLGaugeFactory
 
   const customUnstakedFeeModule = (await CustomUnstakedFeeModuleFactory.deploy(
     mockTimePoolDeployer.address

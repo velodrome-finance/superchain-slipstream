@@ -4,12 +4,12 @@ pragma abicoder v2;
 import "../../../../BaseForkFixture.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
 import {CLPoolTest} from "../CLPool.t.sol";
-import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
+import {LeafCLGauge} from "contracts/gauge/LeafCLGauge.sol";
 import "contracts/core/libraries/FullMath.sol";
 
 contract FlashTest is CLPoolTest {
     CLPool public pool;
-    CLLeafGauge public gauge;
+    LeafCLGauge public gauge;
 
     int24 tickSpacing = TICK_SPACING_60;
 
@@ -25,7 +25,7 @@ contract FlashTest is CLPoolTest {
             })
         );
         vm.prank(address(leafMessageModule));
-        gauge = CLLeafGauge(
+        gauge = LeafCLGauge(
             leafVoter.createGauge({
                 _poolFactory: address(poolFactory),
                 _pool: address(pool),

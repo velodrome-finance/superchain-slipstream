@@ -17,8 +17,8 @@ import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/Nonfungibl
 import {
     INonfungiblePositionManager, NonfungiblePositionManager
 } from "contracts/periphery/NonfungiblePositionManager.sol";
-import {CLLeafGaugeFactory} from "contracts/gauge/CLLeafGaugeFactory.sol";
-import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
+import {LeafCLGaugeFactory} from "contracts/gauge/LeafCLGaugeFactory.sol";
+import {LeafCLGauge} from "contracts/gauge/LeafCLGauge.sol";
 import {ILeafVoter} from "contracts/test/interfaces/ILeafVoter.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
@@ -47,8 +47,8 @@ import {IRootHLMessageModule} from "contracts/mainnet/interfaces/bridge/hyperlan
 import {ILeafHLMessageModule} from "contracts/mainnet/interfaces/bridge/hyperlane/ILeafHLMessageModule.sol";
 import {RootCLPool} from "contracts/mainnet/pool/RootCLPool.sol";
 import {RootCLPoolFactory} from "contracts/mainnet/pool/RootCLPoolFactory.sol";
-import {ICLRootGaugeFactory, CLRootGaugeFactory} from "contracts/mainnet/gauge/CLRootGaugeFactory.sol";
-import {ICLRootGauge, CLRootGauge} from "contracts/mainnet/gauge/CLRootGauge.sol";
+import {IRootCLGaugeFactory, RootCLGaugeFactory} from "contracts/mainnet/gauge/RootCLGaugeFactory.sol";
+import {IRootCLGauge, RootCLGauge} from "contracts/mainnet/gauge/RootCLGauge.sol";
 import {IRootVotingRewardsFactory} from "contracts/mainnet/interfaces/rewards/IRootVotingRewardsFactory.sol";
 import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
 import {IMultichainMockMailbox} from "contracts/test/interfaces/IMultichainMockMailbox.sol";
@@ -91,8 +91,8 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     RootCLPoolFactory public rootPoolFactory;
     RootCLPool public rootPoolImplementation;
     RootCLPool public rootPool;
-    CLRootGaugeFactory public rootGaugeFactory;
-    CLRootGauge public rootGauge;
+    RootCLGaugeFactory public rootGaugeFactory;
+    RootCLGauge public rootGauge;
 
     // leaf slipstream contracts
     CLPool public poolImplementation;
@@ -100,8 +100,9 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     CLFactory public poolFactory;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
-    CLLeafGauge public leafGauge;
-    CLLeafGaugeFactory public leafGaugeFactory;
+    LeafCLGaugeFactory public leafGaugeFactory;
+    LeafCLGauge public leafGauge;
+
     LpMigrator public lpMigrator;
 
     // root dependencies
@@ -228,11 +229,11 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
             })
         );
 
-        rootGaugeFactory = CLRootGaugeFactory(
+        rootGaugeFactory = RootCLGaugeFactory(
             cx.deployCreate3({
                 salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: users.deployer}),
                 initCode: abi.encodePacked(
-                    type(CLRootGaugeFactory).creationCode,
+                    type(RootCLGaugeFactory).creationCode,
                     abi.encode(
                         address(rootVoter), // root voter
                         address(xVelo), // xerc20
@@ -273,7 +274,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
             })
         );
 
-        leafGaugeFactory = CLLeafGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: deployer}));
+        leafGaugeFactory = LeafCLGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: deployer}));
         nft = NonfungiblePositionManager(payable(NFT_POSITION_MANAGER.computeCreate3Address({_deployer: deployer})));
 
         poolFactory = CLFactory(
@@ -329,11 +330,11 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         );
 
         // deploy gauges
-        leafGaugeFactory = CLLeafGaugeFactory(
+        leafGaugeFactory = LeafCLGaugeFactory(
             cx.deployCreate3({
                 salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: deployer}),
                 initCode: abi.encodePacked(
-                    type(CLLeafGaugeFactory).creationCode,
+                    type(LeafCLGaugeFactory).creationCode,
                     abi.encode(
                         address(leafVoter), // voter
                         address(nft), // nft (nfpm)
@@ -430,14 +431,14 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
         vm.prank({msgSender: rootVoter.governor(), txOrigin: users.alice});
         rootGauge =
-            CLRootGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
+            RootCLGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
 
         vm.selectFork({forkId: leafId});
         // set up leaf pool & gauge by processing pending `createGauge` message in mailbox
         leafMailbox.processNextInboundMessage();
         leafPool =
             CLPool(poolFactory.getPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: int24(1)}));
-        leafGauge = CLLeafGauge(leafVoter.gauges(address(leafPool)));
+        leafGauge = LeafCLGauge(leafVoter.gauges(address(leafPool)));
 
         vm.startPrank(users.owner);
         poolFactory.enableTickSpacing(10, 500);
@@ -462,7 +463,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         if (xVelo.allowance(address(leafMessageModule), _gauge) < _amount) {
             xVelo.approve(_gauge, _amount);
         }
-        CLLeafGauge(_gauge).notifyRewardAmount(_amount);
+        LeafCLGauge(_gauge).notifyRewardAmount(_amount);
         vm.stopPrank();
     }
 

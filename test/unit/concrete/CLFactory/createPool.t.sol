@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {CLFactoryTest, ICLPool, CLLeafGauge} from "./CLFactory.t.sol";
+import {CLFactoryTest, ICLPool, LeafCLGauge} from "./CLFactory.t.sol";
 
 contract CreatePoolTest is CLFactoryTest {
     function test_RevertIf_SameTokens() public {
@@ -96,7 +96,7 @@ contract CreatePoolTest is CLFactoryTest {
         assertEqUint(poolFactory.getSwapFee(pool), 500);
 
         vm.prank(address(leafMessageModule));
-        CLLeafGauge gauge = CLLeafGauge(
+        LeafCLGauge gauge = LeafCLGauge(
             leafVoter.createGauge({
                 _poolFactory: address(poolFactory),
                 _pool: address(pool),
@@ -123,7 +123,7 @@ contract CreatePoolTest is CLFactoryTest {
 
         assertEqUint(poolFactory.getSwapFee(pool), 3_000);
         vm.prank(address(leafMessageModule));
-        CLLeafGauge gauge = CLLeafGauge(
+        LeafCLGauge gauge = LeafCLGauge(
             leafVoter.createGauge({
                 _poolFactory: address(poolFactory),
                 _pool: address(pool),
@@ -150,7 +150,7 @@ contract CreatePoolTest is CLFactoryTest {
 
         assertEqUint(poolFactory.getSwapFee(pool), 10_000);
         vm.prank(address(leafMessageModule));
-        CLLeafGauge gauge = CLLeafGauge(
+        LeafCLGauge gauge = LeafCLGauge(
             leafVoter.createGauge({
                 _poolFactory: address(poolFactory),
                 _pool: address(pool),

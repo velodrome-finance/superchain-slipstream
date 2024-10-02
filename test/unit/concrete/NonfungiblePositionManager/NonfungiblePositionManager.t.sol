@@ -5,7 +5,7 @@ import "../../../BaseForkFixture.sol";
 
 contract NonfungiblePositionManagerTest is BaseForkFixture {
     CLPool public pool;
-    CLLeafGauge public gauge;
+    LeafCLGauge public gauge;
 
     function setUp() public virtual override {
         super.setUp();
@@ -19,7 +19,7 @@ contract NonfungiblePositionManagerTest is BaseForkFixture {
             })
         );
         vm.prank(address(leafMessageModule));
-        gauge = CLLeafGauge(
+        gauge = LeafCLGauge(
             leafVoter.createGauge({
                 _poolFactory: address(poolFactory),
                 _pool: address(pool),

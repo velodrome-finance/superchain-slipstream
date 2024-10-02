@@ -25,7 +25,7 @@ contract GaugeFlowTest is BaseForkFixture {
         );
         vm.prank({msgSender: rootVoter.governor(), txOrigin: users.alice});
         rootGauge =
-            CLRootGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
+            RootCLGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
         feesVotingReward = rootVoter.gaugeToFees(address(rootGauge));
 
         // Early deposit of rewards on voter
@@ -39,7 +39,7 @@ contract GaugeFlowTest is BaseForkFixture {
         leafMailbox.processNextInboundMessage();
         leafPool =
             CLPool(poolFactory.getPool({tokenA: address(weth), tokenB: address(op), tickSpacing: TICK_SPACING_60}));
-        leafGauge = CLLeafGauge(leafVoter.gauges(address(leafPool)));
+        leafGauge = LeafCLGauge(leafVoter.gauges(address(leafPool)));
 
         swapRouter = new SwapRouter(address(poolFactory), address(weth));
 

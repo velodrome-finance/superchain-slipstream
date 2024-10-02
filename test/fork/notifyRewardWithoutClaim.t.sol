@@ -19,7 +19,7 @@ contract NotifyRewardWithoutClaimForkTest is BaseForkFixture {
         );
         vm.prank({msgSender: rootVoter.governor(), txOrigin: users.alice});
         rootGauge =
-            CLRootGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
+            RootCLGauge(rootVoter.createGauge({_poolFactory: address(rootPoolFactory), _pool: address(rootPool)}));
 
         // set up leaf pool & gauge by processing pending `createGauge` message in mailbox
         vm.selectFork({forkId: leafId});
@@ -27,7 +27,7 @@ contract NotifyRewardWithoutClaimForkTest is BaseForkFixture {
         leafPool = CLPool(
             poolFactory.getPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
         );
-        leafGauge = CLLeafGauge(leafVoter.gauges(address(leafPool)));
+        leafGauge = LeafCLGauge(leafVoter.gauges(address(leafPool)));
 
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(leafPool), 420);

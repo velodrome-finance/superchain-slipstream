@@ -6,7 +6,7 @@ import "./DeployFixture.sol";
 
 import {RootCLPool} from "contracts/mainnet/pool/RootCLPool.sol";
 import {RootCLPoolFactory} from "contracts/mainnet/pool/RootCLPoolFactory.sol";
-import {CLRootGaugeFactory} from "contracts/mainnet/gauge/CLRootGaugeFactory.sol";
+import {RootCLGaugeFactory} from "contracts/mainnet/gauge/RootCLGaugeFactory.sol";
 import {Constants} from "script/constants/Constants.sol";
 
 abstract contract DeployRootBaseFixture is DeployFixture, Constants {
@@ -29,7 +29,7 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
     // deployed
     RootCLPool public poolImplementation;
     RootCLPoolFactory public poolFactory;
-    CLRootGaugeFactory public gaugeFactory;
+    RootCLGaugeFactory public gaugeFactory;
 
     DeploymentParameters internal _params;
 
@@ -60,11 +60,11 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
         );
         checkAddress({_entropy: CL_POOL_FACTORY_ENTROPY, _output: address(poolFactory)});
 
-        gaugeFactory = CLRootGaugeFactory(
+        gaugeFactory = RootCLGaugeFactory(
             cx.deployCreate3({
                 salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: _deployer}),
                 initCode: abi.encodePacked(
-                    type(CLRootGaugeFactory).creationCode,
+                    type(RootCLGaugeFactory).creationCode,
                     abi.encode(
                         _params.voter, // root voter
                         _params.xVelo, // xerc20

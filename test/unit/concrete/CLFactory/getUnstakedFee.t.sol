@@ -1,10 +1,10 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {CLFactoryTest, ICLPool, CLLeafGauge} from "./CLFactory.t.sol";
+import {CLFactoryTest, ICLPool, LeafCLGauge} from "./CLFactory.t.sol";
 
 contract GetUnstakedFeeTest is CLFactoryTest {
-    CLLeafGauge public gauge;
+    LeafCLGauge public gauge;
 
     function test_KilledGaugeReturnsZeroUnstakedFee() public {
         address pool = createAndCheckPool({
@@ -15,7 +15,7 @@ contract GetUnstakedFeeTest is CLFactoryTest {
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
         vm.startPrank(address(leafMessageModule));
-        gauge = CLLeafGauge(
+        gauge = LeafCLGauge(
             leafVoter.createGauge({
                 _poolFactory: address(poolFactory),
                 _pool: address(pool),

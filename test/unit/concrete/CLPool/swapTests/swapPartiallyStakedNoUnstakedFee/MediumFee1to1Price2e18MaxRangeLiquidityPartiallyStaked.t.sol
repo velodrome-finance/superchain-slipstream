@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {CLPoolSwapPartiallyStakedNoUnstakeFeeTest, CLLeafGauge} from "./CLPoolSwapPartiallyStakedNoUnstakeFee.t.sol";
+import {CLPoolSwapPartiallyStakedNoUnstakeFeeTest, LeafCLGauge} from "./CLPoolSwapPartiallyStakedNoUnstakeFee.t.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 
 contract MediumFee1to1Price2e18MaxRangeLiquidityPartiallyStakedTest is CLPoolSwapPartiallyStakedNoUnstakeFeeTest {
@@ -30,7 +30,7 @@ contract MediumFee1to1Price2e18MaxRangeLiquidityPartiallyStakedTest is CLPoolSwa
             Position({tickLower: getMinTick(tickSpacing), tickUpper: getMaxTick(tickSpacing), liquidity: liquidity / 2})
         );
         vm.startPrank(address(leafMessageModule));
-        gauge = CLLeafGauge(
+        gauge = LeafCLGauge(
             leafVoter.createGauge({
                 _poolFactory: address(poolFactory),
                 _pool: address(pool),

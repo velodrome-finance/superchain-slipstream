@@ -8,8 +8,8 @@ import {CLPool} from "contracts/core/CLPool.sol";
 import {CLFactory} from "contracts/core/CLFactory.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
 import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
-import {CLLeafGauge} from "contracts/gauge/CLLeafGauge.sol";
-import {CLLeafGaugeFactory} from "contracts/gauge/CLLeafGaugeFactory.sol";
+import {LeafCLGauge} from "contracts/gauge/LeafCLGauge.sol";
+import {LeafCLGaugeFactory} from "contracts/gauge/LeafCLGaugeFactory.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
@@ -40,8 +40,10 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
     CLFactory public poolFactory;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
-    CLLeafGauge public gaugeImplementation;
-    CLLeafGaugeFactory public gaugeFactory;
+
+    LeafCLGauge public gaugeImplementation;
+    LeafCLGaugeFactory public gaugeFactory;
+
     CustomSwapFeeModule public swapFeeModule;
     CustomUnstakedFeeModule public unstakedFeeModule;
     MixedRouteQuoterV1 public mixedQuoter;
@@ -62,7 +64,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         );
         checkAddress({_entropy: CL_POOL_ENTROPY, _output: address(poolImplementation)});
 
-        gaugeFactory = CLLeafGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: _deployer}));
+        gaugeFactory = LeafCLGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: _deployer}));
         nft = NonfungiblePositionManager(payable(NFT_POSITION_MANAGER.computeCreate3Address({_deployer: deployer})));
 
         poolFactory = CLFactory(
@@ -119,11 +121,11 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         );
         checkAddress({_entropy: NFT_POSITION_MANAGER, _output: address(nft)});
 
-        gaugeFactory = CLLeafGaugeFactory(
+        gaugeFactory = LeafCLGaugeFactory(
             cx.deployCreate3({
                 salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: _deployer}),
                 initCode: abi.encodePacked(
-                    type(CLLeafGaugeFactory).creationCode,
+                    type(LeafCLGaugeFactory).creationCode,
                     abi.encode(
                         _params.leafVoter, // voter
                         address(nft), // nft (nfpm)

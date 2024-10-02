@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import {IRootBribeVotingReward} from "contracts/mainnet/interfaces/rewards/IRootBribeVotingReward.sol";
 import {IRootMessageBridge} from "contracts/mainnet/interfaces/bridge/IRootMessageBridge.sol";
-import {ICLRootGauge} from "contracts/mainnet/gauge/ICLRootGauge.sol";
+import {IRootCLGauge} from "contracts/mainnet/gauge/IRootCLGauge.sol";
 import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 
@@ -27,7 +27,7 @@ contract MockRootBribeVotingReward is IRootBribeVotingReward {
     function initialize(address _gauge) external override {
         require(gauge == address(0), "AI");
         gauge = _gauge;
-        chainid = ICLRootGauge(_gauge).chainid();
+        chainid = IRootCLGauge(_gauge).chainid();
     }
 
     /// @inheritdoc IRootBribeVotingReward

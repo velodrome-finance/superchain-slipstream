@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import {CLRootGaugeFactory} from "../mainnet/gauge/CLRootGaugeFactory.sol";
+import {RootCLGaugeFactory} from "../mainnet/gauge/RootCLGaugeFactory.sol";
 import {IVoter} from "../core/interfaces/IVoter.sol";
 import {IVotingEscrow} from "../core/interfaces/IVotingEscrow.sol";
 import {IFactoryRegistry} from "../core/interfaces/IFactoryRegistry.sol";
@@ -68,7 +68,7 @@ contract MockVoter is IVoter {
             IRootVotingRewardsFactory(votingRewardsFactory).createRewards(forwarder, rewards);
 
         address gauge =
-            CLRootGaugeFactory(gaugeFactory).createGauge(forwarder, _pool, feesVotingReward, address(rewardToken), true);
+            RootCLGaugeFactory(gaugeFactory).createGauge(forwarder, _pool, feesVotingReward, address(rewardToken), true);
 
         require(IRootCLPoolFactory(_poolFactory).isPair(_pool));
         isAlive[gauge] = true;

@@ -7,7 +7,7 @@ import "forge-std/StdJson.sol";
 import {DeployRootCL} from "script/deployParameters/optimism/DeployRootCL.s.sol";
 import {RootCLPool} from "contracts/mainnet/pool/RootCLPool.sol";
 import {RootCLPoolFactory} from "contracts/mainnet/pool/RootCLPoolFactory.sol";
-import {CLRootGaugeFactory} from "contracts/mainnet/gauge/CLRootGaugeFactory.sol";
+import {RootCLGaugeFactory} from "contracts/mainnet/gauge/RootCLGaugeFactory.sol";
 import "test/BaseForkFixture.sol";
 
 contract DeployRootCLForkTest is BaseForkFixture {

@@ -8,7 +8,7 @@ import {
   TestERC20,
   NonfungibleTokenPositionDescriptor,
   MockTimeNonfungiblePositionManager,
-  CLLeafGaugeFactory,
+  LeafCLGaugeFactory,
 } from '../../../typechain'
 import { MockVoter } from '../../../typechain/MockVoter'
 import { CustomUnstakedFeeModule, MockVotingRewardsFactory } from '../../../typechain'
@@ -51,7 +51,7 @@ const v3CoreFactoryFixture: Fixture<{
   const pool = (await Pool.deploy()) as ICLPool
 
   const MockVoterFactory = await ethers.getContractFactory('MockVoter')
-  const GaugeFactoryFactory = await ethers.getContractFactory('CLLeafGaugeFactory')
+  const GaugeFactoryFactory = await ethers.getContractFactory('LeafCLGaugeFactory')
   const MockFactoryRegistryFactory = await ethers.getContractFactory('MockFactoryRegistry')
   const MockVotingRewardsFactoryFactory = await ethers.getContractFactory('MockVotingRewardsFactory')
   const MockVotingEscrowFactory = await ethers.getContractFactory('MockVotingEscrow')
@@ -111,7 +111,7 @@ const v3CoreFactoryFixture: Fixture<{
     nft.address,
     constants.AddressZero, // xerc20 address
     constants.AddressZero // bridge address
-  )) as CLLeafGaugeFactory
+  )) as LeafCLGaugeFactory
 
   // approve pool factory <=> gauge factory combination
   const mockVotingRewardsFactory = (await MockVotingRewardsFactoryFactory.deploy()) as MockVotingRewardsFactory
