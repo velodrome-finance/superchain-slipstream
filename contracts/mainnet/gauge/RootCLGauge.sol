@@ -86,8 +86,7 @@ contract RootCLGauge is IRootCLGauge {
 
         IERC20(xerc20).safeIncreaseAllowance({spender: bridge, value: _amount});
 
-        bytes memory payload = abi.encode(address(this), _amount);
-        bytes memory message = abi.encode(_command, payload);
+        bytes memory message = abi.encodePacked(uint8(_command), address(this), _amount);
         IRootMessageBridge(bridge).sendMessage({_chainid: uint32(chainid), _message: message});
 
         emit NotifyReward({from: msg.sender, amount: _amount});

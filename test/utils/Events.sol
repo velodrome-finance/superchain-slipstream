@@ -52,7 +52,6 @@ abstract contract Events {
         address pool,
         address bribeVotingReward,
         address feeVotingReward,
-        address gauge,
-        address creator
+        address gauge
     );
 }

@@ -376,11 +376,11 @@ contract GaugeFlowTest is BaseForkFixture {
         leafMailbox.processNextInboundMessage();
 
         skipTime(1);
-        assertEq(leafXVelo.balanceOf(address(leafGauge)), 16790698594680700109);
+        assertEq(leafXVelo.balanceOf(address(leafGauge)), 16722010993139720549);
 
-        checkEmissions(users.alice, tokenIdAlice, 3507737298078887871);
-        checkEmissions(users.bob, tokenIdBob, 2507737298078887872);
-        checkEmissions(largeTokenHolder, tokenIdLarge, 984551669186302794);
+        checkEmissions(users.alice, tokenIdAlice, 3507737297194916858);
+        checkEmissions(users.bob, tokenIdBob, 2507737297194916859);
+        checkEmissions(largeTokenHolder, tokenIdLarge, 984551556703220549);
         checkFees(users.alice, tokenIdVeAlice, 750000000000000002, 75000000000000000002);
         checkFees(users.bob, tokenIdVeBob, 298499999999999999, 29849999999999999999);
 
@@ -391,7 +391,7 @@ contract GaugeFlowTest is BaseForkFixture {
         minter.updatePeriod();
 
         vm.selectFork({forkId: leafId});
-        assertEq(leafXVelo.balanceOf(address(leafGauge)), 15790672329336621561);
+        assertEq(leafXVelo.balanceOf(address(leafGauge)), 15721984842046666272);
 
         vm.selectFork({forkId: rootId});
         gauges[0] = address(rootGauge);
@@ -400,7 +400,7 @@ contract GaugeFlowTest is BaseForkFixture {
         vm.selectFork({forkId: leafId});
         leafMailbox.processNextInboundMessage();
 
-        assertEq(leafXVelo.balanceOf(address(leafGauge)), 31423463938070513547);
+        assertEq(leafXVelo.balanceOf(address(leafGauge)), 31286775725254990676);
         skipTime(1);
 
         //large token holder creates lock
@@ -424,7 +424,7 @@ contract GaugeFlowTest is BaseForkFixture {
         skipToNextEpoch(1 hours + 1);
 
         vm.selectFork({forkId: leafId});
-        assertEq(leafXVelo.balanceOf(address(leafGauge)), 31423463938070513547);
+        assertEq(leafXVelo.balanceOf(address(leafGauge)), 31286775725254990676);
 
         vm.selectFork({forkId: rootId});
         minter.updatePeriod();
@@ -434,12 +434,12 @@ contract GaugeFlowTest is BaseForkFixture {
         // Process distribute on Leaf Chain
         vm.selectFork({forkId: leafId});
         leafMailbox.processNextInboundMessage();
-        assertEq(leafXVelo.balanceOf(address(leafGauge)), 75764306781998563299420);
+        assertEq(leafXVelo.balanceOf(address(leafGauge)), 75006841260605142848690);
         skipTime(1);
 
-        checkEmissions(users.alice, tokenIdAlice, 3751838259291076300);
-        checkEmissions(users.bob, tokenIdBob, 2751838259291076301);
-        checkEmissions(largeTokenHolder, tokenIdLarge, 32045783427493456025);
+        checkEmissions(users.alice, tokenIdAlice, 3750770942339625986);
+        checkEmissions(users.bob, tokenIdBob, 2750770942339625987);
+        checkEmissions(largeTokenHolder, tokenIdLarge, 31909970036903199344);
         checkFees(users.alice, tokenIdVeAlice, 900002985517110672, 90000298551711067029);
         checkFees(users.bob, tokenIdVeBob, 448502985517110669, 44850298551711067026);
         checkFees(largeTokenHolder, tokenIdVeLarge, 299994028965778659, 29999402896577865944);
@@ -449,7 +449,7 @@ contract GaugeFlowTest is BaseForkFixture {
         skipToNextEpoch(1 hours + 1);
 
         vm.selectFork({forkId: leafId});
-        assertEq(leafXVelo.balanceOf(address(leafGauge)), 75732757348317831769331);
+        assertEq(leafXVelo.balanceOf(address(leafGauge)), 74975429774834653451639);
 
         vm.selectFork({forkId: rootId});
         minter.updatePeriod();
@@ -459,12 +459,12 @@ contract GaugeFlowTest is BaseForkFixture {
         // Process distribute on Leaf Chain
         vm.selectFork({forkId: leafId});
         leafMailbox.processNextInboundMessage();
-        assertEq(leafXVelo.balanceOf(address(leafGauge)), 150708311833197719627345);
+        assertEq(leafXVelo.balanceOf(address(leafGauge)), 149201228714865742431073);
         skipTime(1);
 
-        checkEmissions(users.alice, tokenIdAlice, 589704330874273632815);
-        checkEmissions(users.bob, tokenIdBob, 588704330874273632816);
-        checkEmissions(largeTokenHolder, tokenIdLarge, 74593022856560594518701);
+        checkEmissions(users.alice, tokenIdAlice, 583843738631172356935);
+        checkEmissions(users.bob, tokenIdBob, 582843738631172356936);
+        checkEmissions(largeTokenHolder, tokenIdLarge, 73847277272438673251395);
         checkFees(users.alice, tokenIdVeAlice, 900005971034221342, 90000597103422134056);
         checkFees(users.bob, tokenIdVeBob, 448505971034221339, 44850597103422134053);
         checkFees(largeTokenHolder, tokenIdVeLarge, 599988057931557318, 59998805793155731888);

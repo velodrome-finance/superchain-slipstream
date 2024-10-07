@@ -9,8 +9,7 @@ interface ILeafVoter {
         address pool,
         address bribeVotingReward,
         address feeVotingReward,
-        address gauge,
-        address creator
+        address gauge
     );
     event GaugeKilled(address indexed gauge);
     event GaugeRevived(address indexed gauge);

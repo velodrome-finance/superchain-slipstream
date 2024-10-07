@@ -72,8 +72,7 @@ contract CreateGaugeIntegrationConcreteTest is RootCLGaugeFactoryTest {
             pool: address(pool),
             bribeVotingReward: address(13),
             feeVotingReward: address(12),
-            gauge: address(rootGauge),
-            creator: address(leafMessageModule)
+            gauge: address(rootGauge)
         });
         leafMailbox.processNextInboundMessage();
 

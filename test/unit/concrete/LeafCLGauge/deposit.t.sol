@@ -205,7 +205,7 @@ contract DepositTest is LeafCLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1727308800);
+        assertEq(gauge.lastUpdateTime(tokenId), block.timestamp);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), -TICK_SPACING_60, TICK_SPACING_60)));
@@ -254,7 +254,7 @@ contract DepositTest is LeafCLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(2 * TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1727308800);
+        assertEq(gauge.lastUpdateTime(tokenId), block.timestamp);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), TICK_SPACING_60, 2 * TICK_SPACING_60)));
@@ -303,7 +303,7 @@ contract DepositTest is LeafCLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
-        assertEq(gauge.lastUpdateTime(tokenId), 1727308800);
+        assertEq(gauge.lastUpdateTime(tokenId), block.timestamp);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), -2 * TICK_SPACING_60, -TICK_SPACING_60)));

@@ -128,8 +128,15 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
         IRootFeesVotingReward(_feesVotingReward).initialize(gauge);
         IRootBribeVotingReward(_bribeVotingReward).initialize(gauge);
 
-        bytes memory payload = abi.encode(votingRewardsFactory, address(this), token0, token1, uint24(tickSpacing));
-        bytes memory message = abi.encode(Commands.CREATE_GAUGE, abi.encode(poolFactory, payload));
+        bytes memory message = abi.encodePacked(
+            uint8(Commands.CREATE_GAUGE),
+            poolFactory,
+            votingRewardsFactory,
+            address(this),
+            token0,
+            token1,
+            uint24(tickSpacing)
+        );
         IRootMessageBridge(messageBridge).sendMessage({_chainid: chainId, _message: message});
     }
 
