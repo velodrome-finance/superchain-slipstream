@@ -19,8 +19,6 @@ contract RootCLGauge is IRootCLGauge {
     using SafeERC20 for IERC20;
 
     /// @inheritdoc IRootCLGauge
-    address public immutable override minter;
-    /// @inheritdoc IRootCLGauge
     address public immutable override gaugeFactory;
     /// @inheritdoc IRootCLGauge
     address public immutable override rewardToken;
@@ -32,6 +30,8 @@ contract RootCLGauge is IRootCLGauge {
     address public immutable override lockbox;
     /// @inheritdoc IRootCLGauge
     address public immutable override bridge;
+    /// @inheritdoc IRootCLGauge
+    address public immutable override minter;
     /// @inheritdoc IRootCLGauge
     uint256 public immutable override chainid;
 

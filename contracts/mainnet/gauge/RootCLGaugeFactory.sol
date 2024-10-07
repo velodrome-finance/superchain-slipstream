@@ -20,10 +20,6 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
     using CreateXLibrary for bytes11;
 
     /// @inheritdoc IRootCLGaugeFactory
-    address public immutable override rewardToken;
-    /// @inheritdoc IRootCLGaugeFactory
-    address public override minter;
-    /// @inheritdoc IRootCLGaugeFactory
     address public immutable override voter;
     /// @inheritdoc IRootCLGaugeFactory
     address public immutable override xerc20;
@@ -36,11 +32,15 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
     /// @inheritdoc IRootCLGaugeFactory
     address public immutable override votingRewardsFactory;
     /// @inheritdoc IRootCLGaugeFactory
+    address public immutable override rewardToken;
+    /// @inheritdoc IRootCLGaugeFactory
+    address public override minter;
+    /// @inheritdoc IRootCLGaugeFactory
+    address public override notifyAdmin;
+    /// @inheritdoc IRootCLGaugeFactory
     address public override emissionAdmin;
     /// @inheritdoc IRootCLGaugeFactory
     uint256 public override defaultCap;
-    /// @inheritdoc IRootCLGaugeFactory
-    address public override notifyAdmin;
     /// @inheritdoc IRootCLGaugeFactory
     uint256 public override weeklyEmissions;
     /// @inheritdoc IRootCLGaugeFactory
