@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.7.6;
 
-interface IRootBribeVotingReward {
+interface IRootIncentiveVotingReward {
     /// @notice Address of bridge contract used to forward messages
     function bridge() external view returns (address);
 

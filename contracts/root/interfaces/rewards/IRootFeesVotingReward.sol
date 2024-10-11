@@ -8,8 +8,8 @@ interface IRootFeesVotingReward {
     function voter() external view returns (address);
     /// @notice Address of voting escrow contract that manages locked tokens
     function ve() external view returns (address);
-    /// @notice Address of bribe voting reward contract associated with the gauge
-    function bribeVotingReward() external view returns (address);
+    /// @notice Address of incentive voting reward contract associated with the gauge
+    function incentiveVotingReward() external view returns (address);
     /// @notice Address of gauge contract corresponding to this contract
     /// @dev Settable once on deploy only
     function gauge() external view returns (address);

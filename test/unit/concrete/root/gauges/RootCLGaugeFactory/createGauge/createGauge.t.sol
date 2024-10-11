@@ -70,7 +70,7 @@ contract CreateGaugeIntegrationConcreteTest is RootCLGaugeFactoryTest {
             votingRewardsFactory: address(votingRewardsFactory),
             gaugeFactory: address(leafGaugeFactory),
             pool: address(pool),
-            bribeVotingReward: address(13),
+            incentiveVotingReward: address(13),
             feeVotingReward: address(12),
             gauge: address(rootGauge)
         });

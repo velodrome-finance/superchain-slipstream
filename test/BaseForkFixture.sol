@@ -41,15 +41,15 @@ import {Constants} from "script/constants/Constants.sol";
 
 import {IXERC20} from "contracts/superchain/IXERC20.sol";
 import {IXERC20Lockbox} from "contracts/superchain/IXERC20Lockbox.sol";
-import {IChainRegistry} from "contracts/mainnet/interfaces/bridge/IChainRegistry.sol";
-import {IRootMessageBridge} from "contracts/mainnet/interfaces/bridge/IRootMessageBridge.sol";
-import {IRootHLMessageModule} from "contracts/mainnet/interfaces/bridge/hyperlane/IRootHLMessageModule.sol";
-import {ILeafHLMessageModule} from "contracts/mainnet/interfaces/bridge/hyperlane/ILeafHLMessageModule.sol";
-import {RootCLPool} from "contracts/mainnet/pool/RootCLPool.sol";
-import {RootCLPoolFactory} from "contracts/mainnet/pool/RootCLPoolFactory.sol";
-import {IRootCLGaugeFactory, RootCLGaugeFactory} from "contracts/mainnet/gauge/RootCLGaugeFactory.sol";
-import {IRootCLGauge, RootCLGauge} from "contracts/mainnet/gauge/RootCLGauge.sol";
-import {IRootVotingRewardsFactory} from "contracts/mainnet/interfaces/rewards/IRootVotingRewardsFactory.sol";
+import {IChainRegistry} from "contracts/root/interfaces/bridge/IChainRegistry.sol";
+import {IRootMessageBridge} from "contracts/root/interfaces/bridge/IRootMessageBridge.sol";
+import {IRootHLMessageModule} from "contracts/root/interfaces/bridge/hyperlane/IRootHLMessageModule.sol";
+import {ILeafHLMessageModule} from "contracts/root/interfaces/bridge/hyperlane/ILeafHLMessageModule.sol";
+import {RootCLPool} from "contracts/root/pool/RootCLPool.sol";
+import {RootCLPoolFactory} from "contracts/root/pool/RootCLPoolFactory.sol";
+import {IRootCLGaugeFactory, RootCLGaugeFactory} from "contracts/root/gauge/RootCLGaugeFactory.sol";
+import {IRootCLGauge, RootCLGauge} from "contracts/root/gauge/RootCLGauge.sol";
+import {IRootVotingRewardsFactory} from "contracts/root/interfaces/rewards/IRootVotingRewardsFactory.sol";
 import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
 import {IMultichainMockMailbox} from "contracts/test/interfaces/IMultichainMockMailbox.sol";
 

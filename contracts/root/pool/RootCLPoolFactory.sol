@@ -7,8 +7,8 @@ import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {IRootCLPoolFactory} from "./IRootCLPoolFactory.sol";
 import {IRootCLPool} from "./IRootCLPool.sol";
 import {IVoter} from "../../core/interfaces/IVoter.sol";
-import {IChainRegistry} from "../../mainnet/interfaces/bridge/IChainRegistry.sol";
-import "../../core/interfaces/IFactoryRegistry.sol";
+import {IChainRegistry} from "../../root/interfaces/bridge/IChainRegistry.sol";
+import {IFactoryRegistry} from "../../core/interfaces/IFactoryRegistry.sol";
 
 /// @notice Factory for creating RootPools
 contract RootCLPoolFactory is IRootCLPoolFactory {

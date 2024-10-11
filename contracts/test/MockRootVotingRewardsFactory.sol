@@ -2,9 +2,9 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import {IRootVotingRewardsFactory} from "contracts/mainnet/interfaces/rewards/IRootVotingRewardsFactory.sol";
+import {IRootVotingRewardsFactory} from "contracts/root/interfaces/rewards/IRootVotingRewardsFactory.sol";
 
-import {MockRootBribeVotingReward} from "./MockRootBribeVotingReward.sol";
+import {MockRootIncentiveVotingReward} from "./MockRootIncentiveVotingReward.sol";
 import {MockRootFeesVotingReward} from "./MockRootFeesVotingReward.sol";
 
 contract MockRootVotingRewardsFactory is IRootVotingRewardsFactory {
@@ -19,15 +19,15 @@ contract MockRootVotingRewardsFactory is IRootVotingRewardsFactory {
     function createRewards(address, address[] memory _rewards)
         external
         override
-        returns (address feesVotingReward, address bribeVotingReward)
+        returns (address feesVotingReward, address incentiveVotingReward)
     {
-        bribeVotingReward =
-            address(new MockRootBribeVotingReward({_bridge: bridge, _voter: msg.sender, _rewards: _rewards}));
+        incentiveVotingReward =
+            address(new MockRootIncentiveVotingReward({_bridge: bridge, _voter: msg.sender, _rewards: _rewards}));
         feesVotingReward = address(
             new MockRootFeesVotingReward({
                 _bridge: bridge,
                 _voter: msg.sender,
-                _bribeVotingReward: bribeVotingReward,
+                _incentiveVotingReward: incentiveVotingReward,
                 _rewards: _rewards
             })
         );

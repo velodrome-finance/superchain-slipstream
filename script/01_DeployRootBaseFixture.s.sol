@@ -4,9 +4,9 @@ pragma abicoder v2;
 
 import "./DeployFixture.sol";
 
-import {RootCLPool} from "contracts/mainnet/pool/RootCLPool.sol";
-import {RootCLPoolFactory} from "contracts/mainnet/pool/RootCLPoolFactory.sol";
-import {RootCLGaugeFactory} from "contracts/mainnet/gauge/RootCLGaugeFactory.sol";
+import {RootCLPool} from "contracts/root/pool/RootCLPool.sol";
+import {RootCLPoolFactory} from "contracts/root/pool/RootCLPoolFactory.sol";
+import {RootCLGaugeFactory} from "contracts/root/gauge/RootCLGaugeFactory.sol";
 import {Constants} from "script/constants/Constants.sol";
 
 abstract contract DeployRootBaseFixture is DeployFixture, Constants {

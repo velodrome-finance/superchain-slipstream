@@ -4,13 +4,13 @@ pragma abicoder v2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import {RootCLGaugeFactory} from "../mainnet/gauge/RootCLGaugeFactory.sol";
+import {RootCLGaugeFactory} from "../root/gauge/RootCLGaugeFactory.sol";
 import {IVoter} from "../core/interfaces/IVoter.sol";
 import {IVotingEscrow} from "../core/interfaces/IVotingEscrow.sol";
 import {IFactoryRegistry} from "../core/interfaces/IFactoryRegistry.sol";
-import {IRootCLPool} from "../mainnet/pool/IRootCLPool.sol";
-import {IRootCLPoolFactory} from "../mainnet/pool/IRootCLPoolFactory.sol";
-import {IRootVotingRewardsFactory} from "../mainnet/interfaces/rewards/IRootVotingRewardsFactory.sol";
+import {IRootCLPool} from "../root/pool/IRootCLPool.sol";
+import {IRootCLPoolFactory} from "../root/pool/IRootCLPoolFactory.sol";
+import {IRootVotingRewardsFactory} from "../root/interfaces/rewards/IRootVotingRewardsFactory.sol";
 
 contract MockVoter is IVoter {
     // mock addresses used for testing gauge creation, a copy is stored in Constants.sol

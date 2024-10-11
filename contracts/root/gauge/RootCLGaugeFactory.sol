@@ -5,17 +5,17 @@ pragma abicoder v2;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {CreateXLibrary} from "../../libraries/CreateXLibrary.sol";
-import {IRootCLGaugeFactory} from "../../mainnet/gauge/IRootCLGaugeFactory.sol";
-import {IRootCLPool} from "../../mainnet/pool/IRootCLPool.sol";
-import {RootCLGauge} from "../../mainnet/gauge/RootCLGauge.sol";
-import {IRootBribeVotingReward} from "../../mainnet/interfaces/rewards/IRootBribeVotingReward.sol";
-import {IRootFeesVotingReward} from "../../mainnet/interfaces/rewards/IRootFeesVotingReward.sol";
+import {IRootCLGaugeFactory} from "../../root/gauge/IRootCLGaugeFactory.sol";
+import {IRootCLPool} from "../../root/pool/IRootCLPool.sol";
+import {RootCLGauge} from "../../root/gauge/RootCLGauge.sol";
+import {IRootIncentiveVotingReward} from "../../root/interfaces/rewards/IRootIncentiveVotingReward.sol";
+import {IRootFeesVotingReward} from "../../root/interfaces/rewards/IRootFeesVotingReward.sol";
 import {Commands} from "../../libraries/Commands.sol";
-import {IRootMessageBridge} from "../../mainnet/interfaces/bridge/IRootMessageBridge.sol";
+import {IRootMessageBridge} from "../../root/interfaces/bridge/IRootMessageBridge.sol";
 import {IVoter} from "../../core/interfaces/IVoter.sol";
 import {IMinter} from "../../core/interfaces/IMinter.sol";
 
-/// @notice Factory that creates root gauges on mainnet
+/// @notice Factory that creates root gauges on root
 contract RootCLGaugeFactory is IRootCLGaugeFactory {
     using CreateXLibrary for bytes11;
 
@@ -124,9 +124,9 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
             )
         });
 
-        address _bribeVotingReward = IRootFeesVotingReward(_feesVotingReward).bribeVotingReward();
+        address _incentiveVotingReward = IRootFeesVotingReward(_feesVotingReward).incentiveVotingReward();
         IRootFeesVotingReward(_feesVotingReward).initialize(gauge);
-        IRootBribeVotingReward(_bribeVotingReward).initialize(gauge);
+        IRootIncentiveVotingReward(_incentiveVotingReward).initialize(gauge);
 
         bytes memory message = abi.encodePacked(
             uint8(Commands.CREATE_GAUGE),

@@ -5,7 +5,7 @@ import {IReward} from "contracts/gauge/interfaces/IReward.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-contract MockBribeVotingReward is IReward {
+contract MockIncentiveVotingReward is IReward {
     using SafeERC20 for IERC20;
 
     /// @inheritdoc IReward

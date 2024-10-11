@@ -60,7 +60,7 @@ gauge via the message bridge.
 - Emissions received by the root gauge from the notify admin will be deposited into the corresponding 
 leaf gauge via the message bridge.
 
-#### RootBribeVotingReward, RootFeesVotingRewards &RootVotingRewardsFactory
+#### RootIncentiveVotingReward, RootFeesVotingRewards &RootVotingRewardsFactory
 
 Slipstream reuses the same root voting rewards contracts as the vAMM / sAMM Superchain contracts. 
 
@@ -78,6 +78,6 @@ root chain.
 - Vanilla Velodrome Slipstream gauge contracts.
 - Lightly modified to support emissions deposited from the root chain.
 
-#### BribeVotingRewards, FeesVotingRewards, VotingRewardsFactory
+#### IncentiveVotingRewards, FeesVotingRewards, VotingRewardsFactory
 
 Slipstream reuses the same leaf voting rewards contracts as the vAMM / sAMM Superchain contracts. 

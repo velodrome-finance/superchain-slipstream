@@ -50,7 +50,7 @@ abstract contract Events {
         address indexed votingRewardsFactory,
         address indexed gaugeFactory,
         address pool,
-        address bribeVotingReward,
+        address incentiveVotingReward,
         address feeVotingReward,
         address gauge
     );

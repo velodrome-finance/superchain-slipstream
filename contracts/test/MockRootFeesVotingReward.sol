@@ -2,9 +2,9 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import {IRootFeesVotingReward} from "contracts/mainnet/interfaces/rewards/IRootFeesVotingReward.sol";
-import {IRootMessageBridge} from "contracts/mainnet/interfaces/bridge/IRootMessageBridge.sol";
-import {IRootCLGauge} from "contracts/mainnet/gauge/IRootCLGauge.sol";
+import {IRootFeesVotingReward} from "contracts/root/interfaces/rewards/IRootFeesVotingReward.sol";
+import {IRootMessageBridge} from "contracts/root/interfaces/bridge/IRootMessageBridge.sol";
+import {IRootCLGauge} from "contracts/root/gauge/IRootCLGauge.sol";
 import {IVotingEscrow} from "contracts/test/MockVotingEscrow.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 
@@ -18,17 +18,17 @@ contract MockRootFeesVotingReward is IRootFeesVotingReward {
     /// @inheritdoc IRootFeesVotingReward
     address public immutable override ve;
     /// @inheritdoc IRootFeesVotingReward
-    address public immutable override bribeVotingReward;
+    address public immutable override incentiveVotingReward;
     /// @inheritdoc IRootFeesVotingReward
     address public override gauge;
     /// @inheritdoc IRootFeesVotingReward
     uint256 public override chainid;
 
-    constructor(address _bridge, address _voter, address _bribeVotingReward, address[] memory _rewards) {
+    constructor(address _bridge, address _voter, address _incentiveVotingReward, address[] memory _rewards) {
         voter = _voter;
         bridge = _bridge;
         ve = address(IVoter(_voter).ve());
-        bribeVotingReward = _bribeVotingReward;
+        incentiveVotingReward = _incentiveVotingReward;
     }
 
     /// @inheritdoc IRootFeesVotingReward
