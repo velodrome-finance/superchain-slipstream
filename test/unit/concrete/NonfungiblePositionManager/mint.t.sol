@@ -2,7 +2,7 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
-import {NonfungiblePositionManagerTest} from "./NonfungiblePositionManager.t.sol";
+import "./NonfungiblePositionManager.t.sol";
 
 contract MintTest is NonfungiblePositionManagerTest {
     function test_RevertIf_PoolAlreadyExistsWithNonZeroSqrtPriceX96() public {
@@ -67,10 +67,14 @@ contract MintTest is NonfungiblePositionManagerTest {
         assertEq(uint256(tokensOwed1), 0);
         assertEq(feeGrowthInside0LastX128, 0);
         assertEq(feeGrowthInside1LastX128, 0);
+        uint256[] memory userPositions = nft.userPositions(users.alice, address(pool));
+        assertEq(userPositions.length, 1);
+        assertEq(userPositions[0], 1);
     }
 
     function test_MintWhenPoolDoesNotExist() public {
-        assertTrue(poolFactory.getPool(address(token0), address(token1), TICK_SPACING_MEDIUM) == address(0));
+        address _pool = poolFactory.getPool(address(token0), address(token1), TICK_SPACING_MEDIUM);
+        assertTrue(_pool == address(0));
 
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
@@ -88,7 +92,8 @@ contract MintTest is NonfungiblePositionManagerTest {
         });
         nft.mint(params);
 
-        assertTrue(poolFactory.getPool(address(token0), address(token1), TICK_SPACING_MEDIUM) != address(0));
+        _pool = poolFactory.getPool(address(token0), address(token1), TICK_SPACING_MEDIUM);
+        assertTrue(_pool != address(0));
         assertEq(nft.balanceOf(users.alice), 1);
         assertEq(nft.tokenOfOwnerByIndex(users.alice, 0), 1);
         (
@@ -115,5 +120,8 @@ contract MintTest is NonfungiblePositionManagerTest {
         assertEq(uint256(tokensOwed1), 0);
         assertEq(feeGrowthInside0LastX128, 0);
         assertEq(feeGrowthInside1LastX128, 0);
+        uint256[] memory userPositions = nft.userPositions(users.alice, _pool);
+        assertEq(userPositions.length, 1);
+        assertEq(userPositions[0], 1);
     }
 }

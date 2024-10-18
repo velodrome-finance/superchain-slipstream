@@ -17,6 +17,8 @@ import "./base/ERC721Permit.sol";
 import "./base/PeripheryValidation.sol";
 import "./base/SelfPermit.sol";
 
+import {EnumerableSet as IterableEnumerableSet} from "contracts/libraries/EnumerableSet.sol";
+
 /// @title NFT positions
 /// @notice Wraps CL positions in the ERC721 non-fungible token interface
 contract NonfungiblePositionManager is
@@ -28,7 +30,8 @@ contract NonfungiblePositionManager is
     PeripheryValidation,
     SelfPermit
 {
-    // details about the cl position
+    using IterableEnumerableSet for IterableEnumerableSet.UintSet;
+
     struct Position {
         // the nonce for permits
         uint96 nonce;
@@ -65,6 +68,8 @@ contract NonfungiblePositionManager is
 
     /// @dev The token ID position data
     mapping(uint256 => Position) private _positions;
+
+    mapping(address => mapping(address => IterableEnumerableSet.UintSet)) internal _userPositions;
 
     /// @dev The ID of the next token that will be minted. Skips 0
     uint176 private _nextId = 1;
@@ -199,6 +204,8 @@ contract NonfungiblePositionManager is
             tokensOwed1: 0
         });
 
+        _userPositions[params.recipient][address(pool)].add(tokenId);
+
         refundETH();
 
         emit IncreaseLiquidity(tokenId, liquidity, amount0, amount1);
@@ -294,7 +301,7 @@ contract NonfungiblePositionManager is
 
         (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity);
 
-        require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "PS");
+        require(amount0 >= params.amount0Min && amount1 >= params.amount1Min);
 
         bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
         // this is now updated to the current transaction
@@ -411,6 +418,11 @@ contract NonfungiblePositionManager is
     function burn(uint256 tokenId) external payable override isAuthorizedForToken(tokenId) {
         Position storage position = _positions[tokenId];
         require(position.liquidity == 0 && position.tokensOwed0 == 0 && position.tokensOwed1 == 0, "NC");
+
+        PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
+        address pool = PoolAddress.computeAddress(factory, poolKey);
+        _userPositions[ownerOf(tokenId)][pool].remove(tokenId);
+
         delete _positions[tokenId];
         _burn(tokenId);
     }
@@ -421,7 +433,7 @@ contract NonfungiblePositionManager is
 
     /// @inheritdoc IERC721
     function getApproved(uint256 tokenId) public view override(ERC721, IERC721) returns (address) {
-        require(_exists(tokenId), "NE");
+        require(_exists(tokenId));
 
         return _positions[tokenId].operator;
     }
@@ -445,5 +457,9 @@ contract NonfungiblePositionManager is
         require(_owner != address(0));
         owner = _owner;
         emit TransferOwnership(_owner);
+    }
+
+    function userPositions(address user, address pool) external view override returns (uint256[] memory) {
+        return _userPositions[user][pool].values();
     }
 }

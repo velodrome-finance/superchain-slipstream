@@ -52,7 +52,7 @@ abstract contract ERC721Permit is BlockTimestamp, ERC721, IERC721Permit {
         payable
         override
     {
-        require(_blockTimestamp() <= deadline, "PE"); // permit expired
+        require(_blockTimestamp() <= deadline); // permit expired
 
         bytes32 digest = keccak256(
             abi.encodePacked(
@@ -62,14 +62,14 @@ abstract contract ERC721Permit is BlockTimestamp, ERC721, IERC721Permit {
             )
         );
         address owner = ownerOf(tokenId);
-        require(spender != owner, "ACO"); // approval to current owner
+        require(spender != owner); // approval to current owner
 
         if (Address.isContract(owner)) {
-            require(IERC1271(owner).isValidSignature(digest, abi.encodePacked(r, s, v)) == 0x1626ba7e, "UA"); // unauthorized
+            require(IERC1271(owner).isValidSignature(digest, abi.encodePacked(r, s, v)) == 0x1626ba7e); // unauthorized
         } else {
             address recoveredAddress = ecrecover(digest, v, r, s);
-            require(recoveredAddress != address(0), "IS"); // invalid signature
-            require(recoveredAddress == owner, "UA"); // unauthorized
+            require(recoveredAddress != address(0)); // invalid signature
+            require(recoveredAddress == owner); // unauthorized
         }
 
         _approve(spender, tokenId);

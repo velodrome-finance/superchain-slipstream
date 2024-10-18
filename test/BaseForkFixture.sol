@@ -54,6 +54,7 @@ import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
 import {IMultichainMockMailbox} from "contracts/test/interfaces/IMultichainMockMailbox.sol";
 
 import {TestERC20} from "contracts/periphery/test/TestERC20.sol";
+import {EnumerableSet} from "contracts/libraries/EnumerableSet.sol";
 
 abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     using CreateXLibrary for bytes11;

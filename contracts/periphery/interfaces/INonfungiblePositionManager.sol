@@ -88,6 +88,12 @@ interface INonfungiblePositionManager is
     /// @notice Returns the address of the Owner, that is allowed to set a new TokenDescriptor
     function owner() external view returns (address);
 
+    /// @notice Returns the positions of a user for a given pool
+    /// @param user The address of the user
+    /// @param pool The address of the pool
+    /// @return The positions of the user for the given pool
+    function userPositions(address user, address pool) external view returns (uint256[] memory);
+
     struct MintParams {
         address token0;
         address token1;

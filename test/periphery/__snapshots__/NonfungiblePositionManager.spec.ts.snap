@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NonfungiblePositionManager #burn gas 1`] = `66054`;
+exports[`NonfungiblePositionManager #burn gas 1`] = `86004`;
 
 exports[`NonfungiblePositionManager #collect gas transfers both 1`] = `137573`;
 
@@ -14,19 +14,19 @@ exports[`NonfungiblePositionManager #decreaseLiquidity gas partial decrease 1`] 
 
 exports[`NonfungiblePositionManager #increaseLiquidity gas 1`] = `204759`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `625707`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `692888`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with non-zero refund 1`] = `631145`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with non-zero refund 1`] = `698326`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with zero refund 1`] = `623926`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with zero refund 1`] = `691107`;
 
-exports[`NonfungiblePositionManager #mint gas mint for same pool, different ticks 1`] = `475198`;
+exports[`NonfungiblePositionManager #mint gas mint for same pool, different ticks 1`] = `542379`;
 
-exports[`NonfungiblePositionManager #mint gas mint on same ticks 1`] = `363534`;
+exports[`NonfungiblePositionManager #mint gas mint on same ticks 1`] = `430715`;
 
-exports[`NonfungiblePositionManager #permit owned by eoa gas 1`] = `64535`;
+exports[`NonfungiblePositionManager #permit owned by eoa gas 1`] = `64513`;
 
-exports[`NonfungiblePositionManager #permit owned by verifying contract gas 1`] = `68422`;
+exports[`NonfungiblePositionManager #permit owned by verifying contract gas 1`] = `68400`;
 
 exports[`NonfungiblePositionManager #positions gas 1`] = `19977`;
 
@@ -34,4 +34,4 @@ exports[`NonfungiblePositionManager #transferFrom gas 1`] = `109774`;
 
 exports[`NonfungiblePositionManager #transferFrom gas comes from approved 1`] = `108380`;
 
-exports[`NonfungiblePositionManager multicall exit gas 1`] = `255366`;
+exports[`NonfungiblePositionManager multicall exit gas 1`] = `270116`;
