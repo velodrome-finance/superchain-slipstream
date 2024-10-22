@@ -21,7 +21,7 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
     /// @inheritdoc IRootCLPoolFactory
     mapping(int24 => uint24) public override tickSpacingToFee;
     /// @inheritdoc IRootCLPoolFactory
-    mapping(address => mapping(address => mapping(int24 => address))) public override getPool;
+    mapping(uint256 => mapping(address => mapping(address => mapping(int24 => address)))) public override getPool;
     /// @dev Used in VotingEscrow to determine if a contract is a valid pool
     mapping(address => bool) private _isPool;
     /// @inheritdoc IRootCLPoolFactory
@@ -52,7 +52,7 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), "Z_A");
         require(tickSpacingToFee[tickSpacing] != 0);
-        require(getPool[token0][token1][tickSpacing] == address(0), "AE");
+        require(getPool[chainid][token0][token1][tickSpacing] == address(0), "AE");
         pool = Clones.cloneDeterministic({
             master: poolImplementation,
             salt: keccak256(abi.encodePacked(chainid, token0, token1, tickSpacing))
@@ -66,10 +66,10 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
         });
         allPools.push(pool);
         _isPool[pool] = true;
-        getPool[token0][token1][tickSpacing] = pool;
+        getPool[chainid][token0][token1][tickSpacing] = pool;
         // populate mapping in the reverse direction, deliberate choice to avoid the cost of comparing addresses
-        getPool[token1][token0][tickSpacing] = pool;
-        emit RootPoolCreated(token0, token1, tickSpacing, pool);
+        getPool[chainid][token1][token0][tickSpacing] = pool;
+        emit RootPoolCreated(token0, token1, tickSpacing, chainid, pool);
     }
 
     /// @inheritdoc IRootCLPoolFactory

@@ -15,8 +15,11 @@ interface IRootCLPoolFactory {
     /// @param token0 The first token of the pool by address sort order
     /// @param token1 The second token of the pool by address sort order
     /// @param tickSpacing The minimum number of ticks between initialized ticks
+    /// @param chainid The Chain ID of the pool
     /// @param pool The address of the created pool
-    event RootPoolCreated(address indexed token0, address indexed token1, int24 indexed tickSpacing, address pool);
+    event RootPoolCreated(
+        address indexed token0, address indexed token1, int24 indexed tickSpacing, uint256 chainid, address pool
+    );
 
     /// @notice Emitted when a new tick spacing is enabled for pool creation via the factory
     /// @param tickSpacing The minimum number of ticks between initialized ticks for pools
@@ -50,11 +53,15 @@ interface IRootCLPoolFactory {
 
     /// @notice Returns the pool address for a given pair of tokens and a tick spacing, or address 0 if it does not exist
     /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
+    /// @param chainid Chain ID associated with pool
     /// @param tokenA The contract address of either token0 or token1
     /// @param tokenB The contract address of the other token
     /// @param tickSpacing The tick spacing of the pool
     /// @return pool The pool address
-    function getPool(address tokenA, address tokenB, int24 tickSpacing) external view returns (address pool);
+    function getPool(uint256 chainid, address tokenA, address tokenB, int24 tickSpacing)
+        external
+        view
+        returns (address pool);
 
     /// @notice Return address of pool created by this factory given its `index`
     /// @param index Index of the pool
