@@ -20,8 +20,6 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
     mapping(int24 => uint24) public override tickSpacingToFee;
     /// @inheritdoc IRootCLPoolFactory
     mapping(uint256 => mapping(address => mapping(address => mapping(int24 => address)))) public override getPool;
-    /// @dev Used in VotingEscrow to determine if a contract is a valid pool
-    mapping(address => bool) private _isPool;
     /// @inheritdoc IRootCLPoolFactory
     address[] public override allPools;
 
@@ -63,7 +61,6 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
             _tickSpacing: tickSpacing
         });
         allPools.push(pool);
-        _isPool[pool] = true;
         getPool[chainid][token0][token1][tickSpacing] = pool;
         // populate mapping in the reverse direction, deliberate choice to avoid the cost of comparing addresses
         getPool[chainid][token1][token0][tickSpacing] = pool;
@@ -108,7 +105,12 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
     }
 
     /// @inheritdoc IRootCLPoolFactory
-    function isPair(address pool) external view override returns (bool) {
-        return _isPool[pool];
+    function isPool(address) external pure override returns (bool) {
+        return false;
+    }
+
+    /// @inheritdoc IRootCLPoolFactory
+    function isPair(address) external pure override returns (bool) {
+        return false;
     }
 }

@@ -72,9 +72,12 @@ interface IRootCLPoolFactory {
     /// @return Number of pools created from this factory
     function allPoolsLength() external view returns (uint256);
 
-    /// @notice Used in VotingEscrow to determine if a contract is a valid pool of the factory
-    /// @param pool The address of the pool to check
-    /// @return Whether the pool is a valid pool of the factory
+    /// @notice Always returns false as these pools are not real pools
+    /// @dev Guarantees gauges attached to pools must be created by the governor
+    function isPool(address pool) external view returns (bool);
+
+    /// @notice Always returns false as these pools are not real pools
+    /// @dev Guarantees gauges attached to pools must be created by the governor
     function isPair(address pool) external view returns (bool);
 
     /// @notice Creates a root pool for the given two tokens and fee
