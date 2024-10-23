@@ -121,8 +121,8 @@ contract NonfungiblePositionManager is
         )
     {
         Position memory position = _positions[tokenId];
-        require(position.poolId != 0, "ID");
-        PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
+        require(position.poolId != 0);
+        PoolAddress.PoolKey storage poolKey = _poolIdToPoolKey[position.poolId];
         return (
             position.nonce,
             position.operator,
@@ -185,8 +185,8 @@ contract NonfungiblePositionManager is
 
         _mint(params.recipient, (tokenId = _nextId++));
 
-        bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);
-        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
+        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) =
+            pool.positions(PositionKey.compute(address(this), params.tickLower, params.tickUpper));
 
         // idempotent set
         uint80 poolId = cachePoolKey(address(pool), poolKey);
@@ -207,8 +207,16 @@ contract NonfungiblePositionManager is
         _userPositions[params.recipient][address(pool)].add(tokenId);
 
         refundETH();
-
-        emit IncreaseLiquidity(tokenId, liquidity, amount0, amount1);
+        emit IncreaseLiquidity({
+            tokenId: tokenId,
+            owner: params.recipient,
+            pool: address(pool),
+            tickLower: params.tickLower,
+            tickUpper: params.tickUpper,
+            liquidity: liquidity,
+            amount0: amount0,
+            amount1: amount1
+        });
     }
 
     modifier isAuthorizedForToken(uint256 tokenId) {
@@ -239,7 +247,7 @@ contract NonfungiblePositionManager is
         ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
 
         address gauge = pool.gauge();
-        if (ownerOf(params.tokenId) == gauge) require(msg.sender == gauge, "NG");
+        if (ownerOf(params.tokenId) == gauge) require(msg.sender == gauge);
 
         (liquidity, amount0, amount1) = addLiquidity(
             AddLiquidityParams({
@@ -255,10 +263,9 @@ contract NonfungiblePositionManager is
             })
         );
 
-        bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
-
         // this is now updated to the current transaction
-        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
+        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) =
+            pool.positions(PositionKey.compute(address(this), position.tickLower, position.tickUpper));
 
         position.tokensOwed0 += uint128(
             FullMath.mulDiv(
@@ -278,7 +285,16 @@ contract NonfungiblePositionManager is
         refundETH();
 
         emit MetadataUpdate(params.tokenId);
-        emit IncreaseLiquidity(params.tokenId, liquidity, amount0, amount1);
+        emit IncreaseLiquidity({
+            tokenId: params.tokenId,
+            owner: ownerOf(params.tokenId),
+            pool: address(pool),
+            tickLower: position.tickLower,
+            tickUpper: position.tickUpper,
+            liquidity: liquidity,
+            amount0: amount0,
+            amount1: amount1
+        });
     }
 
     /// @inheritdoc INonfungiblePositionManager
@@ -296,16 +312,15 @@ contract NonfungiblePositionManager is
         uint128 positionLiquidity = position.liquidity;
         require(positionLiquidity >= params.liquidity);
 
-        PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
-        ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
+        ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, _poolIdToPoolKey[position.poolId]));
 
         (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity);
 
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min);
 
-        bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
         // this is now updated to the current transaction
-        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
+        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) =
+            pool.positions(PositionKey.compute(address(this), position.tickLower, position.tickUpper));
 
         /// @dev Casting to u128 and the sum of tokensOwed overflow can cause a loss to users.
         /// @dev This is more probable for tokens that have very high decimals.
@@ -330,7 +345,16 @@ contract NonfungiblePositionManager is
         position.liquidity = positionLiquidity - params.liquidity;
 
         emit MetadataUpdate(params.tokenId);
-        emit DecreaseLiquidity(params.tokenId, params.liquidity, amount0, amount1);
+        emit DecreaseLiquidity({
+            tokenId: params.tokenId,
+            owner: ownerOf(params.tokenId),
+            pool: address(pool),
+            tickLower: position.tickLower,
+            tickUpper: position.tickUpper,
+            liquidity: params.liquidity,
+            amount0: amount0,
+            amount1: amount1
+        });
     }
 
     /// @inheritdoc INonfungiblePositionManager

@@ -11,7 +11,7 @@ contract IncreaseLiquidityTest is NonfungiblePositionManagerTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit({tokenId: tokenId});
 
-        vm.expectRevert(bytes("NG"));
+        vm.expectRevert();
         nft.increaseLiquidity(
             INonfungiblePositionManager.IncreaseLiquidityParams({
                 tokenId: tokenId,

@@ -721,17 +721,17 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('cannot be called while there is still liquidity', async () => {
-      await expect(nft.connect(other).burn(tokenId)).to.be.revertedWith('NC')
+      await expect(nft.connect(other).burn(tokenId)).to.be.revertedWith('')
     })
 
     it('cannot be called while there is still partial liquidity', async () => {
       await nft.connect(other).decreaseLiquidity({ tokenId, liquidity: 50, amount0Min: 0, amount1Min: 0, deadline: 1 })
-      await expect(nft.connect(other).burn(tokenId)).to.be.revertedWith('NC')
+      await expect(nft.connect(other).burn(tokenId)).to.be.revertedWith('')
     })
 
     it('cannot be called while there is still tokens owed', async () => {
       await nft.connect(other).decreaseLiquidity({ tokenId, liquidity: 100, amount0Min: 0, amount1Min: 0, deadline: 1 })
-      await expect(nft.connect(other).burn(tokenId)).to.be.revertedWith('NC')
+      await expect(nft.connect(other).burn(tokenId)).to.be.revertedWith('')
     })
 
     it('deletes the token', async () => {
@@ -743,7 +743,7 @@ describe('NonfungiblePositionManager', () => {
         amount1Max: MaxUint128,
       })
       await nft.connect(other).burn(tokenId)
-      await expect(nft.positions(tokenId)).to.be.revertedWith('ID')
+      await expect(nft.positions(tokenId)).to.be.revertedWith('')
     })
 
     it('gas', async () => {
