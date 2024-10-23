@@ -22,7 +22,7 @@ contract LeafCLGaugeFactory is ILeafCLGaugeFactory {
     address public immutable override nft;
 
     struct GaugeCreateX {
-        uint256 chainId;
+        uint256 chainid;
         bytes32 salt;
         address pool;
         address token0;
@@ -57,7 +57,7 @@ contract LeafCLGaugeFactory is ILeafCLGaugeFactory {
         gcx.token0 = ICLPool(_pool).token0();
         gcx.token1 = ICLPool(_pool).token1();
         gcx.tickSpacing = ICLPool(_pool).tickSpacing();
-        gcx.salt = keccak256(abi.encodePacked(gcx.chainId, gcx.token0, gcx.token1, gcx.tickSpacing));
+        gcx.salt = keccak256(abi.encodePacked(gcx.chainid, gcx.token0, gcx.token1, gcx.tickSpacing));
         gcx.entropy = bytes11(gcx.salt);
 
         gauge = CreateXLibrary.CREATEX.deployCreate3({

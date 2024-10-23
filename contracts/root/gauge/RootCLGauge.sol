@@ -5,14 +5,13 @@ pragma abicoder v2;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import {IRootCLGauge} from "../../root/gauge/IRootCLGauge.sol";
-import {IRootCLGaugeFactory} from "../../root/gauge/IRootCLGaugeFactory.sol";
-import {VelodromeTimeLibrary} from "../../libraries/VelodromeTimeLibrary.sol";
+import {IRootCLGauge} from "../interfaces/gauge/IRootCLGauge.sol";
+import {IRootCLGaugeFactory} from "../interfaces/gauge/IRootCLGaugeFactory.sol";
+import {IRootMessageBridge} from "../interfaces/bridge/IRootMessageBridge.sol";
 import {IXERC20Lockbox} from "../../superchain/IXERC20Lockbox.sol";
-import {IBridge} from "../../superchain/IBridge.sol";
-import {IRootMessageBridge} from "../../root/interfaces/bridge/IRootMessageBridge.sol";
-import {Commands} from "../../libraries/Commands.sol";
 import {IVoter} from "../../core/interfaces/IVoter.sol";
+import {VelodromeTimeLibrary} from "../../libraries/VelodromeTimeLibrary.sol";
+import {Commands} from "../../libraries/Commands.sol";
 
 /// @notice RootGauge that forward emissions to the corresponding LeafGauge on the leaf chain
 contract RootCLGauge is IRootCLGauge {

@@ -49,7 +49,7 @@ contract CLFactory is ICLFactory {
     mapping(address => mapping(address => mapping(int24 => address))) internal _getPool;
 
     struct PoolCreateX {
-        uint256 chainId;
+        uint256 chainid;
         bytes32 salt;
         address gauge;
         bytes11 entropy;
@@ -117,7 +117,7 @@ contract CLFactory is ICLFactory {
             let chainId := chainid()
             mstore(pcx, chainId)
         }
-        pcx.salt = keccak256(abi.encodePacked(pcx.chainId, token0, token1, tickSpacing));
+        pcx.salt = keccak256(abi.encodePacked(pcx.chainid, token0, token1, tickSpacing));
         pcx.entropy = bytes11(pcx.salt);
         pcx.gauge = pcx.entropy.computeCreate3Address({_deployer: gaugeFactory});
 

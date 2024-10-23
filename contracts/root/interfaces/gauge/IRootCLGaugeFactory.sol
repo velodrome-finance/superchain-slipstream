@@ -2,10 +2,10 @@
 pragma solidity =0.7.6;
 
 interface IRootCLGaugeFactory {
-    event SetNotifyAdmin(address indexed notifyAdmin);
-    event SetEmissionAdmin(address indexed emissionAdmin);
-    event SetDefaultCap(uint256 indexed newDefaultCap);
-    event SetEmissionCap(address indexed gauge, uint256 newEmissionCap);
+    event NotifyAdminSet(address indexed notifyAdmin);
+    event EmissionAdminSet(address indexed emissionAdmin);
+    event DefaultCapSet(uint256 indexed newDefaultCap);
+    event EmissionCapSet(address indexed gauge, uint256 newEmissionCap);
 
     /// @notice Voter contract address
     function voter() external view returns (address);

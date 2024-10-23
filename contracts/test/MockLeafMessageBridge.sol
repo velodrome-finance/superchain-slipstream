@@ -23,7 +23,7 @@ contract MockLeafMessageBridge is ILeafMessageBridge, Ownable {
     /// @inheritdoc ILeafMessageBridge
     function setModule(address _module) external override onlyOwner {
         module = _module;
-        emit SetModule({_sender: msg.sender, _module: _module});
+        emit ModuleSet({_sender: msg.sender, _module: _module});
     }
 
     /// @inheritdoc ILeafMessageBridge

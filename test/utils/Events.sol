@@ -37,10 +37,10 @@ abstract contract Events {
     ///
     /// CLGaugeFactory Events
     ///
-    event SetNotifyAdmin(address indexed notifyAdmin);
-    event SetEmissionAdmin(address indexed emissionAdmin);
-    event SetDefaultCap(uint256 indexed newDefaultCap);
-    event SetEmissionCap(address indexed gauge, uint256 newEmissionCap);
+    event NotifyAdminSet(address indexed notifyAdmin);
+    event EmissionAdminSet(address indexed emissionAdmin);
+    event DefaultCapSet(uint256 indexed newDefaultCap);
+    event EmissionCapSet(address indexed gauge, uint256 newEmissionCap);
 
     ///
     /// LeafVoter Events

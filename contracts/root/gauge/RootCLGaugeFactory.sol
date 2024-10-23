@@ -5,13 +5,13 @@ pragma abicoder v2;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {CreateXLibrary} from "../../libraries/CreateXLibrary.sol";
-import {IRootCLGaugeFactory} from "../../root/gauge/IRootCLGaugeFactory.sol";
-import {IRootCLPool} from "../../root/pool/IRootCLPool.sol";
-import {RootCLGauge} from "../../root/gauge/RootCLGauge.sol";
-import {IRootIncentiveVotingReward} from "../../root/interfaces/rewards/IRootIncentiveVotingReward.sol";
-import {IRootFeesVotingReward} from "../../root/interfaces/rewards/IRootFeesVotingReward.sol";
+import {IRootCLGaugeFactory} from "../interfaces/gauge/IRootCLGaugeFactory.sol";
+import {RootCLGauge} from "./RootCLGauge.sol";
+import {IRootCLPool} from "../interfaces/pool/IRootCLPool.sol";
+import {IRootIncentiveVotingReward} from "../interfaces/rewards/IRootIncentiveVotingReward.sol";
+import {IRootFeesVotingReward} from "../interfaces/rewards/IRootFeesVotingReward.sol";
 import {Commands} from "../../libraries/Commands.sol";
-import {IRootMessageBridge} from "../../root/interfaces/bridge/IRootMessageBridge.sol";
+import {IRootMessageBridge} from "../interfaces/bridge/IRootMessageBridge.sol";
 import {IVoter} from "../../core/interfaces/IVoter.sol";
 import {IMinter} from "../../core/interfaces/IMinter.sol";
 
@@ -34,7 +34,7 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
     /// @inheritdoc IRootCLGaugeFactory
     address public immutable override rewardToken;
     /// @inheritdoc IRootCLGaugeFactory
-    address public override minter;
+    address public immutable override minter;
     /// @inheritdoc IRootCLGaugeFactory
     address public override notifyAdmin;
     /// @inheritdoc IRootCLGaugeFactory
@@ -76,8 +76,12 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
         notifyAdmin = _notifyAdmin;
         emissionAdmin = _emissionAdmin;
         defaultCap = _defaultCap;
-        minter = IVoter(_voter).minter();
-        rewardToken = IMinter(minter).velo();
+        address _minter = IVoter(_voter).minter();
+        minter = _minter;
+        rewardToken = IMinter(_minter).velo();
+        emit NotifyAdminSet({notifyAdmin: _notifyAdmin});
+        emit EmissionAdminSet({emissionAdmin: _emissionAdmin});
+        emit DefaultCapSet({newDefaultCap: _defaultCap});
     }
 
     /// @inheritdoc IRootCLGaugeFactory
@@ -91,7 +95,7 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
         require(notifyAdmin == msg.sender, "NA");
         require(_admin != address(0), "ZA");
         notifyAdmin = _admin;
-        emit SetNotifyAdmin({notifyAdmin: _admin});
+        emit NotifyAdminSet({notifyAdmin: _admin});
     }
 
     /// @inheritdoc IRootCLGaugeFactory
@@ -104,8 +108,8 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
         address token0 = IRootCLPool(_pool).token0();
         address token1 = IRootCLPool(_pool).token1();
         int24 tickSpacing = IRootCLPool(_pool).tickSpacing();
-        uint256 chainId = IRootCLPool(_pool).chainId();
-        bytes32 salt = keccak256(abi.encodePacked(chainId, token0, token1, tickSpacing));
+        uint256 chainid = IRootCLPool(_pool).chainid();
+        bytes32 salt = keccak256(abi.encodePacked(chainid, token0, token1, tickSpacing));
         bytes11 entropy = bytes11(salt);
 
         gauge = CreateXLibrary.CREATEX.deployCreate3({
@@ -119,7 +123,7 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
                     lockbox, // lockbox to convert reward token to xerc20
                     messageBridge, // bridge to communicate x-chain
                     voter, // voter contract
-                    chainId // chain id associated with gauge
+                    chainid // chain id associated with gauge
                 )
             )
         });
@@ -137,7 +141,7 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
             token1,
             uint24(tickSpacing)
         );
-        IRootMessageBridge(messageBridge).sendMessage({_chainid: chainId, _message: message});
+        IRootMessageBridge(messageBridge).sendMessage({_chainid: chainid, _message: message});
     }
 
     /// @inheritdoc IRootCLGaugeFactory
@@ -171,7 +175,7 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
         require(msg.sender == emissionAdmin, "NA");
         require(_admin != address(0), "ZA");
         emissionAdmin = _admin;
-        emit SetEmissionAdmin({emissionAdmin: _admin});
+        emit EmissionAdminSet({emissionAdmin: _admin});
     }
 
     /// @inheritdoc IRootCLGaugeFactory
@@ -179,7 +183,7 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
         require(msg.sender == emissionAdmin, "NA");
         require(_gauge != address(0), "ZA");
         _emissionCaps[_gauge] = _emissionCap;
-        emit SetEmissionCap({gauge: _gauge, newEmissionCap: _emissionCap});
+        emit EmissionCapSet({gauge: _gauge, newEmissionCap: _emissionCap});
     }
 
     /// @inheritdoc IRootCLGaugeFactory
@@ -187,6 +191,6 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
         require(msg.sender == emissionAdmin, "NA");
         require(_defaultCap != 0, "ZDC");
         defaultCap = _defaultCap;
-        emit SetDefaultCap({newDefaultCap: _defaultCap});
+        emit DefaultCapSet({newDefaultCap: _defaultCap});
     }
 }

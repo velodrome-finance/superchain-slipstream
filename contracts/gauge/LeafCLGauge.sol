@@ -36,7 +36,7 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
     /// @inheritdoc ILeafCLGauge
     address public immutable override feesVotingReward;
     /// @inheritdoc ILeafCLGauge
-    address public override rewardToken;
+    address public immutable override rewardToken;
 
     /// @inheritdoc ILeafCLGauge
     uint256 public override periodFinish;

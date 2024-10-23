@@ -2,7 +2,7 @@
 pragma solidity =0.7.6;
 
 interface ILeafMessageBridge {
-    event SetModule(address indexed _sender, address indexed _module);
+    event ModuleSet(address indexed _sender, address indexed _module);
 
     /// @notice Returns the address of the xERC20 token that is bridged by this contract
     function xerc20() external view returns (address);

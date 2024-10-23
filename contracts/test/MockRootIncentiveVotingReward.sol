@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import {IRootIncentiveVotingReward} from "contracts/root/interfaces/rewards/IRootIncentiveVotingReward.sol";
 import {IRootMessageBridge} from "contracts/root/interfaces/bridge/IRootMessageBridge.sol";
-import {IRootCLGauge} from "contracts/root/gauge/IRootCLGauge.sol";
+import {IRootCLGauge} from "contracts/root/interfaces/gauge/IRootCLGauge.sol";
 import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 

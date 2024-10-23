@@ -4,11 +4,9 @@ pragma solidity =0.7.6;
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
-import {IRootCLPoolFactory} from "./IRootCLPoolFactory.sol";
-import {IRootCLPool} from "./IRootCLPool.sol";
-import {IVoter} from "../../core/interfaces/IVoter.sol";
-import {IChainRegistry} from "../../root/interfaces/bridge/IChainRegistry.sol";
-import {IFactoryRegistry} from "../../core/interfaces/IFactoryRegistry.sol";
+import {IRootCLPoolFactory} from "../interfaces/pool/IRootCLPoolFactory.sol";
+import {IRootCLPool} from "../interfaces/pool/IRootCLPool.sol";
+import {IChainRegistry} from "../interfaces/bridge/IChainRegistry.sol";
 
 /// @notice Factory for creating RootPools
 contract RootCLPoolFactory is IRootCLPoolFactory {
@@ -58,7 +56,7 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
             salt: keccak256(abi.encodePacked(chainid, token0, token1, tickSpacing))
         });
         IRootCLPool(pool).initialize({
-            _chainId: chainid,
+            _chainid: chainid,
             _factory: address(this),
             _token0: token0,
             _token1: token1,

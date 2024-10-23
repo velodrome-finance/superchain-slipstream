@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import {IVoter} from "../../core/interfaces/IVoter.sol";
+import {IVoter} from "../../../core/interfaces/IVoter.sol";
 
 /// @title The interface for the CL Factory
 /// @notice The CL Factory facilitates creation of CL pools and control over the protocol fees

@@ -8,8 +8,8 @@ import {RootCLGaugeFactory} from "../root/gauge/RootCLGaugeFactory.sol";
 import {IVoter} from "../core/interfaces/IVoter.sol";
 import {IVotingEscrow} from "../core/interfaces/IVotingEscrow.sol";
 import {IFactoryRegistry} from "../core/interfaces/IFactoryRegistry.sol";
-import {IRootCLPool} from "../root/pool/IRootCLPool.sol";
-import {IRootCLPoolFactory} from "../root/pool/IRootCLPoolFactory.sol";
+import {IRootCLPool} from "../root/interfaces/pool/IRootCLPool.sol";
+import {IRootCLPoolFactory} from "../root/interfaces/pool/IRootCLPoolFactory.sol";
 import {IRootVotingRewardsFactory} from "../root/interfaces/rewards/IRootVotingRewardsFactory.sol";
 
 contract MockVoter is IVoter {
