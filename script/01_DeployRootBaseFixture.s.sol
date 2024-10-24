@@ -26,10 +26,10 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
         string outputFilename;
     }
 
-    // deployed
-    RootCLPool public poolImplementation;
-    RootCLPoolFactory public poolFactory;
-    RootCLGaugeFactory public gaugeFactory;
+    // root slipstream contracts
+    RootCLPool public rootPoolImplementation;
+    RootCLPoolFactory public rootPoolFactory;
+    RootCLGaugeFactory public rootGaugeFactory;
 
     DeploymentParameters internal _params;
 
@@ -37,30 +37,30 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
     function deploy() internal virtual override {
         address _deployer = deployer;
 
-        poolImplementation = RootCLPool(
+        rootPoolImplementation = RootCLPool(
             cx.deployCreate3({
                 salt: CL_POOL_ENTROPY.calculateSalt({_deployer: _deployer}),
                 initCode: abi.encodePacked(type(RootCLPool).creationCode)
             })
         );
-        checkAddress({_entropy: CL_POOL_ENTROPY, _output: address(poolImplementation)});
+        checkAddress({_entropy: CL_POOL_ENTROPY, _output: address(rootPoolImplementation)});
 
-        poolFactory = RootCLPoolFactory(
+        rootPoolFactory = RootCLPoolFactory(
             cx.deployCreate3({
                 salt: CL_POOL_FACTORY_ENTROPY.calculateSalt({_deployer: _deployer}),
                 initCode: abi.encodePacked(
                     type(RootCLPoolFactory).creationCode,
                     abi.encode(
                         _params.poolFactoryOwner, // owner
-                        address(poolImplementation), // pool implementation
+                        address(rootPoolImplementation), // pool implementation
                         _params.messageBridge // message bridge
                     )
                 )
             })
         );
-        checkAddress({_entropy: CL_POOL_FACTORY_ENTROPY, _output: address(poolFactory)});
+        checkAddress({_entropy: CL_POOL_FACTORY_ENTROPY, _output: address(rootPoolFactory)});
 
-        gaugeFactory = RootCLGaugeFactory(
+        rootGaugeFactory = RootCLGaugeFactory(
             cx.deployCreate3({
                 salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: _deployer}),
                 initCode: abi.encodePacked(
@@ -70,7 +70,7 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
                         _params.xVelo, // xerc20
                         _params.lockbox, // lockbox
                         _params.messageBridge, // message bridge
-                        address(poolFactory), // pool factory
+                        address(rootPoolFactory), // pool factory
                         _params.votingRewardsFactory, // voting rewards factory
                         _params.notifyAdmin, // notify admin
                         _params.emissionAdmin, // emission admin
@@ -79,7 +79,7 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
                 )
             })
         );
-        checkAddress({_entropy: CL_GAUGE_FACTORY_ENTROPY, _output: address(gaugeFactory)});
+        checkAddress({_entropy: CL_GAUGE_FACTORY_ENTROPY, _output: address(rootGaugeFactory)});
     }
 
     function params() external view returns (DeploymentParameters memory) {
@@ -88,9 +88,9 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
 
     function logParams() internal view override {
         if (isTest) return;
-        console2.log("poolImplementation: ", address(poolImplementation));
-        console2.log("poolFactory: ", address(poolFactory));
-        console2.log("gaugeFactory: ", address(gaugeFactory));
+        console2.log("rootPoolImplementation: ", address(rootPoolImplementation));
+        console2.log("rootPoolFactory: ", address(rootPoolFactory));
+        console2.log("rootGaugeFactory: ", address(rootGaugeFactory));
     }
 
     function logOutput() internal override {
@@ -102,9 +102,9 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
             path,
             string(
                 abi.encodePacked(
-                    stdJson.serialize("", "poolImplementation", address(poolImplementation)),
-                    stdJson.serialize("", "poolFactory", address(poolFactory)),
-                    stdJson.serialize("", "gaugeFactory", address(gaugeFactory))
+                    stdJson.serialize("", "rootPoolImplementation", address(rootPoolImplementation)),
+                    stdJson.serialize("", "rootPoolFactory", address(rootPoolFactory)),
+                    stdJson.serialize("", "rootGaugeFactory", address(rootGaugeFactory))
                 )
             )
         );

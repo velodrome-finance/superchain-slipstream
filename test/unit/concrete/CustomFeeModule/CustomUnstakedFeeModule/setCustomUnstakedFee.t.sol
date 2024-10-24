@@ -18,7 +18,7 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
 
     function test_RevertIf_FeeTooHigh() public {
         address pool = createAndCheckPool({
-            factory: poolFactory,
+            factory: leafPoolFactory,
             _token0: TEST_TOKEN_0,
             _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
@@ -36,7 +36,7 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
 
     function test_SetCustomFee() public {
         address pool = createAndCheckPool({
-            factory: poolFactory,
+            factory: leafPoolFactory,
             _token0: TEST_TOKEN_0,
             _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
@@ -44,7 +44,7 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
         });
         vm.startPrank(address(leafMessageModule));
         leafVoter.createGauge({
-            _poolFactory: address(poolFactory),
+            _poolFactory: address(leafPoolFactory),
             _pool: address(pool),
             _votingRewardsFactory: address(votingRewardsFactory),
             _gaugeFactory: address(leafGaugeFactory)
@@ -58,7 +58,7 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
 
         assertEqUint(customUnstakedFeeModule.customFee(pool), 5_000);
         assertEqUint(customUnstakedFeeModule.getFee(pool), 5_000);
-        assertEqUint(poolFactory.getUnstakedFee(pool), 5_000);
+        assertEqUint(leafPoolFactory.getUnstakedFee(pool), 5_000);
 
         // revert to default fee
         vm.expectEmit(true, true, false, false, address(customUnstakedFeeModule));
@@ -67,7 +67,7 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
 
         assertEqUint(customUnstakedFeeModule.customFee(pool), 0);
         assertEqUint(customUnstakedFeeModule.getFee(pool), 100_000);
-        assertEqUint(poolFactory.getUnstakedFee(pool), 100_000);
+        assertEqUint(leafPoolFactory.getUnstakedFee(pool), 100_000);
 
         // zero fee
         vm.expectEmit(true, true, false, false, address(customUnstakedFeeModule));
@@ -76,12 +76,12 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
 
         assertEqUint(customUnstakedFeeModule.customFee(pool), 420);
         assertEqUint(customUnstakedFeeModule.getFee(pool), 0);
-        assertEqUint(poolFactory.getUnstakedFee(pool), 0);
+        assertEqUint(leafPoolFactory.getUnstakedFee(pool), 0);
     }
 
     function test_CannotExceedMaxUnstakedFee() public {
         address pool = createAndCheckPool({
-            factory: poolFactory,
+            factory: leafPoolFactory,
             _token0: TEST_TOKEN_0,
             _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
@@ -89,7 +89,7 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
         });
         vm.startPrank(address(leafMessageModule));
         leafVoter.createGauge({
-            _poolFactory: address(poolFactory),
+            _poolFactory: address(leafPoolFactory),
             _pool: address(pool),
             _votingRewardsFactory: address(votingRewardsFactory),
             _gaugeFactory: address(leafGaugeFactory)
@@ -109,7 +109,7 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
         // malicious Fee module with max fees
         assertEqUint(customUnstakedFeeModule.getFee(pool), maxFee);
         // max fee still allowed by PoolFactory
-        assertEqUint(poolFactory.getUnstakedFee(pool), maxFee);
+        assertEqUint(leafPoolFactory.getUnstakedFee(pool), maxFee);
 
         vm.mockCall(
             address(customUnstakedFeeModule),
@@ -120,6 +120,6 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
         // malicious Fee module with exceedingly large fees
         assertEqUint(customUnstakedFeeModule.getFee(pool), maxFee + 1);
         // if fee is too large, PoolFactory returns defaultFee
-        assertEqUint(poolFactory.getUnstakedFee(pool), defaultFee);
+        assertEqUint(leafPoolFactory.getUnstakedFee(pool), defaultFee);
     }
 }

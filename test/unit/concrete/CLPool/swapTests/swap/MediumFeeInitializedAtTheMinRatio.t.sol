@@ -13,7 +13,7 @@ contract MediumFeeInitializedAtTheMinRatioTest is CLPoolSwapNoStakeTest {
         uint160 startingPrice = MIN_SQRT_RATIO;
 
         string memory poolName = ".initialized_at_the_min_ratio";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,

@@ -144,7 +144,7 @@ contract CLPool is ICLPool {
         uint160 _sqrtPriceX96,
         address _gauge,
         address _nft
-    ) external override {
+    ) public virtual override {
         require(factory == address(0) && _factory != address(0));
         factory = _factory;
         token0 = _token0;

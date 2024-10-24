@@ -13,7 +13,7 @@ contract MediumFeeToken0LiquidityOnlyTest is CLPoolSwapNoStakeTest {
         uint160 startingPrice = encodePriceSqrt(1, 1);
 
         string memory poolName = ".medium_fee_token0_liquidity_only";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,

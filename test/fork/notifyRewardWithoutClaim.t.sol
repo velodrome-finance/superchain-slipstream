@@ -25,7 +25,7 @@ contract NotifyRewardWithoutClaimForkTest is BaseForkFixture {
         vm.selectFork({forkId: leafId});
         leafMailbox.processNextInboundMessage();
         leafPool = CLPool(
-            poolFactory.getPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
+            leafPoolFactory.getPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
         );
         leafGauge = LeafCLGauge(leafVoter.gauges(address(leafPool)));
 
@@ -34,7 +34,7 @@ contract NotifyRewardWithoutClaimForkTest is BaseForkFixture {
 
         skipToNextEpoch(0);
 
-        setLimits({_rootBufferCap: xVelo.minBufferCap() + 1, _leafBufferCap: xVelo.minBufferCap() + 1});
+        setLimits({_rootBufferCap: rootXVelo.minBufferCap() + 1, _leafBufferCap: rootXVelo.minBufferCap() + 1});
     }
 
     function testFork_NotifyRewardWithoutClaimResetsRewardRateInKilledGauge() public {
@@ -60,7 +60,7 @@ contract NotifyRewardWithoutClaimForkTest is BaseForkFixture {
         vm.selectFork({forkId: leafId});
         leafMailbox.processNextInboundMessage();
 
-        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(leafGauge));
+        uint256 gaugeRewardTokenBalance = rootXVelo.balanceOf(address(leafGauge));
         assertEq(gaugeRewardTokenBalance, reward);
 
         assertEq(leafGauge.rewardRate(), reward / 6 days);

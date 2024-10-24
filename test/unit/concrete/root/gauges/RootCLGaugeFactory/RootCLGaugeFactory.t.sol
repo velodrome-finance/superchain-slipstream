@@ -13,7 +13,7 @@ abstract contract RootCLGaugeFactoryTest is BaseForkFixture {
 
     function test_InitialState() public view {
         assertEq(rootGaugeFactory.voter(), address(rootVoter));
-        assertEq(rootGaugeFactory.xerc20(), address(xVelo));
+        assertEq(rootGaugeFactory.xerc20(), address(rootXVelo));
         assertEq(rootGaugeFactory.lockbox(), address(rootLockbox));
         assertEq(rootGaugeFactory.messageBridge(), address(rootMessageBridge));
         assertEq(rootGaugeFactory.poolFactory(), address(rootPoolFactory));

@@ -15,7 +15,7 @@ contract MediumFeeInitializedAtTheMaxRatioAllStakedTest is CLPoolSwapAllStakedNo
         uint160 startingPrice = MAX_SQRT_RATIO - 1;
 
         string memory poolName = ".initialized_at_the_max_ratio";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,
@@ -30,7 +30,7 @@ contract MediumFeeInitializedAtTheMaxRatioAllStakedTest is CLPoolSwapAllStakedNo
         vm.startPrank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)

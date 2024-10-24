@@ -11,7 +11,7 @@ contract EarnedTest is LeafCLGaugeTest {
         super.setUp();
 
         pool = CLPool(
-            poolFactory.createPool({
+            leafPoolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
                 tickSpacing: TICK_SPACING_60,
@@ -21,7 +21,7 @@ contract EarnedTest is LeafCLGaugeTest {
         vm.prank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)
@@ -69,7 +69,7 @@ contract EarnedTest is LeafCLGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = leafXVelo.balanceOf(users.alice);
 
         // should be the same
         assertEq(aliceRewardBalance, aliceClaimableFirst);
@@ -81,7 +81,7 @@ contract EarnedTest is LeafCLGaugeTest {
         vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
-        uint256 bobRewardBalance = xVelo.balanceOf(users.bob);
+        uint256 bobRewardBalance = leafXVelo.balanceOf(users.bob);
 
         // should be the same
         assertEq(bobRewardBalance, bobClaimable);
@@ -91,7 +91,7 @@ contract EarnedTest is LeafCLGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        aliceRewardBalance = xVelo.balanceOf(users.alice);
+        aliceRewardBalance = leafXVelo.balanceOf(users.alice);
 
         // should be the same
         assertEq(aliceRewardBalance, aliceClaimableFirst + aliceClaimableSecond);
@@ -131,7 +131,7 @@ contract EarnedTest is LeafCLGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = leafXVelo.balanceOf(users.alice);
         // should be the same
         assertEq(aliceRewardBalance, aliceClaimableFirst);
 
@@ -145,7 +145,7 @@ contract EarnedTest is LeafCLGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        aliceRewardBalance = xVelo.balanceOf(users.alice);
+        aliceRewardBalance = leafXVelo.balanceOf(users.alice);
         // should be the same
         assertEq(aliceRewardBalance, aliceClaimableFirst + aliceClaimableSecond);
 
@@ -156,7 +156,7 @@ contract EarnedTest is LeafCLGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
-        aliceRewardBalance = xVelo.balanceOf(users.alice);
+        aliceRewardBalance = leafXVelo.balanceOf(users.alice);
         // should be the same
         assertEq(aliceRewardBalance, aliceClaimableFirst + aliceClaimableSecond + aliceClaimableThird);
 
@@ -165,7 +165,7 @@ contract EarnedTest is LeafCLGaugeTest {
         vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
-        uint256 bobRewardBalance = xVelo.balanceOf(users.bob);
+        uint256 bobRewardBalance = leafXVelo.balanceOf(users.bob);
 
         // should be the same
         assertEq(bobRewardBalance, bobClaimable);
@@ -196,7 +196,7 @@ contract EarnedTest is LeafCLGaugeTest {
         gauge.getReward(aliceTokenId);
 
         // should be the same
-        assertEq(xVelo.balanceOf(users.alice), aliceClaimableFirst);
+        assertEq(leafXVelo.balanceOf(users.alice), aliceClaimableFirst);
 
         uint256 bobTokenId = nftCallee.mintNewCustomRangePositionForUserWith60TickSpacing(
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
@@ -217,7 +217,7 @@ contract EarnedTest is LeafCLGaugeTest {
         gauge.withdraw(aliceTokenId);
 
         // should be the same
-        assertEq(xVelo.balanceOf(users.alice), aliceClaimableFirst + aliceClaimableSecond);
+        assertEq(leafXVelo.balanceOf(users.alice), aliceClaimableFirst + aliceClaimableSecond);
 
         uint256 bobClaimableFirst = gauge.earned(address(users.bob), bobTokenId);
 
@@ -225,7 +225,7 @@ contract EarnedTest is LeafCLGaugeTest {
         gauge.getReward(bobTokenId);
 
         // should be the same
-        assertEq(xVelo.balanceOf(users.bob), bobClaimableFirst);
+        assertEq(leafXVelo.balanceOf(users.bob), bobClaimableFirst);
 
         vm.startPrank(users.alice);
         // add more liq to alice positon then stake it in the gauge
@@ -251,7 +251,7 @@ contract EarnedTest is LeafCLGaugeTest {
         gauge.getReward(aliceTokenId);
 
         // should be the same
-        assertEq(xVelo.balanceOf(users.alice), aliceClaimableFirst + aliceClaimableSecond + aliceClaimableThird);
+        assertEq(leafXVelo.balanceOf(users.alice), aliceClaimableFirst + aliceClaimableSecond + aliceClaimableThird);
 
         uint256 bobClaimableSecond = gauge.earned(address(users.bob), bobTokenId);
 
@@ -260,7 +260,7 @@ contract EarnedTest is LeafCLGaugeTest {
         gauge.withdraw(bobTokenId);
 
         // should be the same
-        assertEq(xVelo.balanceOf(users.bob), bobClaimableFirst + bobClaimableSecond);
+        assertEq(leafXVelo.balanceOf(users.bob), bobClaimableFirst + bobClaimableSecond);
 
         bobTokenId = nftCallee.mintNewCustomRangePositionForUserWith60TickSpacing(
             TOKEN_1 / 2, TOKEN_1 / 2, -TICK_SPACING_60, TICK_SPACING_60, users.bob
@@ -279,7 +279,7 @@ contract EarnedTest is LeafCLGaugeTest {
 
         // should be the same
         assertEq(
-            xVelo.balanceOf(users.alice),
+            leafXVelo.balanceOf(users.alice),
             aliceClaimableFirst + aliceClaimableSecond + aliceClaimableThird + aliceClaimableFourth
         );
 
@@ -289,7 +289,7 @@ contract EarnedTest is LeafCLGaugeTest {
         gauge.getReward(bobTokenId);
 
         // should be the same
-        assertEq(xVelo.balanceOf(users.bob), bobClaimableFirst + bobClaimableSecond + bobClaimableThird);
+        assertEq(leafXVelo.balanceOf(users.bob), bobClaimableFirst + bobClaimableSecond + bobClaimableThird);
 
         // should be the same, not counting dust
         assertApproxEqAbs(

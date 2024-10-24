@@ -17,7 +17,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         super.setUp();
 
         pool = CLPool(
-            poolFactory.createPool({
+            leafPoolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
                 tickSpacing: tickSpacing,
@@ -27,7 +27,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         vm.prank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)
@@ -71,7 +71,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         uint256 accumulatedReward = rewardRate * (timeElapsed - timeNoStakedLiq);
         uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(accumulatedReward, Q128, stakedLiquidity);
 
-        assertApproxEqAbs(xVelo.balanceOf(users.alice), accumulatedReward, 1e5);
+        assertApproxEqAbs(rootXVelo.balanceOf(users.alice), accumulatedReward, 1e5);
         assertApproxEqAbs(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128, 1e4);
 
         assertEqUint(pool.rewardRate(), rewardRate);
@@ -99,7 +99,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         gauge.getReward(tokenId);
 
         // alice rewards should be `WEEK - timeNoStakedLiq` worth of rewards
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = rootXVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, rewardRate * (WEEK - (timeNoStakedLiq + delay)), 1e6);
 
         // at the start of the new epoch reserves should be dust
@@ -107,7 +107,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         // assert that emissions got stuck in the gauge for the current epoch, `timeNoStakedLiq` worth of rewards
         // will be rolled over to next epoch
-        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = rootXVelo.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, rollover, 1e6);
 
         // generating a pseudo-random number for delayed reward notification
@@ -266,7 +266,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         uint256 rewardRate = pool.rewardRate();
         // assert that emissions got stuck in the gauge
-        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = rootXVelo.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, rewardRate * time, 1e6);
 
         addRewardToLeafGauge(address(gauge), reward);
@@ -284,15 +284,15 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         gauge.getReward(tokenId);
 
         // we assert that the stuck rewards get rolled over to the next epoch correctly
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = rootXVelo.balanceOf(users.alice);
         assertApproxEqAbs(
             aliceRewardBalance, rewardRate * (WEEK - (time + delay)) + (reward + rewardRate * time) / 2, 1e6
         );
 
         gauge.getReward(tokenId2);
-        assertApproxEqAbs(xVelo.balanceOf(users.alice), aliceRewardBalance + (reward + rewardRate * time) / 2, 1e6);
+        assertApproxEqAbs(rootXVelo.balanceOf(users.alice), aliceRewardBalance + (reward + rewardRate * time) / 2, 1e6);
 
-        gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
+        gaugeRewardTokenBalance = rootXVelo.balanceOf(address(gauge));
         assertLe(gaugeRewardTokenBalance, 1e7);
     }
 
@@ -335,7 +335,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         gauge.withdraw(tokenId);
 
         uint256 rewardRate = reward / epochDistributionTime;
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = rootXVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, rewardRate * time, 1e5);
 
         assertEqUint(pool.stakedLiquidity(), 0);
@@ -408,7 +408,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
             vm.startPrank(users.alice);
             gauge.withdraw(tokenId);
 
-            aliceRewardBalance = xVelo.balanceOf(users.alice);
+            aliceRewardBalance = rootXVelo.balanceOf(users.alice);
             assertApproxEqAbs(aliceRewardBalance, oldAliceBal + (timeWithLiq * (reward / epochDistributionTime)), 1e5); // Accrued rewards during `timeWithLiq`
 
             assertEqUint(pool.stakedLiquidity(), 0);
@@ -554,7 +554,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = rootXVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward + reward2, 1e7);
     }
 
@@ -592,7 +592,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         uint256 rewardRate = reward / epochDistributionTime;
         assertEqUint(pool.rewardRate(), rewardRate);
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = rootXVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, rewardRate * (WEEK - (time + time2 + delay)), 1e6);
         assertApproxEqAbs(pool.rewardReserve(), reward - rewardRate * (WEEK - (time2 + delay)), 1e6);
         assertEqUint(pool.rollover(), rewardRate * time);
@@ -646,7 +646,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         assertApproxEqAbs(pool.rewardReserve(), reward - prevRewardRate * (WEEK - (time + delay)), 1e6);
 
         uint256 accumulatedReward = prevRewardRate * (WEEK - (time + time2 + delay));
-        assertApproxEqAbs(xVelo.balanceOf(users.alice), accumulatedReward, 1e6);
+        assertApproxEqAbs(rootXVelo.balanceOf(users.alice), accumulatedReward, 1e6);
 
         // skip to next epoch without staked liq and perform delayed reward distribution
         skipToNextEpoch(time);
@@ -670,7 +670,9 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         uint256 rewardRate = rewardReserve / (WEEK - time);
         assertApproxEqAbs(pool.rewardRate(), rewardRate, 1e6);
         assertApproxEqAbs(pool.rewardReserve(), rewardReserve - rewardRate * (WEEK - (time + time2)), 1e6);
-        assertApproxEqAbs(xVelo.balanceOf(users.alice) - accumulatedReward, rewardRate * (WEEK - (time + time2)), 1e7);
+        assertApproxEqAbs(
+            rootXVelo.balanceOf(users.alice) - accumulatedReward, rewardRate * (WEEK - (time + time2)), 1e7
+        );
 
         // skip to next epoch without staked liquidity and deposit
         skipToNextEpoch(0);
@@ -690,7 +692,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         assertApproxEqAbs(pool.rewardReserve(), rewardReserve, 1e6);
         assertApproxEqAbs(pool.rewardRate(), rewardReserve / WEEK, 1e7);
 
-        accumulatedReward = xVelo.balanceOf(users.alice);
+        accumulatedReward = rootXVelo.balanceOf(users.alice);
 
         // skip to next epoch and claim all accrued rewards
         skipToNextEpoch(0);
@@ -699,7 +701,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         // remaining reserves will be dust
         assertApproxEqAbs(pool.rewardReserve(), rewardReserve - rewardReserve / WEEK * WEEK, 1e6);
-        assertApproxEqAbs(xVelo.balanceOf(users.alice) - accumulatedReward, rewardReserve, 1e7);
+        assertApproxEqAbs(rootXVelo.balanceOf(users.alice) - accumulatedReward, rewardReserve, 1e7);
     }
 
     function testFuzz_notifyRewardAmountUpdatesPoolStateCorrectlyOnAdditionalRewardInSameEpoch(
@@ -849,7 +851,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = rootXVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward * 3, 1e6);
     }
 
@@ -885,7 +887,7 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         gauge.getReward(tokenId);
 
         uint256 rewardRate = reward / epochDistributionTime;
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = rootXVelo.balanceOf(users.alice);
         assertEq(pool.rewardRate(), rewardRate);
         assertEq(pool.rollover(), rewardRate * time);
         assertApproxEqAbs(aliceRewardBalance, rewardRate * (WEEK - (time + delay)), 1e6);

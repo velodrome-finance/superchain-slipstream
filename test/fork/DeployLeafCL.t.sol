@@ -7,6 +7,7 @@ import "forge-std/StdJson.sol";
 import {DeployLeafCL} from "script/deployParameters/mode/DeployLeafCL.s.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
 import {CLFactory} from "contracts/core/CLFactory.sol";
+import {ModeFeeSharing} from "contracts/extensions/ModeFeeSharing.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
 import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
 import {LeafCLGauge} from "contracts/gauge/LeafCLGauge.sol";
@@ -24,6 +25,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
     DeployLeafCL public deployCL;
 
     DeployLeafCL.DeploymentParameters public params;
+    DeployLeafCL.ModeDeploymentParameters public modeParams;
 
     // deployed contracts (not in BaseForkFixture)
     MixedRouteQuoterV1 public mixedQuoter;
@@ -46,11 +48,11 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         deployCL.run();
 
         // preload variables for convenience
-        poolImplementation = deployCL.poolImplementation();
-        poolFactory = deployCL.poolFactory();
-        nftDescriptor = deployCL.nftDescriptor();
+        leafPoolImplementation = deployCL.leafPoolImplementation();
+        leafPoolFactory = deployCL.leafPoolFactory();
         nft = deployCL.nft();
-        leafGaugeFactory = deployCL.gaugeFactory();
+        nftDescriptor = deployCL.nftDescriptor();
+        leafGaugeFactory = deployCL.leafGaugeFactory();
         customSwapFeeModule = deployCL.swapFeeModule();
         customUnstakedFeeModule = deployCL.unstakedFeeModule();
         mixedQuoter = deployCL.mixedQuoter();
@@ -58,6 +60,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         swapRouter = deployCL.swapRouter();
 
         params = deployCL.params();
+        modeParams = deployCL.modeParams();
 
         assertNotEq(params.weth, address(0));
         assertNotEq(params.leafVoter, address(0));
@@ -69,23 +72,25 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertNotEq(params.nftName, "");
         assertNotEq(params.nftSymbol, "");
 
-        assertNotEq(address(poolImplementation), address(0));
-        assertNotEq(address(poolFactory), address(0));
-        assertEq(address(poolFactory.voter()), params.leafVoter);
-        assertEq(address(poolFactory.poolImplementation()), address(poolImplementation));
-        assertEq(address(poolFactory.gaugeFactory()), address(leafGaugeFactory));
-        assertEq(address(poolFactory.nft()), address(nft));
-        assertEq(address(poolFactory.owner()), params.poolFactoryOwner);
-        assertEq(address(poolFactory.swapFeeManager()), params.feeManager);
-        assertEq(address(poolFactory.swapFeeModule()), address(customSwapFeeModule));
-        assertEq(address(poolFactory.unstakedFeeManager()), params.feeManager);
-        assertEq(address(poolFactory.unstakedFeeModule()), address(customUnstakedFeeModule));
-        assertEqUint(poolFactory.defaultUnstakedFee(), 100_000);
-        assertEqUint(poolFactory.tickSpacingToFee(1), 100);
-        assertEqUint(poolFactory.tickSpacingToFee(50), 500);
-        assertEqUint(poolFactory.tickSpacingToFee(100), 500);
-        assertEqUint(poolFactory.tickSpacingToFee(200), 3_000);
-        assertEqUint(poolFactory.tickSpacingToFee(2_000), 10_000);
+        assertNotEq(address(leafPoolImplementation), address(0));
+        assertNotEq(address(leafPoolFactory), address(0));
+        assertEq(address(leafPoolFactory.voter()), params.leafVoter);
+        assertEq(address(leafPoolFactory.poolImplementation()), address(leafPoolImplementation));
+        assertEq(address(leafPoolFactory.gaugeFactory()), address(leafGaugeFactory));
+        assertEq(address(leafPoolFactory.nft()), address(nft));
+        assertEq(address(leafPoolFactory.owner()), params.poolFactoryOwner);
+        assertEq(address(leafPoolFactory.swapFeeManager()), params.feeManager);
+        assertEq(address(leafPoolFactory.swapFeeModule()), address(customSwapFeeModule));
+        assertEq(address(leafPoolFactory.unstakedFeeManager()), params.feeManager);
+        assertEq(address(leafPoolFactory.unstakedFeeModule()), address(customUnstakedFeeModule));
+        assertEqUint(leafPoolFactory.defaultUnstakedFee(), 100_000);
+        assertEqUint(leafPoolFactory.tickSpacingToFee(1), 100);
+        assertEqUint(leafPoolFactory.tickSpacingToFee(50), 500);
+        assertEqUint(leafPoolFactory.tickSpacingToFee(100), 500);
+        assertEqUint(leafPoolFactory.tickSpacingToFee(200), 3_000);
+        assertEqUint(leafPoolFactory.tickSpacingToFee(2_000), 10_000);
+        assertEq(ModeFeeSharing(address(leafPoolFactory)).sfs(), modeParams.sfs);
+        assertEq(ModeFeeSharing(address(leafPoolFactory)).tokenId(), 565);
 
         assertNotEq(address(nftDescriptor), address(0));
         assertEq(nftDescriptor.WETH9(), params.weth);
@@ -94,10 +99,12 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertNotEq(address(nft), address(0));
         assertEq(nft.owner(), params.team);
         assertEq(nft.tokenDescriptor(), address(nftDescriptor));
-        assertEq(nft.factory(), address(poolFactory));
+        assertEq(nft.factory(), address(leafPoolFactory));
         assertEq(nft.WETH9(), params.weth);
         assertEq(nft.name(), params.nftName);
         assertEq(nft.symbol(), params.nftSymbol);
+        assertEq(ModeFeeSharing(address(nft)).sfs(), modeParams.sfs);
+        assertEq(ModeFeeSharing(address(nft)).tokenId(), 566);
 
         assertNotEq(address(leafGaugeFactory), address(0));
         assertEq(leafGaugeFactory.voter(), params.leafVoter);
@@ -107,23 +114,23 @@ contract DeployLeafCLForkTest is BaseForkFixture {
 
         assertNotEq(address(customSwapFeeModule), address(0));
         assertEq(customSwapFeeModule.MAX_FEE(), 30_000); // 3%, using pip denomination
-        assertEq(address(customSwapFeeModule.factory()), address(poolFactory));
+        assertEq(address(customSwapFeeModule.factory()), address(leafPoolFactory));
 
         assertNotEq(address(customUnstakedFeeModule), address(0));
         assertEq(customUnstakedFeeModule.MAX_FEE(), 500_000); // 50%, using pip denomination
-        assertEq(address(customUnstakedFeeModule.factory()), address(poolFactory));
+        assertEq(address(customUnstakedFeeModule.factory()), address(leafPoolFactory));
 
         assertNotEq(address(mixedQuoter), address(0));
         assertEq(mixedQuoter.factoryV2(), params.factoryV2);
-        assertEq(mixedQuoter.factory(), address(poolFactory));
+        assertEq(mixedQuoter.factory(), address(leafPoolFactory));
         assertEq(mixedQuoter.WETH9(), params.weth);
 
         assertNotEq(address(quoter), address(0));
-        assertEq(quoter.factory(), address(poolFactory));
+        assertEq(quoter.factory(), address(leafPoolFactory));
         assertEq(quoter.WETH9(), params.weth);
 
         assertNotEq(address(swapRouter), address(0));
-        assertEq(swapRouter.factory(), address(poolFactory));
+        assertEq(swapRouter.factory(), address(leafPoolFactory));
         assertEq(swapRouter.WETH9(), params.weth);
     }
 

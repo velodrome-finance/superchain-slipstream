@@ -13,19 +13,19 @@ contract SetSwapFeeModule is CLFactoryTest {
     function test_RevertIf_NotFeeManager() public {
         vm.expectRevert();
         vm.startPrank({msgSender: users.charlie});
-        poolFactory.setSwapFeeModule({_swapFeeModule: users.charlie});
+        leafPoolFactory.setSwapFeeModule({_swapFeeModule: users.charlie});
     }
 
     function test_RevertIf_ZeroAddress() public {
         vm.expectRevert();
-        poolFactory.setSwapFeeModule({_swapFeeModule: address(0)});
+        leafPoolFactory.setSwapFeeModule({_swapFeeModule: address(0)});
     }
 
     function test_SetSwapFeeModule() public {
-        vm.expectEmit(true, true, false, false, address(poolFactory));
+        vm.expectEmit(true, true, false, false, address(leafPoolFactory));
         emit SwapFeeModuleChanged({oldFeeModule: address(customSwapFeeModule), newFeeModule: users.alice});
-        poolFactory.setSwapFeeModule({_swapFeeModule: users.alice});
+        leafPoolFactory.setSwapFeeModule({_swapFeeModule: users.alice});
 
-        assertEq(poolFactory.swapFeeModule(), users.alice);
+        assertEq(leafPoolFactory.swapFeeModule(), users.alice);
     }
 }

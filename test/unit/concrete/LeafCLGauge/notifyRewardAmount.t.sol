@@ -13,7 +13,7 @@ contract NotifyRewardAmountTest is LeafCLGaugeTest {
         super.setUp();
 
         pool = CLPool(
-            poolFactory.createPool({
+            leafPoolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
                 tickSpacing: TICK_SPACING_60,
@@ -27,7 +27,7 @@ contract NotifyRewardAmountTest is LeafCLGaugeTest {
         vm.prank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)
@@ -59,9 +59,9 @@ contract NotifyRewardAmountTest is LeafCLGaugeTest {
 
         uint256 reward = TOKEN_1;
 
-        deal(address(xVelo), address(leafMessageModule), reward);
+        deal(address(leafXVelo), address(leafMessageModule), reward);
 
-        xVelo.approve(address(gauge), reward);
+        leafXVelo.approve(address(gauge), reward);
 
         vm.expectEmit(true, true, false, false, address(gauge));
         emit NotifyReward({from: address(leafMessageModule), amount: reward});
@@ -69,7 +69,7 @@ contract NotifyRewardAmountTest is LeafCLGaugeTest {
 
         vm.stopPrank();
 
-        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = leafXVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
 
         assertEq(gauge.rewardRate(), reward / 6 days);
@@ -87,9 +87,9 @@ contract NotifyRewardAmountTest is LeafCLGaugeTest {
 
         uint256 reward = TOKEN_1;
 
-        deal(address(xVelo), address(leafMessageModule), reward * 2);
+        deal(address(leafXVelo), address(leafMessageModule), reward * 2);
 
-        xVelo.approve(address(gauge), reward * 2);
+        leafXVelo.approve(address(gauge), reward * 2);
 
         gauge.notifyRewardAmount(reward);
 
@@ -98,7 +98,7 @@ contract NotifyRewardAmountTest is LeafCLGaugeTest {
         gauge.notifyRewardAmount(reward);
         vm.stopPrank();
 
-        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = leafXVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward * 2);
 
         assertEq(gauge.rewardRate(), (reward * 2) / 5 days);
@@ -255,8 +255,8 @@ contract NotifyRewardAmountTest is LeafCLGaugeTest {
 
         skip(1 days);
         vm.startPrank(address(leafMessageModule));
-        deal(address(xVelo), address(leafMessageModule), reward);
-        xVelo.approve(address(gauge), reward);
+        deal(address(leafXVelo), address(leafMessageModule), reward);
+        leafXVelo.approve(address(gauge), reward);
         gauge.notifyRewardWithoutClaim(reward);
 
         assertEq(gauge.rewardRate(), reward / (6 days) + reward / (5 days));
@@ -292,13 +292,13 @@ contract NotifyRewardAmountTest is LeafCLGaugeTest {
 
         gauge.getReward(tokenId);
 
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = leafXVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1, 1e6);
 
         gauge.getReward(tokenId2);
 
         // tokenId2 should not receive anything
-        aliceRewardBalance = xVelo.balanceOf(users.alice);
+        aliceRewardBalance = leafXVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1, 1e6);
 
         addRewardToLeafGauge(address(gauge), reward);
@@ -307,12 +307,12 @@ contract NotifyRewardAmountTest is LeafCLGaugeTest {
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        aliceRewardBalance = xVelo.balanceOf(users.alice);
+        aliceRewardBalance = leafXVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1 + TOKEN_1 / 2, 1e6);
 
         gauge.getReward(tokenId2);
 
-        aliceRewardBalance = xVelo.balanceOf(users.alice);
+        aliceRewardBalance = leafXVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 2, 1e6);
     }
 

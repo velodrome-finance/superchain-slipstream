@@ -13,19 +13,19 @@ contract SetOwnerTest is CLFactoryTest {
     function test_RevertIf_NotOwner() public {
         vm.expectRevert();
         vm.startPrank({msgSender: users.charlie});
-        poolFactory.setOwner({_owner: users.charlie});
+        leafPoolFactory.setOwner({_owner: users.charlie});
     }
 
     function test_RevertIf_ZeroAddress() public {
         vm.expectRevert();
-        poolFactory.setOwner({_owner: address(0)});
+        leafPoolFactory.setOwner({_owner: address(0)});
     }
 
     function test_SetOwner() public {
-        vm.expectEmit(true, true, false, false, address(poolFactory));
+        vm.expectEmit(true, true, false, false, address(leafPoolFactory));
         emit OwnerChanged({oldOwner: users.owner, newOwner: users.alice});
-        poolFactory.setOwner({_owner: users.alice});
+        leafPoolFactory.setOwner({_owner: users.alice});
 
-        assertEq(poolFactory.owner(), users.alice);
+        assertEq(leafPoolFactory.owner(), users.alice);
     }
 }

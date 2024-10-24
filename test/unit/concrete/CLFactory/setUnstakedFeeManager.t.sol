@@ -13,19 +13,19 @@ contract SetUnstakedFeeManagerTest is CLFactoryTest {
     function test_RevertIf_NotFeeManager() public {
         vm.expectRevert();
         vm.startPrank({msgSender: users.charlie});
-        poolFactory.setUnstakedFeeManager({_unstakedFeeManager: users.charlie});
+        leafPoolFactory.setUnstakedFeeManager({_unstakedFeeManager: users.charlie});
     }
 
     function test_RevertIf_ZeroAddress() public {
         vm.expectRevert();
-        poolFactory.setUnstakedFeeManager({_unstakedFeeManager: address(0)});
+        leafPoolFactory.setUnstakedFeeManager({_unstakedFeeManager: address(0)});
     }
 
     function test_SetSwapFeeManager() public {
-        vm.expectEmit(true, true, false, false, address(poolFactory));
+        vm.expectEmit(true, true, false, false, address(leafPoolFactory));
         emit UnstakedFeeManagerChanged({oldFeeManager: users.feeManager, newFeeManager: users.alice});
-        poolFactory.setUnstakedFeeManager({_unstakedFeeManager: users.alice});
+        leafPoolFactory.setUnstakedFeeManager({_unstakedFeeManager: users.alice});
 
-        assertEq(poolFactory.unstakedFeeManager(), users.alice);
+        assertEq(leafPoolFactory.unstakedFeeManager(), users.alice);
     }
 }

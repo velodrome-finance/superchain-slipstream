@@ -35,14 +35,13 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         string outputFilename;
     }
 
-    // deployed
-    CLPool public poolImplementation;
-    CLFactory public poolFactory;
+    // leaf slipstream contracts
+    CLPool public leafPoolImplementation;
+    CLFactory public leafPoolFactory;
+    CLPool public leafPool;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
-
-    LeafCLGauge public gaugeImplementation;
-    LeafCLGaugeFactory public gaugeFactory;
+    LeafCLGaugeFactory public leafGaugeFactory;
 
     CustomSwapFeeModule public swapFeeModule;
     CustomUnstakedFeeModule public unstakedFeeModule;
@@ -56,35 +55,35 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
     function deploy() internal virtual override {
         address _deployer = deployer;
 
-        poolImplementation = CLPool(
+        leafPoolImplementation = CLPool(
             cx.deployCreate3({
                 salt: CL_POOL_ENTROPY.calculateSalt({_deployer: _deployer}),
                 initCode: abi.encodePacked(type(CLPool).creationCode)
             })
         );
-        checkAddress({_entropy: CL_POOL_ENTROPY, _output: address(poolImplementation)});
+        checkAddress({_entropy: CL_POOL_ENTROPY, _output: address(leafPoolImplementation)});
 
-        gaugeFactory = LeafCLGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: _deployer}));
+        leafGaugeFactory = LeafCLGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: _deployer}));
         nft = NonfungiblePositionManager(payable(NFT_POSITION_MANAGER.computeCreate3Address({_deployer: deployer})));
 
-        poolFactory = CLFactory(
+        leafPoolFactory = CLFactory(
             cx.deployCreate3({
                 salt: CL_POOL_FACTORY_ENTROPY.calculateSalt({_deployer: _deployer}),
                 initCode: abi.encodePacked(
                     type(CLFactory).creationCode,
                     abi.encode(
-                        _deployer, // owner
+                        _params.poolFactoryOwner, // owner
                         _deployer, // swapFeeManager
                         _deployer, // unstakedFeeManager
                         _params.leafVoter, // voter
-                        address(poolImplementation), // pool implementation
-                        address(gaugeFactory), // gauge factory
+                        address(leafPoolImplementation), // pool implementation
+                        address(leafGaugeFactory), // gauge factory
                         address(nft) // nft
                     )
                 )
             })
         );
-        checkAddress({_entropy: CL_POOL_FACTORY_ENTROPY, _output: address(poolFactory)});
+        checkAddress({_entropy: CL_POOL_FACTORY_ENTROPY, _output: address(leafPoolFactory)});
 
         // deploy nft contracts
         nftDescriptor = NonfungibleTokenPositionDescriptor(
@@ -109,7 +108,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
                         type(NonfungiblePositionManager).creationCode,
                         abi.encode(
                             _params.team, // owner
-                            address(poolFactory), // pool factory
+                            address(leafPoolFactory), // pool factory
                             _params.weth, // WETH9
                             address(nftDescriptor), // token descriptor
                             _params.nftName, // name
@@ -121,7 +120,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         );
         checkAddress({_entropy: NFT_POSITION_MANAGER, _output: address(nft)});
 
-        gaugeFactory = LeafCLGaugeFactory(
+        leafGaugeFactory = LeafCLGaugeFactory(
             cx.deployCreate3({
                 salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: _deployer}),
                 initCode: abi.encodePacked(
@@ -135,18 +134,17 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
                 )
             })
         );
-        checkAddress({_entropy: CL_GAUGE_FACTORY_ENTROPY, _output: address(gaugeFactory)});
+        checkAddress({_entropy: CL_GAUGE_FACTORY_ENTROPY, _output: address(leafGaugeFactory)});
 
         // deploy fee modules
-        swapFeeModule = new CustomSwapFeeModule({_factory: address(poolFactory)});
-        unstakedFeeModule = new CustomUnstakedFeeModule({_factory: address(poolFactory)});
-        poolFactory.setSwapFeeModule({_swapFeeModule: address(swapFeeModule)});
-        poolFactory.setUnstakedFeeModule({_unstakedFeeModule: address(unstakedFeeModule)});
+        swapFeeModule = new CustomSwapFeeModule({_factory: address(leafPoolFactory)});
+        unstakedFeeModule = new CustomUnstakedFeeModule({_factory: address(leafPoolFactory)});
+        leafPoolFactory.setSwapFeeModule({_swapFeeModule: address(swapFeeModule)});
+        leafPoolFactory.setUnstakedFeeModule({_unstakedFeeModule: address(unstakedFeeModule)});
 
         // transfer permissions
-        poolFactory.setOwner(_params.poolFactoryOwner);
-        poolFactory.setSwapFeeManager(_params.feeManager);
-        poolFactory.setUnstakedFeeManager(_params.feeManager);
+        leafPoolFactory.setSwapFeeManager(_params.feeManager);
+        leafPoolFactory.setUnstakedFeeManager(_params.feeManager);
 
         //deploy quoter and router
         mixedQuoter = MixedRouteQuoterV1(
@@ -155,7 +153,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
                 initCode: abi.encodePacked(
                     type(MixedRouteQuoterV1).creationCode,
                     abi.encode(
-                        address(poolFactory), // pool factory
+                        address(leafPoolFactory), // pool factory
                         _params.factoryV2, // factory v2
                         _params.weth // WETH9
                     )
@@ -169,7 +167,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
                 initCode: abi.encodePacked(
                     type(QuoterV2).creationCode,
                     abi.encode(
-                        address(poolFactory), // pool factory
+                        address(leafPoolFactory), // pool factory
                         _params.weth // WETH9
                     )
                 )
@@ -183,7 +181,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
                     initCode: abi.encodePacked(
                         type(SwapRouter).creationCode,
                         abi.encode(
-                            address(poolFactory), // pool factory
+                            address(leafPoolFactory), // pool factory
                             _params.weth // WETH9
                         )
                     )
@@ -199,12 +197,11 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
 
     function logParams() internal view override {
         if (isTest) return;
-        console2.log("poolImplementation: ", address(poolImplementation));
-        console2.log("poolFactory: ", address(poolFactory));
+        console2.log("leafPoolImplementation: ", address(leafPoolImplementation));
+        console2.log("leafPoolFactory: ", address(leafPoolFactory));
         console2.log("nftDescriptor: ", address(nftDescriptor));
         console2.log("nft: ", address(nft));
-        console2.log("gaugeImplementation: ", address(gaugeImplementation));
-        console2.log("gaugeFactory: ", address(gaugeFactory));
+        console2.log("leafGaugeFactory: ", address(leafGaugeFactory));
         console2.log("swapFeeModule: ", address(swapFeeModule));
         console2.log("unstakedFeeModule: ", address(unstakedFeeModule));
         console2.log("mixedQuoter: ", address(mixedQuoter));
@@ -221,12 +218,11 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
             path,
             string(
                 abi.encodePacked(
-                    stdJson.serialize("", "poolImplementation", address(poolImplementation)),
-                    stdJson.serialize("", "poolFactory", address(poolFactory)),
+                    stdJson.serialize("", "leafPoolImplementation", address(leafPoolImplementation)),
+                    stdJson.serialize("", "leafPoolFactory", address(leafPoolFactory)),
                     stdJson.serialize("", "nftDescriptor", address(nftDescriptor)),
                     stdJson.serialize("", "nft", address(nft)),
-                    stdJson.serialize("", "gaugeImplementation", address(gaugeImplementation)),
-                    stdJson.serialize("", "gaugeFactory", address(gaugeFactory)),
+                    stdJson.serialize("", "leafGaugeFactory", address(leafGaugeFactory)),
                     stdJson.serialize("", "swapFeeModule", address(swapFeeModule)),
                     stdJson.serialize("", "unstakedFeeModule", address(unstakedFeeModule)),
                     stdJson.serialize("", "mixedQuoter", address(mixedQuoter)),

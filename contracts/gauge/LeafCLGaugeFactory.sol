@@ -4,9 +4,8 @@ pragma solidity =0.7.6;
 import "contracts/core/interfaces/ICLPool.sol";
 import "./interfaces/ILeafCLGaugeFactory.sol";
 import "./LeafCLGauge.sol";
-import "contracts/core/interfaces/ICLFactory.sol";
+
 import {CreateXLibrary} from "contracts/libraries/CreateXLibrary.sol";
-import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 
 /// @notice Factory that creates leaf gauges on the superchain
 contract LeafCLGaugeFactory is ILeafCLGaugeFactory {
@@ -41,6 +40,7 @@ contract LeafCLGaugeFactory is ILeafCLGaugeFactory {
     /// @inheritdoc ILeafCLGaugeFactory
     function createGauge(address _pool, address _feesVotingReward, bool _isPool)
         external
+        virtual
         override
         returns (address gauge)
     {

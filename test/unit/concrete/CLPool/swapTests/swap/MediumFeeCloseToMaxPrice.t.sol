@@ -15,7 +15,7 @@ contract MediumFeeCloseToMaxPriceTest is CLPoolSwapNoStakeTest {
         uint160 startingPrice = 1033437718471923706666374484006904511252097097914;
 
         string memory poolName = ".close_to_max_price";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,

@@ -11,7 +11,7 @@ contract NonfungiblePositionManagerTest is BaseForkFixture {
         super.setUp();
 
         pool = CLPool(
-            poolFactory.createPool({
+            leafPoolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
                 tickSpacing: TICK_SPACING_60,
@@ -21,7 +21,7 @@ contract NonfungiblePositionManagerTest is BaseForkFixture {
         vm.prank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)
@@ -34,7 +34,7 @@ contract NonfungiblePositionManagerTest is BaseForkFixture {
     }
 
     function test_InitialState() public view {
-        assertEq(nft.factory(), address(poolFactory));
+        assertEq(nft.factory(), address(leafPoolFactory));
         assertEq(nft.WETH9(), address(weth));
         assertEq(nft.name(), "Slipstream Position NFT v1");
         assertEq(nft.symbol(), "CL-POS");

@@ -18,7 +18,7 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
 
     function test_RevertIf_FeeTooHigh() public {
         address pool = createAndCheckPool({
-            factory: poolFactory,
+            factory: leafPoolFactory,
             _token0: TEST_TOKEN_0,
             _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
@@ -36,7 +36,7 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
 
     function test_SetCustomFee() public {
         address pool = createAndCheckPool({
-            factory: poolFactory,
+            factory: leafPoolFactory,
             _token0: TEST_TOKEN_0,
             _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
@@ -49,7 +49,7 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
 
         assertEqUint(customSwapFeeModule.customFee(pool), 5_000);
         assertEqUint(customSwapFeeModule.getFee(pool), 5_000);
-        assertEqUint(poolFactory.getSwapFee(pool), 5_000);
+        assertEqUint(leafPoolFactory.getSwapFee(pool), 5_000);
 
         // revert to default fee
         vm.expectEmit(true, true, false, false, address(customSwapFeeModule));
@@ -58,7 +58,7 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
 
         assertEqUint(customSwapFeeModule.customFee(pool), 0);
         assertEqUint(customSwapFeeModule.getFee(pool), 500);
-        assertEqUint(poolFactory.getSwapFee(pool), 500);
+        assertEqUint(leafPoolFactory.getSwapFee(pool), 500);
 
         // zero fee
         vm.expectEmit(true, true, false, false, address(customSwapFeeModule));
@@ -67,19 +67,19 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
 
         assertEqUint(customSwapFeeModule.customFee(pool), 420);
         assertEqUint(customSwapFeeModule.getFee(pool), 0);
-        assertEqUint(poolFactory.getSwapFee(pool), 0);
+        assertEqUint(leafPoolFactory.getSwapFee(pool), 0);
     }
 
     function test_CannotExceedMaxSwapFee() public {
         address pool = createAndCheckPool({
-            factory: poolFactory,
+            factory: leafPoolFactory,
             _token0: TEST_TOKEN_0,
             _token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
 
-        uint24 initialFee = poolFactory.getSwapFee(pool);
+        uint24 initialFee = leafPoolFactory.getSwapFee(pool);
         uint24 maxFee = 100_000;
 
         // simulating a malicious SwapFeeModule without max fees
@@ -92,7 +92,7 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
         // malicious Fee module with max fees
         assertEqUint(customSwapFeeModule.getFee(pool), maxFee);
         // max fee still allowed by PoolFactory
-        assertEqUint(poolFactory.getSwapFee(pool), maxFee);
+        assertEqUint(leafPoolFactory.getSwapFee(pool), maxFee);
 
         vm.mockCall(
             address(customSwapFeeModule),
@@ -103,6 +103,6 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
         // malicious Fee module with exceedingly large fees
         assertEqUint(customSwapFeeModule.getFee(pool), maxFee + 1);
         // if fee is too large, PoolFactory returns original fee
-        assertEqUint(poolFactory.getSwapFee(pool), initialFee);
+        assertEqUint(leafPoolFactory.getSwapFee(pool), initialFee);
     }
 }

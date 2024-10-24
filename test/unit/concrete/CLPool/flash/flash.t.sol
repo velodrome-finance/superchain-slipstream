@@ -17,7 +17,7 @@ contract FlashTest is CLPoolTest {
         super.setUp();
 
         pool = CLPool(
-            poolFactory.createPool({
+            leafPoolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
                 tickSpacing: tickSpacing,
@@ -27,7 +27,7 @@ contract FlashTest is CLPoolTest {
         vm.prank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)

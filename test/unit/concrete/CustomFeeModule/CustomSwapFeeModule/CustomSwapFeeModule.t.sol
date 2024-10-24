@@ -7,16 +7,16 @@ import "../../../../BaseForkFixture.sol";
 contract CustomSwapFeeModuleTest is BaseForkFixture {
     function setUp() public virtual override {
         super.setUp();
-        customSwapFeeModule = new CustomSwapFeeModule({_factory: address(poolFactory)});
+        customSwapFeeModule = new CustomSwapFeeModule({_factory: address(leafPoolFactory)});
 
         vm.prank(users.feeManager);
-        poolFactory.setSwapFeeModule({_swapFeeModule: address(customSwapFeeModule)});
+        leafPoolFactory.setSwapFeeModule({_swapFeeModule: address(customSwapFeeModule)});
 
         vm.label({account: address(customSwapFeeModule), newLabel: "Custom Swap Fee Module"});
     }
 
     function test_InitialState() public view {
         assertEq(customSwapFeeModule.MAX_FEE(), 30_000);
-        assertEq(address(customSwapFeeModule.factory()), address(poolFactory));
+        assertEq(address(customSwapFeeModule.factory()), address(leafPoolFactory));
     }
 }

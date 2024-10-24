@@ -13,7 +13,7 @@ contract HighFee1to1Price2e18MaxRangeLiquidityAllStakedTest is CLPoolSwapAllStak
         uint160 startingPrice = encodePriceSqrt(1, 1);
 
         string memory poolName = ".high_fee_1to1_price_2e18_max_range_liquidity";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,
@@ -28,7 +28,7 @@ contract HighFee1to1Price2e18MaxRangeLiquidityAllStakedTest is CLPoolSwapAllStak
         vm.startPrank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)

@@ -26,7 +26,7 @@ contract LpMigratorTest is BaseForkFixture {
         vm.selectFork(leafId);
         leafMailbox.processNextInboundMessage();
         leafPool =
-            CLPool(poolFactory.getPool({tokenA: address(weth), tokenB: address(op), tickSpacing: TICK_SPACING_200}));
+            CLPool(leafPoolFactory.getPool({tokenA: address(weth), tokenB: address(op), tickSpacing: TICK_SPACING_200}));
         leafGauge = LeafCLGauge(leafVoter.gauges(address(leafPool)));
 
         // setup new pool factory and nft manager for migration
@@ -35,7 +35,7 @@ contract LpMigratorTest is BaseForkFixture {
         nft = NonfungiblePositionManager(
             payable(CreateXLibrary.computeCreate3Address({_entropy: NFT_POSITION_MANAGER, _deployer: users.deployer2}))
         );
-        poolFactory = CLFactory(
+        leafPoolFactory = CLFactory(
             cx.deployCreate3({
                 salt: CreateXLibrary.calculateSalt({_entropy: CL_POOL_FACTORY_ENTROPY, _deployer: users.deployer2}),
                 initCode: abi.encodePacked(
@@ -45,7 +45,7 @@ contract LpMigratorTest is BaseForkFixture {
                         users.feeManager, // swap fee manager
                         users.feeManager, // unstaked fee manager
                         address(leafVoter), // leaf voter
-                        address(poolImplementation), // pool implementation
+                        address(leafPoolImplementation), // pool implementation
                         address(leafGaugeFactory),
                         address(nft)
                     )
@@ -60,7 +60,7 @@ contract LpMigratorTest is BaseForkFixture {
                         type(NonfungiblePositionManager).creationCode,
                         abi.encode(
                             users.owner, // owner
-                            address(poolFactory), // pool factory
+                            address(leafPoolFactory), // pool factory
                             address(weth), // WETH9
                             address(nftDescriptor), // nft descriptor
                             nftName, // name

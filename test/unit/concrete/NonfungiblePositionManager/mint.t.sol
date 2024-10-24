@@ -73,7 +73,7 @@ contract MintTest is NonfungiblePositionManagerTest {
     }
 
     function test_MintWhenPoolDoesNotExist() public {
-        address _pool = poolFactory.getPool(address(token0), address(token1), TICK_SPACING_MEDIUM);
+        address _pool = leafPoolFactory.getPool(address(token0), address(token1), TICK_SPACING_MEDIUM);
         assertTrue(_pool == address(0));
 
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
@@ -92,7 +92,7 @@ contract MintTest is NonfungiblePositionManagerTest {
         });
         nft.mint(params);
 
-        _pool = poolFactory.getPool(address(token0), address(token1), TICK_SPACING_MEDIUM);
+        _pool = leafPoolFactory.getPool(address(token0), address(token1), TICK_SPACING_MEDIUM);
         assertTrue(_pool != address(0));
         assertEq(nft.balanceOf(users.alice), 1);
         assertEq(nft.tokenOfOwnerByIndex(users.alice, 0), 1);

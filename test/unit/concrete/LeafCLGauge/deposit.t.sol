@@ -14,7 +14,7 @@ contract DepositTest is LeafCLGaugeTest {
         super.setUp();
 
         pool = CLPool(
-            poolFactory.createPool({
+            leafPoolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
                 tickSpacing: TICK_SPACING_60,
@@ -24,7 +24,7 @@ contract DepositTest is LeafCLGaugeTest {
         vm.startPrank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)
@@ -91,7 +91,7 @@ contract DepositTest is LeafCLGaugeTest {
         deal({token: address(testToken0), to: users.charlie, give: TOKEN_1});
         deal({token: address(testToken1), to: users.charlie, give: TOKEN_1});
 
-        address pool2 = poolFactory.createPool({
+        address pool2 = leafPoolFactory.createPool({
             tokenA: address(testToken0),
             tokenB: address(testToken1),
             tickSpacing: TICK_SPACING_60,
@@ -99,7 +99,7 @@ contract DepositTest is LeafCLGaugeTest {
         });
         vm.startPrank(address(leafMessageModule));
         leafVoter.createGauge({
-            _poolFactory: address(poolFactory),
+            _poolFactory: address(leafPoolFactory),
             _pool: address(pool2),
             _votingRewardsFactory: address(votingRewardsFactory),
             _gaugeFactory: address(leafGaugeFactory)
@@ -131,7 +131,7 @@ contract DepositTest is LeafCLGaugeTest {
     }
 
     function test_RevertIf_DepositIsNotFromCorrespondingPoolWithSameTokensDifferentTickSize() public {
-        address pool2 = poolFactory.createPool({
+        address pool2 = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: TICK_SPACING_10,
@@ -139,7 +139,7 @@ contract DepositTest is LeafCLGaugeTest {
         });
         vm.startPrank(address(leafMessageModule));
         leafVoter.createGauge({
-            _poolFactory: address(poolFactory),
+            _poolFactory: address(leafPoolFactory),
             _pool: address(pool2),
             _votingRewardsFactory: address(votingRewardsFactory),
             _gaugeFactory: address(leafGaugeFactory)

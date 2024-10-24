@@ -8,7 +8,7 @@ contract GetUnstakedFeeTest is CLFactoryTest {
 
     function test_KilledGaugeReturnsZeroUnstakedFee() public {
         address pool = createAndCheckPool({
-            factory: poolFactory,
+            factory: leafPoolFactory,
             _token0: TEST_TOKEN_1,
             _token1: TEST_TOKEN_0,
             tickSpacing: TICK_SPACING_LOW,
@@ -17,7 +17,7 @@ contract GetUnstakedFeeTest is CLFactoryTest {
         vm.startPrank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)
@@ -25,23 +25,23 @@ contract GetUnstakedFeeTest is CLFactoryTest {
         );
 
         assertEq(leafVoter.isAlive(address(gauge)), true);
-        assertEq(uint256(poolFactory.getUnstakedFee(pool)), 100_000);
+        assertEq(uint256(leafPoolFactory.getUnstakedFee(pool)), 100_000);
 
         leafVoter.killGauge(address(gauge));
 
         assertEq(leafVoter.isAlive(address(gauge)), false);
-        assertEq(uint256(poolFactory.getUnstakedFee(pool)), 0);
+        assertEq(uint256(leafPoolFactory.getUnstakedFee(pool)), 0);
     }
 
     function test_NoGaugeReturnsZeroUnstakedFee() public {
         address pool = createAndCheckPool({
-            factory: poolFactory,
+            factory: leafPoolFactory,
             _token0: TEST_TOKEN_1,
             _token1: TEST_TOKEN_0,
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
 
-        assertEq(uint256(poolFactory.getUnstakedFee(pool)), 0);
+        assertEq(uint256(leafPoolFactory.getUnstakedFee(pool)), 0);
     }
 }

@@ -11,7 +11,7 @@ contract EarnedTest is LeafCLGaugeTest {
         super.setUp();
 
         pool = CLPool(
-            poolFactory.createPool({
+            leafPoolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
                 tickSpacing: TICK_SPACING_60,
@@ -21,7 +21,7 @@ contract EarnedTest is LeafCLGaugeTest {
         vm.prank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)
@@ -70,7 +70,7 @@ contract EarnedTest is LeafCLGaugeTest {
         // alice should be able to claim 2 days worth of rewards
         assertApproxEqAbs(aliceClaimableBalance, reward / 7 * 2, 1e5);
 
-        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = leafXVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
     }
 
@@ -93,7 +93,7 @@ contract EarnedTest is LeafCLGaugeTest {
         // alice should not receive rewards
         assertEq(aliceClaimableBalance, 0);
 
-        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = leafXVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
     }
 
@@ -116,7 +116,7 @@ contract EarnedTest is LeafCLGaugeTest {
         // alice should not receive rewards
         assertEq(aliceClaimableBalance, 0);
 
-        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = leafXVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
     }
 
@@ -162,7 +162,7 @@ contract EarnedTest is LeafCLGaugeTest {
         gauge.withdraw(aliceTokenId);
 
         // alice already claimed 1 day worth of rewards
-        assertApproxEqAbs(xVelo.balanceOf(users.alice), reward / 7 + aliceBal, 1e5);
+        assertApproxEqAbs(leafXVelo.balanceOf(users.alice), reward / 7 + aliceBal, 1e5);
 
         // alice claimed with the withdraw
         vm.expectRevert(abi.encodePacked("NA"));
@@ -263,7 +263,7 @@ contract EarnedTest is LeafCLGaugeTest {
         assertApproxEqAbs(gauge.earned(address(users.alice), aliceTokenId), reward / 2 + reward2 / 2, 1e5);
         assertApproxEqAbs(gauge.earned(address(users.bob), bobTokenId), reward / 2 + reward2 / 2, 1e5);
 
-        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = leafXVelo.balanceOf(address(gauge));
         // gauge should have 3 rewards left (no reward claims)
         assertEq(gaugeRewardTokenBalance, reward + reward2);
     }
@@ -310,7 +310,7 @@ contract EarnedTest is LeafCLGaugeTest {
         assertApproxEqAbs(gauge.earned(address(users.alice), aliceTokenId), reward / 2 + reward2 / 2, 1e5);
         assertApproxEqAbs(gauge.earned(address(users.bob), bobTokenId), reward / 2 + reward2 / 2, 1e5);
 
-        uint256 gaugeRewardTokenBalance = xVelo.balanceOf(address(gauge));
+        uint256 gaugeRewardTokenBalance = leafXVelo.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward + reward2);
     }
 

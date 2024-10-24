@@ -16,7 +16,7 @@ contract WithdrawTest is LeafCLGaugeTest {
         super.setUp();
 
         pool = CLPool(
-            poolFactory.createPool({
+            leafPoolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
                 tickSpacing: TICK_SPACING_60,
@@ -30,7 +30,7 @@ contract WithdrawTest is LeafCLGaugeTest {
         vm.prank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)
@@ -257,7 +257,7 @@ contract WithdrawTest is LeafCLGaugeTest {
         emit Withdraw({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.withdraw({tokenId: tokenId});
 
-        uint256 aliceRewardBalance = xVelo.balanceOf(users.alice);
+        uint256 aliceRewardBalance = leafXVelo.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
 
         assertEq(nft.balanceOf(address(gauge)), 0);

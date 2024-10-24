@@ -73,7 +73,7 @@ contract NotifyRewardAmountIntegrationConcreteTest is RootCLGaugeTest {
         uint256 maxEmissionRate = rootGaugeFactory.emissionCaps(address(rootGauge));
         uint256 maxAmount = maxEmissionRate * weeklyEmissions / MAX_BPS;
         uint256 amount = maxAmount + TOKEN_1;
-        uint256 bufferCap = Math.max(amount * 2, xVelo.minBufferCap() + 1);
+        uint256 bufferCap = Math.max(amount * 2, rootXVelo.minBufferCap() + 1);
 
         setLimits({_rootBufferCap: bufferCap, _leafBufferCap: bufferCap});
 
@@ -93,7 +93,7 @@ contract NotifyRewardAmountIntegrationConcreteTest is RootCLGaugeTest {
         assertEq(rewardToken.balanceOf(address(minter)), oldMinterBalance + TOKEN_1);
         assertEq(rewardToken.balanceOf(address(rootVoter)), 0);
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
-        assertEq(xVelo.balanceOf(address(rootGauge)), 0);
+        assertEq(rootXVelo.balanceOf(address(rootGauge)), 0);
 
         vm.selectFork({forkId: leafId});
         vm.expectEmit(address(leafGauge));
@@ -164,7 +164,7 @@ contract NotifyRewardAmountIntegrationConcreteTest is RootCLGaugeTest {
         assertEq(rewardToken.balanceOf(address(minter)), oldMinterBalance + TOKEN_1);
         assertEq(rewardToken.balanceOf(address(rootVoter)), amount - maxAmount);
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
-        assertEq(xVelo.balanceOf(address(rootGauge)), 0);
+        assertEq(rootXVelo.balanceOf(address(rootGauge)), 0);
 
         vm.selectFork({forkId: leafId});
         uint256 timeUntilNext = WEEK * 2 / 7;
@@ -224,7 +224,7 @@ contract NotifyRewardAmountIntegrationConcreteTest is RootCLGaugeTest {
 
         assertEq(rewardToken.balanceOf(address(rootVoter)), 0);
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
-        assertEq(xVelo.balanceOf(address(rootGauge)), 0);
+        assertEq(rootXVelo.balanceOf(address(rootGauge)), 0);
 
         vm.selectFork({forkId: leafId});
         vm.expectEmit(address(leafGauge));
@@ -282,7 +282,7 @@ contract NotifyRewardAmountIntegrationConcreteTest is RootCLGaugeTest {
 
         assertEq(rewardToken.balanceOf(address(rootVoter)), 0);
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
-        assertEq(xVelo.balanceOf(address(rootGauge)), 0);
+        assertEq(rootXVelo.balanceOf(address(rootGauge)), 0);
 
         vm.selectFork({forkId: leafId});
         uint256 timeUntilNext = WEEK * 2 / 7;
@@ -354,7 +354,7 @@ contract NotifyRewardAmountIntegrationConcreteTest is RootCLGaugeTest {
         assertEq(rewardToken.balanceOf(address(minter)), oldMinterBalance + TOKEN_1);
         assertEq(rewardToken.balanceOf(address(rootVoter)), 0);
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
-        assertEq(xVelo.balanceOf(address(rootGauge)), 0);
+        assertEq(rootXVelo.balanceOf(address(rootGauge)), 0);
 
         vm.selectFork({forkId: leafId});
         vm.expectEmit(address(leafGauge));
@@ -421,7 +421,7 @@ contract NotifyRewardAmountIntegrationConcreteTest is RootCLGaugeTest {
         assertEq(rewardToken.balanceOf(address(minter)), oldMinterBalance + TOKEN_1);
         assertEq(rewardToken.balanceOf(address(rootVoter)), amount - maxAmount);
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
-        assertEq(xVelo.balanceOf(address(rootGauge)), 0);
+        assertEq(rootXVelo.balanceOf(address(rootGauge)), 0);
 
         vm.selectFork({forkId: leafId});
         uint256 timeUntilNext = WEEK * 2 / 7;
@@ -481,7 +481,7 @@ contract NotifyRewardAmountIntegrationConcreteTest is RootCLGaugeTest {
 
         assertEq(rewardToken.balanceOf(address(rootVoter)), 0);
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
-        assertEq(xVelo.balanceOf(address(rootGauge)), 0);
+        assertEq(rootXVelo.balanceOf(address(rootGauge)), 0);
 
         vm.selectFork({forkId: leafId});
         vm.expectEmit(address(leafGauge));
@@ -543,7 +543,7 @@ contract NotifyRewardAmountIntegrationConcreteTest is RootCLGaugeTest {
 
         assertEq(rewardToken.balanceOf(address(rootVoter)), 0);
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
-        assertEq(xVelo.balanceOf(address(rootGauge)), 0);
+        assertEq(rootXVelo.balanceOf(address(rootGauge)), 0);
 
         vm.selectFork({forkId: leafId});
         uint256 timeUntilNext = WEEK * 2 / 7;

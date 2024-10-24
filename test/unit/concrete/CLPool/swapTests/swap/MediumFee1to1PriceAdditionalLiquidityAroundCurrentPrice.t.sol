@@ -13,7 +13,7 @@ contract MediumFee1to1PriceAdditionalLiquidityAroundCurrentPriceTest is CLPoolSw
         uint160 startingPrice = encodePriceSqrt(1, 1);
 
         string memory poolName = ".medium_fee_1to1_price_additional_liquidity_around_current_price";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,

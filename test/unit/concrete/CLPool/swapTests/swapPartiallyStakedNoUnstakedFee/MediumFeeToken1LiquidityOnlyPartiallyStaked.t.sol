@@ -15,7 +15,7 @@ contract MediumFeeToken1LiquidityOnlyPartiallyStakedTest is CLPoolSwapPartiallyS
         uint160 startingPrice = encodePriceSqrt(1, 1);
 
         string memory poolName = ".medium_fee_token1_liquidity_only";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,
@@ -29,7 +29,7 @@ contract MediumFeeToken1LiquidityOnlyPartiallyStakedTest is CLPoolSwapPartiallyS
         vm.startPrank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)

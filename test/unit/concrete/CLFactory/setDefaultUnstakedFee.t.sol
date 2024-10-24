@@ -13,19 +13,19 @@ contract SetDefaultUnstakedFee is CLFactoryTest {
     function test_RevertIf_NotFeeManager() public {
         vm.expectRevert();
         vm.startPrank({msgSender: users.charlie});
-        poolFactory.setDefaultUnstakedFee({_defaultUnstakedFee: 200_000});
+        leafPoolFactory.setDefaultUnstakedFee({_defaultUnstakedFee: 200_000});
     }
 
     function test_RevertIf_GreaterThanMax() public {
         vm.expectRevert();
-        poolFactory.setDefaultUnstakedFee({_defaultUnstakedFee: 500_001});
+        leafPoolFactory.setDefaultUnstakedFee({_defaultUnstakedFee: 500_001});
     }
 
     function test_SetDefaultUnstakedFee() public {
-        vm.expectEmit(true, true, false, false, address(poolFactory));
+        vm.expectEmit(true, true, false, false, address(leafPoolFactory));
         emit DefaultUnstakedFeeChanged({oldUnstakedFee: 100_000, newUnstakedFee: 200_000});
-        poolFactory.setDefaultUnstakedFee({_defaultUnstakedFee: 200_000});
+        leafPoolFactory.setDefaultUnstakedFee({_defaultUnstakedFee: 200_000});
 
-        assertEqUint(poolFactory.defaultUnstakedFee(), 200_000);
+        assertEqUint(leafPoolFactory.defaultUnstakedFee(), 200_000);
     }
 }

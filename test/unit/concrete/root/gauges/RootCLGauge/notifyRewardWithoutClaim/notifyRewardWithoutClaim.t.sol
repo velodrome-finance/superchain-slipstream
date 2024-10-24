@@ -59,7 +59,7 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is RootCLGaugeTest {
 
         assertEq(rewardToken.balanceOf(users.owner), 0);
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
-        assertEq(xVelo.balanceOf(address(rootGauge)), 0);
+        assertEq(rootXVelo.balanceOf(address(rootGauge)), 0);
 
         vm.selectFork({forkId: leafId});
         vm.expectEmit(address(leafGauge));
@@ -110,7 +110,7 @@ contract NotifyRewardWithoutClaimIntegrationConcreteTest is RootCLGaugeTest {
 
         assertEq(rewardToken.balanceOf(users.owner), 0);
         assertEq(rewardToken.balanceOf(address(rootGauge)), 0);
-        assertEq(xVelo.balanceOf(address(rootGauge)), 0);
+        assertEq(rootXVelo.balanceOf(address(rootGauge)), 0);
 
         vm.selectFork({forkId: leafId});
         uint256 timeUntilNext = WEEK * 2 / 7;

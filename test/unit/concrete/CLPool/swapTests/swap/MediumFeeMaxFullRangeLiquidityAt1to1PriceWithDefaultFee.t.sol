@@ -14,7 +14,7 @@ contract MediumFeeMaxFullRangeLiquidityAt1to1PriceWithDefaultFeeTest is CLPoolSw
         uint160 startingPrice = encodePriceSqrt(1, 1);
 
         string memory poolName = ".max_full_range_liquidity_at_1to1_price_with_default_fee";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,

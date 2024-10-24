@@ -17,7 +17,7 @@ contract LowFeeLargeLiquidityAroundCurrentPriceStableSwapPartiallyStakedTest is
         uint160 startingPrice = encodePriceSqrt(1, 1);
 
         string memory poolName = ".low_fee_large_liquidity_around_current_price_stable_swap";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,
@@ -31,7 +31,7 @@ contract LowFeeLargeLiquidityAroundCurrentPriceStableSwapPartiallyStakedTest is
         vm.startPrank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)

@@ -76,11 +76,18 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     uint256 public leafStartTime; // leaf fork start time (set to start of epoch for simplicity)
 
     // root superchain contracts
-    IXERC20 public xVelo;
+    IXERC20 public rootXVelo;
     IXERC20Lockbox public rootLockbox;
     IRootMessageBridge public rootMessageBridge;
     IRootHLMessageModule public rootMessageModule;
     IRootVotingRewardsFactory public rootVotingRewardsFactory;
+
+    // root slipstream contracts
+    RootCLPool public rootPoolImplementation;
+    RootCLPoolFactory public rootPoolFactory;
+    RootCLPool public rootPool;
+    RootCLGaugeFactory public rootGaugeFactory;
+    RootCLGauge public rootGauge;
 
     // leaf superchain contracts
     IXERC20 public leafXVelo;
@@ -88,17 +95,10 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
     ILeafHLMessageModule public leafMessageModule;
     IVotingRewardsFactory public votingRewardsFactory;
 
-    // root slipstream contracts
-    RootCLPoolFactory public rootPoolFactory;
-    RootCLPool public rootPoolImplementation;
-    RootCLPool public rootPool;
-    RootCLGaugeFactory public rootGaugeFactory;
-    RootCLGauge public rootGauge;
-
     // leaf slipstream contracts
-    CLPool public poolImplementation;
+    CLPool public leafPoolImplementation;
+    CLFactory public leafPoolFactory;
     CLPool public leafPool;
-    CLFactory public poolFactory;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
     LeafCLGaugeFactory public leafGaugeFactory;
@@ -179,7 +179,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
     function deployRootDependencies() public {
         // root superchain contracts
-        xVelo = IXERC20(vm.parseJsonAddress(addresses, ".XVelo"));
+        rootXVelo = IXERC20(vm.parseJsonAddress(addresses, ".XVelo"));
         rootLockbox = IXERC20Lockbox(vm.parseJsonAddress(addresses, ".Lockbox"));
         rootMessageBridge = IRootMessageBridge(vm.parseJsonAddress(addresses, ".MessageBridge"));
         rootMessageModule = IRootHLMessageModule(vm.parseJsonAddress(addresses, ".MessageModule"));
@@ -215,7 +215,12 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
         vm.startPrank(users.deployer);
 
-        rootPoolImplementation = new RootCLPool();
+        rootPoolImplementation = RootCLPool(
+            cx.deployCreate3({
+                salt: CreateXLibrary.calculateSalt({_entropy: CL_POOL_ENTROPY, _deployer: users.deployer}),
+                initCode: abi.encodePacked(type(RootCLPool).creationCode)
+            })
+        );
         rootPoolFactory = RootCLPoolFactory(
             cx.deployCreate3({
                 salt: CreateXLibrary.calculateSalt({_entropy: CL_POOL_FACTORY_ENTROPY, _deployer: users.deployer}),
@@ -237,7 +242,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
                     type(RootCLGaugeFactory).creationCode,
                     abi.encode(
                         address(rootVoter), // root voter
-                        address(xVelo), // xerc20
+                        address(rootXVelo), // xerc20
                         address(rootLockbox), // lockbox
                         address(rootMessageBridge), // message bridge
                         address(rootPoolFactory), // pool factory
@@ -268,7 +273,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.startPrank(users.deployer);
 
         address deployer = users.deployer;
-        poolImplementation = CLPool(
+        leafPoolImplementation = CLPool(
             cx.deployCreate3({
                 salt: CL_POOL_ENTROPY.calculateSalt({_deployer: deployer}),
                 initCode: abi.encodePacked(type(CLPool).creationCode)
@@ -278,7 +283,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         leafGaugeFactory = LeafCLGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: deployer}));
         nft = NonfungiblePositionManager(payable(NFT_POSITION_MANAGER.computeCreate3Address({_deployer: deployer})));
 
-        poolFactory = CLFactory(
+        leafPoolFactory = CLFactory(
             cx.deployCreate3({
                 salt: CL_POOL_FACTORY_ENTROPY.calculateSalt({_deployer: deployer}),
                 initCode: abi.encodePacked(
@@ -288,7 +293,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
                         users.feeManager, // swap fee manager
                         users.feeManager, // unstaked fee manager
                         address(leafVoter), // leaf voter
-                        address(poolImplementation), // pool implementation
+                        address(leafPoolImplementation), // pool implementation
                         address(leafGaugeFactory),
                         address(nft)
                     )
@@ -319,7 +324,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
                         type(NonfungiblePositionManager).creationCode,
                         abi.encode(
                             users.owner, // owner
-                            address(poolFactory), // pool factory
+                            address(leafPoolFactory), // pool factory
                             address(weth), // WETH9
                             address(nftDescriptor), // nft descriptor
                             nftName, // name
@@ -339,7 +344,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
                     abi.encode(
                         address(leafVoter), // voter
                         address(nft), // nft (nfpm)
-                        address(xVelo), // xerc20
+                        address(leafXVelo), // xerc20
                         address(leafMessageBridge) // bridge
                     )
                 )
@@ -351,13 +356,13 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.startPrank(users.deployer2);
         lpMigrator = new LpMigrator();
 
-        customSwapFeeModule = new CustomSwapFeeModule(address(poolFactory));
-        customUnstakedFeeModule = new CustomUnstakedFeeModule(address(poolFactory));
+        customSwapFeeModule = new CustomSwapFeeModule(address(leafPoolFactory));
+        customUnstakedFeeModule = new CustomUnstakedFeeModule(address(leafPoolFactory));
         vm.stopPrank();
 
         vm.startPrank(users.feeManager);
-        poolFactory.setSwapFeeModule(address(customSwapFeeModule));
-        poolFactory.setUnstakedFeeModule(address(customUnstakedFeeModule));
+        leafPoolFactory.setSwapFeeModule(address(customSwapFeeModule));
+        leafPoolFactory.setUnstakedFeeModule(address(customUnstakedFeeModule));
         vm.stopPrank();
 
         vm.startPrank(users.deployer2);
@@ -438,12 +443,12 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         // set up leaf pool & gauge by processing pending `createGauge` message in mailbox
         leafMailbox.processNextInboundMessage();
         leafPool =
-            CLPool(poolFactory.getPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: int24(1)}));
+            CLPool(leafPoolFactory.getPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: int24(1)}));
         leafGauge = LeafCLGauge(leafVoter.gauges(address(leafPool)));
 
         vm.startPrank(users.owner);
-        poolFactory.enableTickSpacing(10, 500);
-        poolFactory.enableTickSpacing(60, 3_000);
+        leafPoolFactory.enableTickSpacing(10, 500);
+        leafPoolFactory.enableTickSpacing(60, 3_000);
         vm.stopPrank();
     }
 
@@ -458,11 +463,11 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
     /// @dev Helper function to add rewards to gauge from voter
     function addRewardToLeafGauge(address _gauge, uint256 _amount) internal {
-        deal(address(xVelo), address(leafMessageModule), _amount);
+        deal(address(leafXVelo), address(leafMessageModule), _amount);
         vm.startPrank(address(leafMessageModule));
         // do not overwrite approvals if already set
-        if (xVelo.allowance(address(leafMessageModule), _gauge) < _amount) {
-            xVelo.approve(_gauge, _amount);
+        if (leafXVelo.allowance(address(leafMessageModule), _gauge) < _amount) {
+            leafXVelo.approve(_gauge, _amount);
         }
         LeafCLGauge(_gauge).notifyRewardAmount(_amount);
         vm.stopPrank();
@@ -517,7 +522,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.label({account: address(weth), newLabel: "WETH"});
         vm.label({account: address(cx), newLabel: "Create X"});
 
-        vm.label({account: address(xVelo), newLabel: "XVelo"});
+        vm.label({account: address(rootXVelo), newLabel: "XVelo"});
         vm.label({account: address(rootLockbox), newLabel: "Root Lockbox"});
         vm.label({account: address(rootMessageBridge), newLabel: "Message Bridge"});
         vm.label({account: address(rootMessageModule), newLabel: "Message Module"});
@@ -549,8 +554,8 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.label({account: address(votingRewardsFactory), newLabel: "Voting Rewards Factory"});
         vm.label({account: address(leafVoter), newLabel: "Leaf Voter"});
 
-        vm.label({account: address(poolImplementation), newLabel: "Pool Implementation"});
-        vm.label({account: address(poolFactory), newLabel: "Pool Factory"});
+        vm.label({account: address(leafPoolImplementation), newLabel: "Pool Implementation"});
+        vm.label({account: address(leafPoolFactory), newLabel: "Pool Factory"});
         vm.label({account: address(nftDescriptor), newLabel: "NFT Descriptor"});
         vm.label({account: address(nft), newLabel: "NFT Manager"});
         vm.label({account: address(leafGaugeFactory), newLabel: "Gauge Factory"});
@@ -592,8 +597,8 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
         uint112 rootBufferCap = uint112(_rootBufferCap);
         // replenish limits in 1 day, avoid max rate limit per second
-        uint128 rps = uint128(Math.min((rootBufferCap / 2) / DAY, xVelo.maxRateLimitPerSecond()));
-        xVelo.addBridge(
+        uint128 rps = uint128(Math.min((rootBufferCap / 2) / DAY, rootXVelo.maxRateLimitPerSecond()));
+        rootXVelo.addBridge(
             IXERC20.RateLimitMidPointInfo({
                 bufferCap: rootBufferCap,
                 bridge: address(rootMessageModule),

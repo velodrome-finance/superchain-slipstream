@@ -15,7 +15,7 @@ contract MediumFee1to1PriceAdditionalLiquidityAroundCurrentPriceAllStakedTest is
         uint160 startingPrice = encodePriceSqrt(1, 1);
 
         string memory poolName = ".medium_fee_1to1_price_additional_liquidity_around_current_price";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,
@@ -38,7 +38,7 @@ contract MediumFee1to1PriceAdditionalLiquidityAroundCurrentPriceAllStakedTest is
         vm.startPrank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)

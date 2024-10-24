@@ -15,7 +15,7 @@ contract CreateGaugeTest is LeafCLGaugeFactoryTest {
     }
 
     function test_RevertIf_NotVoter() public {
-        pool = poolFactory.createPool({
+        pool = leafPoolFactory.createPool({
             tokenA: TEST_TOKEN_0,
             tokenB: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
@@ -27,7 +27,7 @@ contract CreateGaugeTest is LeafCLGaugeFactoryTest {
     }
 
     function test_CreateGauge() public {
-        pool = poolFactory.createPool({
+        pool = leafPoolFactory.createPool({
             tokenA: TEST_TOKEN_0,
             tokenB: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW,
@@ -46,7 +46,7 @@ contract CreateGaugeTest is LeafCLGaugeFactoryTest {
 
         assertEq(address(gauge.voter()), address(leafVoter));
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
-        assertEq(gauge.rewardToken(), address(xVelo));
+        assertEq(gauge.rewardToken(), address(leafXVelo));
         assertEq(gauge.isPool(), true);
 
         assertEq(address(gauge.pool()), address(pool));
@@ -54,7 +54,7 @@ contract CreateGaugeTest is LeafCLGaugeFactoryTest {
         assertEq(gauge.token1(), rewards[1]);
         assertEq(gauge.tickSpacing(), TICK_SPACING_LOW);
         assertEq(gauge.feesVotingReward(), feesVotingReward);
-        assertEq(gauge.rewardToken(), address(xVelo));
+        assertEq(gauge.rewardToken(), address(leafXVelo));
         assertEq(address(gauge.voter()), address(leafVoter));
         assertEq(address(gauge.nft()), address(nft));
         assertEq(gauge.bridge(), address(leafMessageBridge));

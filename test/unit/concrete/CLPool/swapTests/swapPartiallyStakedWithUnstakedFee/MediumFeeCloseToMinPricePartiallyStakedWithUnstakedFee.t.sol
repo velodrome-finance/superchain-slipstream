@@ -20,7 +20,7 @@ contract MediumFeeCloseToMinPricePartiallyStakedWithUnstakedFeeTest is CLPoolSwa
         uint160 startingPrice = 6085630636;
 
         string memory poolName = ".close_to_min_price";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,
@@ -39,7 +39,7 @@ contract MediumFeeCloseToMinPricePartiallyStakedWithUnstakedFeeTest is CLPoolSwa
         vm.startPrank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)

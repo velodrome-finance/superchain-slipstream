@@ -48,7 +48,7 @@ contract CreateGaugeIntegrationConcreteTest is RootCLGaugeFactoryTest {
 
         assertEq(rootGauge.gaugeFactory(), address(rootGaugeFactory));
         assertEq(rootGauge.rewardToken(), address(rewardToken));
-        assertEq(rootGauge.xerc20(), address(xVelo));
+        assertEq(rootGauge.xerc20(), address(rootXVelo));
         assertEq(rootGauge.voter(), address(rootVoter));
         assertEq(rootGauge.lockbox(), address(rootLockbox));
         assertEq(rootGauge.bridge(), address(rootMessageBridge));
@@ -57,16 +57,16 @@ contract CreateGaugeIntegrationConcreteTest is RootCLGaugeFactoryTest {
 
         vm.selectFork({forkId: leafId});
         address pool = Clones.predictDeterministicAddress({
-            deployer: address(poolFactory),
-            master: poolFactory.poolImplementation(),
+            deployer: address(leafPoolFactory),
+            master: leafPoolFactory.poolImplementation(),
             salt: keccak256(abi.encode(address(token0), address(token1), TICK_SPACING_10))
         });
 
-        vm.expectEmit(address(poolFactory));
+        vm.expectEmit(address(leafPoolFactory));
         emit PoolCreated({token0: address(token0), token1: address(token1), tickSpacing: TICK_SPACING_10, pool: pool});
         vm.expectEmit(true, true, true, false, address(leafVoter));
         emit GaugeCreated({
-            poolFactory: address(poolFactory),
+            poolFactory: address(leafPoolFactory),
             votingRewardsFactory: address(votingRewardsFactory),
             gaugeFactory: address(leafGaugeFactory),
             pool: address(pool),
@@ -76,7 +76,7 @@ contract CreateGaugeIntegrationConcreteTest is RootCLGaugeFactoryTest {
         });
         leafMailbox.processNextInboundMessage();
 
-        assertTrue(poolFactory.isPool(pool));
+        assertTrue(leafPoolFactory.isPool(pool));
 
         leafPool = CLPool(pool);
         assertEq(leafPool.token0(), address(token0));

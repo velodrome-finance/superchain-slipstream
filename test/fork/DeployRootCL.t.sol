@@ -37,9 +37,9 @@ contract DeployRootCLForkTest is BaseForkFixture {
         deployCL.run();
 
         // preload variables for convenience
-        rootPoolImplementation = deployCL.poolImplementation();
-        rootPoolFactory = deployCL.poolFactory();
-        rootGaugeFactory = deployCL.gaugeFactory();
+        rootPoolImplementation = deployCL.rootPoolImplementation();
+        rootPoolFactory = deployCL.rootPoolFactory();
+        rootGaugeFactory = deployCL.rootGaugeFactory();
 
         params = deployCL.params();
 

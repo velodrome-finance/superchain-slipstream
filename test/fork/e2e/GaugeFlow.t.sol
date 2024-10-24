@@ -38,10 +38,10 @@ contract GaugeFlowTest is BaseForkFixture {
         vm.selectFork(leafId);
         leafMailbox.processNextInboundMessage();
         leafPool =
-            CLPool(poolFactory.getPool({tokenA: address(weth), tokenB: address(op), tickSpacing: TICK_SPACING_60}));
+            CLPool(leafPoolFactory.getPool({tokenA: address(weth), tokenB: address(op), tickSpacing: TICK_SPACING_60}));
         leafGauge = LeafCLGauge(leafVoter.gauges(address(leafPool)));
 
-        swapRouter = new SwapRouter(address(poolFactory), address(weth));
+        swapRouter = new SwapRouter(address(leafPoolFactory), address(weth));
 
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(leafPool), 10_000);

@@ -20,7 +20,7 @@ contract MediumFeeMaxFullRangeLiquidityAt1to1PriceWithDefaultFeePartiallyStakedW
         uint160 startingPrice = encodePriceSqrt(1, 1);
 
         string memory poolName = ".max_full_range_liquidity_at_1to1_price_with_default_fee";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,
@@ -39,7 +39,7 @@ contract MediumFeeMaxFullRangeLiquidityAt1to1PriceWithDefaultFeePartiallyStakedW
         vm.startPrank(address(leafMessageModule));
         gauge = LeafCLGauge(
             leafVoter.createGauge({
-                _poolFactory: address(poolFactory),
+                _poolFactory: address(leafPoolFactory),
                 _pool: address(pool),
                 _votingRewardsFactory: address(votingRewardsFactory),
                 _gaugeFactory: address(leafGaugeFactory)

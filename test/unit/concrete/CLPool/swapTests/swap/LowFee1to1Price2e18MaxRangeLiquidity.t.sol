@@ -13,7 +13,7 @@ contract LowFee1to1Price2e18MaxRangeLiquidityTest is CLPoolSwapNoStakeTest {
         uint160 startingPrice = encodePriceSqrt(1, 1);
 
         string memory poolName = ".low_fee_1to1_price_2e18_max_range_liquidity";
-        address pool = poolFactory.createPool({
+        address pool = leafPoolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: tickSpacing,
