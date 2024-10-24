@@ -193,7 +193,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         uint256 reward = TOKEN_1 * 10;
 
         // SNAPSHOT STATE //
-        uint256 snapshot = vm.snapshot();
+        uint256 snapshot = vm.snapshotState();
         addRewardToLeafGauge(address(gauge), reward);
 
         // move one week and trigger update by minting new position
