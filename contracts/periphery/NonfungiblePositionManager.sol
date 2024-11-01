@@ -438,7 +438,7 @@ contract NonfungiblePositionManager is
     /// @inheritdoc INonfungiblePositionManager
     function burn(uint256 tokenId) external payable override isAuthorizedForToken(tokenId) {
         Position storage position = _positions[tokenId];
-        require(position.liquidity == 0 && position.tokensOwed0 == 0 && position.tokensOwed1 == 0, "NC");
+        require(position.liquidity == 0 && position.tokensOwed0 == 0 && position.tokensOwed1 == 0);
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
         address pool = PoolAddress.computeAddress(factory, poolKey);
@@ -446,6 +446,17 @@ contract NonfungiblePositionManager is
 
         delete _positions[tokenId];
         _burn(tokenId);
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721) {
+        /// @dev This hook should not run during mint / burn
+        if (from == address(0) || to == address(0)) return;
+        Position storage position = _positions[tokenId];
+        PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
+        address pool = PoolAddress.computeAddress(factory, poolKey);
+
+        _userPositions[from][pool].remove(tokenId);
+        _userPositions[to][pool].add(tokenId);
     }
 
     function _getAndIncrementNonce(uint256 tokenId) internal override returns (uint256) {

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NonfungiblePositionManager #burn gas 1`] = `86006`;
+exports[`NonfungiblePositionManager #burn gas 1`] = `86082`;
 
 exports[`NonfungiblePositionManager #collect gas transfers both 1`] = `137573`;
 
@@ -12,17 +12,17 @@ exports[`NonfungiblePositionManager #decreaseLiquidity gas complete decrease 1`]
 
 exports[`NonfungiblePositionManager #decreaseLiquidity gas partial decrease 1`] = `176910`;
 
-exports[`NonfungiblePositionManager #increaseLiquidity gas 1`] = `207238`;
+exports[`NonfungiblePositionManager #increaseLiquidity gas 1`] = `205494`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `694739`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `694808`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with non-zero refund 1`] = `700178`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with non-zero refund 1`] = `700247`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with zero refund 1`] = `692958`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with zero refund 1`] = `693027`;
 
-exports[`NonfungiblePositionManager #mint gas mint for same pool, different ticks 1`] = `544230`;
+exports[`NonfungiblePositionManager #mint gas mint for same pool, different ticks 1`] = `544299`;
 
-exports[`NonfungiblePositionManager #mint gas mint on same ticks 1`] = `432566`;
+exports[`NonfungiblePositionManager #mint gas mint on same ticks 1`] = `432635`;
 
 exports[`NonfungiblePositionManager #permit owned by eoa gas 1`] = `64513`;
 
@@ -30,8 +30,8 @@ exports[`NonfungiblePositionManager #permit owned by verifying contract gas 1`] 
 
 exports[`NonfungiblePositionManager #positions gas 1`] = `19783`;
 
-exports[`NonfungiblePositionManager #transferFrom gas 1`] = `109774`;
+exports[`NonfungiblePositionManager #transferFrom gas 1`] = `188639`;
 
-exports[`NonfungiblePositionManager #transferFrom gas comes from approved 1`] = `108380`;
+exports[`NonfungiblePositionManager #transferFrom gas comes from approved 1`] = `187245`;
 
-exports[`NonfungiblePositionManager multicall exit gas 1`] = `272104`;
+exports[`NonfungiblePositionManager multicall exit gas 1`] = `272180`;
