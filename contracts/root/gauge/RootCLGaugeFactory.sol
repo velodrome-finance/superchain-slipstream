@@ -182,6 +182,7 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
     function setEmissionCap(address _gauge, uint256 _emissionCap) external override {
         require(msg.sender == emissionAdmin, "NA");
         require(_gauge != address(0), "ZA");
+        require(_emissionCap <= MAX_BPS, "MC");
         _emissionCaps[_gauge] = _emissionCap;
         emit EmissionCapSet({gauge: _gauge, newEmissionCap: _emissionCap});
     }
@@ -190,6 +191,7 @@ contract RootCLGaugeFactory is IRootCLGaugeFactory {
     function setDefaultCap(uint256 _defaultCap) external override {
         require(msg.sender == emissionAdmin, "NA");
         require(_defaultCap != 0, "ZDC");
+        require(_defaultCap <= MAX_BPS, "MC");
         defaultCap = _defaultCap;
         emit DefaultCapSet({newDefaultCap: _defaultCap});
     }
