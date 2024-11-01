@@ -28,7 +28,7 @@ interface IRootCLPoolFactory {
 
     /// @notice The address of the pool implementation contract used to deploy proxies / clones
     /// @return The address of the pool implementation contract
-    function poolImplementation() external view returns (address);
+    function implementation() external view returns (address);
 
     /// @notice Address of the bridge contract
     /// @dev Used as a registry of chains
@@ -67,6 +67,10 @@ interface IRootCLPoolFactory {
     /// @param index Index of the pool
     /// @return The pool address in the given index
     function allPools(uint256 index) external view returns (address);
+
+    /// @notice Returns all pools created by this factory
+    /// @return Array of pool addresses
+    function allPools() external view returns (address[] memory);
 
     /// @notice Returns the number of pools created from this factory
     /// @return Number of pools created from this factory

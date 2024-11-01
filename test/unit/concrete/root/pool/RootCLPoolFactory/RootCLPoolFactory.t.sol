@@ -12,7 +12,7 @@ contract RootCLPoolFactoryTest is BaseForkFixture {
     }
 
     function test_InitialState() public view {
-        assertEq(rootPoolFactory.poolImplementation(), address(rootPoolImplementation));
+        assertEq(rootPoolFactory.implementation(), address(rootPoolImplementation));
         assertEq(rootPoolFactory.bridge(), address(rootMessageBridge));
         assertEq(rootPoolFactory.owner(), users.owner);
     }

@@ -55,7 +55,7 @@ contract DeployRootCLForkTest is BaseForkFixture {
 
         assertNotEq(address(rootPoolImplementation), address(0));
         assertNotEq(address(rootPoolFactory), address(0));
-        assertEq(address(rootPoolFactory.poolImplementation()), address(rootPoolImplementation));
+        assertEq(address(rootPoolFactory.implementation()), address(rootPoolImplementation));
         assertEq(address(rootPoolFactory.bridge()), params.messageBridge);
         assertEq(address(rootPoolFactory.owner()), params.poolFactoryOwner);
         assertEqUint(rootPoolFactory.tickSpacingToFee(1), 100);

@@ -113,7 +113,7 @@ contract CreatePoolIntegrationConcreteTest is RootCLPoolFactoryTest {
         (address token0, address token1) =
             tokenA < tokenB ? (address(tokenA), address(tokenB)) : (address(tokenB), address(tokenA));
         address expected = Clones.predictDeterministicAddress({
-            master: rootPoolFactory.poolImplementation(),
+            master: rootPoolFactory.implementation(),
             salt: keccak256(abi.encodePacked(_chainid, token0, token1, _tickSpacing)),
             deployer: address(rootPoolFactory)
         });

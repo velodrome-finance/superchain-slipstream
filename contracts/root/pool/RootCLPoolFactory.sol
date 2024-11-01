@@ -11,7 +11,7 @@ import {IChainRegistry} from "../interfaces/bridge/IChainRegistry.sol";
 /// @notice Factory for creating RootPools
 contract RootCLPoolFactory is IRootCLPoolFactory {
     /// @inheritdoc IRootCLPoolFactory
-    address public immutable override poolImplementation;
+    address public immutable override implementation;
     /// @inheritdoc IRootCLPoolFactory
     address public immutable override bridge;
     /// @inheritdoc IRootCLPoolFactory
@@ -20,14 +20,14 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
     mapping(int24 => uint24) public override tickSpacingToFee;
     /// @inheritdoc IRootCLPoolFactory
     mapping(uint256 => mapping(address => mapping(address => mapping(int24 => address)))) public override getPool;
-    /// @inheritdoc IRootCLPoolFactory
-    address[] public override allPools;
+    /// @dev List of all pools
+    address[] internal _allPools;
 
     int24[] private _tickSpacings;
 
-    constructor(address _owner, address _poolImplementation, address _bridge) {
+    constructor(address _owner, address _implementation, address _bridge) {
         owner = _owner;
-        poolImplementation = _poolImplementation;
+        implementation = _implementation;
         bridge = _bridge;
 
         _enableTickSpacing(1, 100);
@@ -50,7 +50,7 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
         require(tickSpacingToFee[tickSpacing] != 0);
         require(getPool[chainid][token0][token1][tickSpacing] == address(0), "AE");
         pool = Clones.cloneDeterministic({
-            master: poolImplementation,
+            master: implementation,
             salt: keccak256(abi.encodePacked(chainid, token0, token1, tickSpacing))
         });
         IRootCLPool(pool).initialize({
@@ -60,7 +60,7 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
             _token1: token1,
             _tickSpacing: tickSpacing
         });
-        allPools.push(pool);
+        _allPools.push(pool);
         getPool[chainid][token0][token1][tickSpacing] = pool;
         // populate mapping in the reverse direction, deliberate choice to avoid the cost of comparing addresses
         getPool[chainid][token1][token0][tickSpacing] = pool;
@@ -100,8 +100,18 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
     }
 
     /// @inheritdoc IRootCLPoolFactory
+    function allPools(uint256 index) external view override returns (address) {
+        return _allPools[index];
+    }
+
+    /// @inheritdoc IRootCLPoolFactory
+    function allPools() external view override returns (address[] memory) {
+        return _allPools;
+    }
+
+    /// @inheritdoc IRootCLPoolFactory
     function allPoolsLength() external view override returns (uint256) {
-        return allPools.length;
+        return _allPools.length;
     }
 
     /// @inheritdoc IRootCLPoolFactory
