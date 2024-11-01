@@ -246,9 +246,6 @@ contract NonfungiblePositionManager is
 
         ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
 
-        address gauge = pool.gauge();
-        if (ownerOf(params.tokenId) == gauge) require(msg.sender == gauge);
-
         (liquidity, amount0, amount1) = addLiquidity(
             AddLiquidityParams({
                 poolAddress: address(pool),
