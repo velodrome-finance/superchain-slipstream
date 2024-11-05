@@ -32,6 +32,8 @@ contract DeployLeafCLForkTest is BaseForkFixture {
     QuoterV2 public quoter;
     SwapRouter public swapRouter;
 
+    address public constant sfs = 0x8680CEaBcb9b56913c519c069Add6Bc3494B7020;
+
     function setUp() public override {
         vm.createSelectFork({urlOrAlias: "mode", blockNumber: leafBlockNumber});
 
@@ -89,7 +91,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEqUint(leafPoolFactory.tickSpacingToFee(100), 500);
         assertEqUint(leafPoolFactory.tickSpacingToFee(200), 3_000);
         assertEqUint(leafPoolFactory.tickSpacingToFee(2_000), 10_000);
-        assertEq(ModeFeeSharing(address(leafPoolFactory)).sfs(), modeParams.sfs);
+        assertEq(ModeFeeSharing(address(leafPoolFactory)).sfs(), sfs);
         assertEq(ModeFeeSharing(address(leafPoolFactory)).tokenId(), 565);
 
         assertNotEq(address(nftDescriptor), address(0));
@@ -103,7 +105,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEq(nft.WETH9(), params.weth);
         assertEq(nft.name(), params.nftName);
         assertEq(nft.symbol(), params.nftSymbol);
-        assertEq(ModeFeeSharing(address(nft)).sfs(), modeParams.sfs);
+        assertEq(ModeFeeSharing(address(nft)).sfs(), sfs);
         assertEq(ModeFeeSharing(address(nft)).tokenId(), 566);
 
         assertNotEq(address(leafGaugeFactory), address(0));

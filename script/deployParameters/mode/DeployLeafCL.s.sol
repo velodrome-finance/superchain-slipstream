@@ -13,7 +13,6 @@ contract DeployLeafCL is DeployLeafBaseFixture {
     using CreateXLibrary for bytes11;
 
     struct ModeDeploymentParameters {
-        address sfs;
         address recipient;
     }
 
@@ -34,10 +33,7 @@ contract DeployLeafCL is DeployLeafBaseFixture {
             outputFilename: "DeployCL-Mode.json"
         });
 
-        _modeParams = ModeDeploymentParameters({
-            sfs: 0x8680CEaBcb9b56913c519c069Add6Bc3494B7020,
-            recipient: 0xb8804281fc224a4E597A3f256b53C9Ed3C89B6c3
-        });
+        _modeParams = ModeDeploymentParameters({recipient: 0xb8804281fc224a4E597A3f256b53C9Ed3C89B6c3});
     }
 
     function deploy() internal virtual override {
