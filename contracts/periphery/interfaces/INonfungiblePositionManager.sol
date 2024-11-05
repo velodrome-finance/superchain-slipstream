@@ -25,42 +25,16 @@ interface INonfungiblePositionManager is
     /// @notice Emitted when liquidity is increased for a position NFT
     /// @dev Also emitted when a token is minted
     /// @param tokenId The ID of the token for which liquidity was increased
-    /// @param owner The owner of the position
-    /// @param pool The address of the pool
-    /// @param tickLower The lower tick of the position
-    /// @param tickUpper The upper tick of the position
     /// @param liquidity The amount by which liquidity for the NFT position was increased
     /// @param amount0 The amount of token0 that was paid for the increase in liquidity
     /// @param amount1 The amount of token1 that was paid for the increase in liquidity
-    event IncreaseLiquidity(
-        uint256 indexed tokenId,
-        address indexed owner,
-        address indexed pool,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 liquidity,
-        uint256 amount0,
-        uint256 amount1
-    );
+    event IncreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
     /// @notice Emitted when liquidity is decreased for a position NFT
     /// @param tokenId The ID of the token for which liquidity was decreased
-    /// @param owner The owner of the position
-    /// @param pool The address of the pool
-    /// @param tickLower The lower tick of the position
-    /// @param tickUpper The upper tick of the position
     /// @param liquidity The amount by which liquidity for the NFT position was decreased
     /// @param amount0 The amount of token0 that was accounted for the decrease in liquidity
     /// @param amount1 The amount of token1 that was accounted for the decrease in liquidity
-    event DecreaseLiquidity(
-        uint256 indexed tokenId,
-        address indexed owner,
-        address indexed pool,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 liquidity,
-        uint256 amount0,
-        uint256 amount1
-    );
+    event DecreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
     /// @notice Emitted when tokens are collected for a position NFT
     /// @dev The amounts reported may not be exactly equivalent to the amounts transferred, due to rounding behavior
     /// @param tokenId The ID of the token for which underlying tokens were collected

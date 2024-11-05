@@ -122,7 +122,7 @@ contract NonfungiblePositionManager is
     {
         Position memory position = _positions[tokenId];
         require(position.poolId != 0);
-        PoolAddress.PoolKey storage poolKey = _poolIdToPoolKey[position.poolId];
+        PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
         return (
             position.nonce,
             position.operator,
@@ -207,16 +207,8 @@ contract NonfungiblePositionManager is
         _userPositions[params.recipient][address(pool)].add(tokenId);
 
         refundETH();
-        emit IncreaseLiquidity({
-            tokenId: tokenId,
-            owner: params.recipient,
-            pool: address(pool),
-            tickLower: params.tickLower,
-            tickUpper: params.tickUpper,
-            liquidity: liquidity,
-            amount0: amount0,
-            amount1: amount1
-        });
+
+        emit IncreaseLiquidity(tokenId, liquidity, amount0, amount1);
     }
 
     modifier isAuthorizedForToken(uint256 tokenId) {
@@ -283,16 +275,7 @@ contract NonfungiblePositionManager is
         refundETH();
 
         emit MetadataUpdate(params.tokenId);
-        emit IncreaseLiquidity({
-            tokenId: params.tokenId,
-            owner: ownerOf(params.tokenId),
-            pool: address(pool),
-            tickLower: position.tickLower,
-            tickUpper: position.tickUpper,
-            liquidity: liquidity,
-            amount0: amount0,
-            amount1: amount1
-        });
+        emit IncreaseLiquidity(params.tokenId, liquidity, amount0, amount1);
     }
 
     /// @inheritdoc INonfungiblePositionManager
@@ -310,7 +293,8 @@ contract NonfungiblePositionManager is
         uint128 positionLiquidity = position.liquidity;
         require(positionLiquidity >= params.liquidity);
 
-        ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, _poolIdToPoolKey[position.poolId]));
+        PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
+        ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
 
         (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity);
 
@@ -343,16 +327,7 @@ contract NonfungiblePositionManager is
         position.liquidity = positionLiquidity - params.liquidity;
 
         emit MetadataUpdate(params.tokenId);
-        emit DecreaseLiquidity({
-            tokenId: params.tokenId,
-            owner: ownerOf(params.tokenId),
-            pool: address(pool),
-            tickLower: position.tickLower,
-            tickUpper: position.tickUpper,
-            liquidity: params.liquidity,
-            amount0: amount0,
-            amount1: amount1
-        });
+        emit DecreaseLiquidity(params.tokenId, params.liquidity, amount0, amount1);
     }
 
     /// @inheritdoc INonfungiblePositionManager
@@ -452,9 +427,7 @@ contract NonfungiblePositionManager is
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721) {
         /// @dev This hook should not run during mint / burn
         if (from == address(0) || to == address(0)) return;
-        Position storage position = _positions[tokenId];
-        PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
-        address pool = PoolAddress.computeAddress(factory, poolKey);
+        address pool = PoolAddress.computeAddress(factory, _poolIdToPoolKey[_positions[tokenId].poolId]);
 
         _userPositions[from][pool].remove(tokenId);
         _userPositions[to][pool].add(tokenId);
