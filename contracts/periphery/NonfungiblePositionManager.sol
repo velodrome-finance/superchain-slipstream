@@ -245,6 +245,7 @@ contract NonfungiblePositionManager is
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
         ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
+        require(ownerOf(params.tokenId) != pool.gauge());
 
         (liquidity, amount0, amount1) = addLiquidity(
             AddLiquidityParams({
