@@ -1,22 +1,21 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0;
 
 import {IVoter} from "../../../core/interfaces/IVoter.sol";
 
-/// @title The interface for the CL Factory
+/// @title Minimal CL Factory interface
+/// @notice Used to support the integration with the core implementation
 /// @notice The CL Factory facilitates creation of CL pools and control over the protocol fees
+/// @dev For full context, please review the Uniswap implementation under GPL license.
 interface IRootCLPoolFactory {
-    /// @notice Emitted when the owner of the factory is changed
-    /// @param oldOwner The owner before the owner was changed
-    /// @param newOwner The owner after the owner was changed
     event OwnerChanged(address indexed oldOwner, address indexed newOwner);
 
     /// @notice Emitted when a root pool is created
-    /// @param token0 The first token of the pool by address sort order
-    /// @param token1 The second token of the pool by address sort order
+    /// @param token0 The first token of the root pool by address sort order
+    /// @param token1 The second token of the root pool by address sort order
     /// @param tickSpacing The minimum number of ticks between initialized ticks
-    /// @param chainid The Chain ID of the pool
-    /// @param pool The address of the created pool
+    /// @param chainid The Chain ID of the root pool
+    /// @param pool The address of the root pool
     event RootPoolCreated(
         address indexed token0, address indexed token1, int24 indexed tickSpacing, uint256 chainid, address pool
     );
@@ -34,9 +33,9 @@ interface IRootCLPoolFactory {
     /// @dev Used as a registry of chains
     function bridge() external view returns (address);
 
-    /// @notice Returns the current owner of the factory
+    /// @notice Returns the current owner of the root pool factory
     /// @dev Can be changed by the current owner via setOwner
-    /// @return The address of the factory owner
+    /// @return The address of the root pool factory owner
     function owner() external view returns (address);
 
     /// @notice Returns a default fee for a tick spacing.
@@ -51,7 +50,7 @@ interface IRootCLPoolFactory {
     /// @return List of enabled tick spacings
     function tickSpacings() external view returns (int24[] memory);
 
-    /// @notice Returns the pool address for a given pair of tokens and a tick spacing, or address 0 if it does not exist
+    /// @notice Returns the root pool address for a given pair of tokens and a tick spacing, or address 0 if it does not exist
     /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
     /// @param chainid Chain ID associated with pool
     /// @param tokenA The contract address of either token0 or token1
@@ -84,7 +83,7 @@ interface IRootCLPoolFactory {
     /// @dev Guarantees gauges attached to pools must be created by the governor
     function isPair(address pool) external view returns (bool);
 
-    /// @notice Creates a root pool for the given two tokens and fee
+    /// @notice Creates a root pool for the given two tokens and a tick spacing
     /// @param chainid leaf chain's chainid
     /// @param tokenA One of the two tokens in the desired pool
     /// @param tokenB The other of the two tokens in the desired pool
@@ -96,9 +95,9 @@ interface IRootCLPoolFactory {
         external
         returns (address pool);
 
-    /// @notice Updates the owner of the factory
+    /// @notice Updates the owner of the root pool factory
     /// @dev Must be called by the current owner
-    /// @param _owner The new owner of the factory
+    /// @param _owner The new owner of the root pool factory
     function setOwner(address _owner) external;
 
     /// @notice Enables a certain tickSpacing

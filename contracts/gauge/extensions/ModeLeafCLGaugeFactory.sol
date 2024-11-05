@@ -4,7 +4,7 @@ pragma solidity =0.7.6;
 import {ILeafCLGaugeFactory, LeafCLGaugeFactory, CreateXLibrary} from "../LeafCLGaugeFactory.sol";
 import {IModeFeeSharing} from "../../extensions/interfaces/IModeFeeSharing.sol";
 import {IFeeSharing} from "../../extensions/interfaces/IFeeSharing.sol";
-import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
+import {ICLPool} from "contracts/gauge/interfaces/ICLPool.sol";
 import {ModeLeafCLGauge} from "./ModeLeafCLGauge.sol";
 
 /// @notice Gauge Factory wrapper with fee sharing support
