@@ -47,7 +47,7 @@ jobs:
         run: yarn test --parallel
         env: 
           OPTIMISM_RPC_URL: ${{ secrets.OPTIMISM_RPC_URL }}
-          FORK_BLOCK_NUMBER: 126699263
+          FORK_BLOCK_NUMBER: 127623650
   test:
     name: Foundry Unit Tests
     runs-on: ubuntu-latest
@@ -76,5 +76,5 @@ jobs:
           OPTIMISM_RPC_URL: ${{ secrets.OPTIMISM_RPC_URL }}
           MODE_RPC_URL: https://mainnet.mode.network
           PRIVATE_KEY_DEPLOY: ${{ secrets.PRIVATE_KEY_DEPLOY }}
-          FORK_BLOCK_NUMBER: 126699263
-          LEAF_FORK_BLOCK_NUMBER: 14415040
+          FORK_BLOCK_NUMBER: 127623650
+          LEAF_FORK_BLOCK_NUMBER: 15339430

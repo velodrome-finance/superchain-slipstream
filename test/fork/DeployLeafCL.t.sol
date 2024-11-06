@@ -92,7 +92,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEqUint(leafPoolFactory.tickSpacingToFee(200), 3_000);
         assertEqUint(leafPoolFactory.tickSpacingToFee(2_000), 10_000);
         assertEq(ModeFeeSharing(address(leafPoolFactory)).sfs(), sfs);
-        assertEq(ModeFeeSharing(address(leafPoolFactory)).tokenId(), 565);
+        assertEq(ModeFeeSharing(address(leafPoolFactory)).tokenId(), 587);
 
         assertNotEq(address(nftDescriptor), address(0));
         assertEq(nftDescriptor.WETH9(), params.weth);
@@ -106,7 +106,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEq(nft.name(), params.nftName);
         assertEq(nft.symbol(), params.nftSymbol);
         assertEq(ModeFeeSharing(address(nft)).sfs(), sfs);
-        assertEq(ModeFeeSharing(address(nft)).tokenId(), 566);
+        assertEq(ModeFeeSharing(address(nft)).tokenId(), 588);
 
         assertNotEq(address(leafGaugeFactory), address(0));
         assertEq(leafGaugeFactory.voter(), params.leafVoter);
