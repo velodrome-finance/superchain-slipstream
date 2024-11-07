@@ -1,14 +1,46 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
 
-import "@openzeppelin/contracts/proxy/Clones.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 import {IRootCLPoolFactory} from "../interfaces/pool/IRootCLPoolFactory.sol";
 import {IRootCLPool} from "../interfaces/pool/IRootCLPool.sol";
-import {IChainRegistry} from "../interfaces/bridge/IChainRegistry.sol";
+import {ICrossChainRegistry} from "../interfaces/bridge/ICrossChainRegistry.sol";
 
-/// @notice Factory for creating RootPools
+/*
+
+██╗   ██╗███████╗██╗      ██████╗ ██████╗ ██████╗  ██████╗ ███╗   ███╗███████╗
+██║   ██║██╔════╝██║     ██╔═══██╗██╔══██╗██╔══██╗██╔═══██╗████╗ ████║██╔════╝
+██║   ██║█████╗  ██║     ██║   ██║██║  ██║██████╔╝██║   ██║██╔████╔██║█████╗
+╚██╗ ██╔╝██╔══╝  ██║     ██║   ██║██║  ██║██╔══██╗██║   ██║██║╚██╔╝██║██╔══╝
+ ╚████╔╝ ███████╗███████╗╚██████╔╝██████╔╝██║  ██║╚██████╔╝██║ ╚═╝ ██║███████╗
+  ╚═══╝  ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝
+
+███████╗██╗   ██╗██████╗ ███████╗██████╗  ██████╗██╗  ██╗ █████╗ ██╗███╗   ██╗
+██╔════╝██║   ██║██╔══██╗██╔════╝██╔══██╗██╔════╝██║  ██║██╔══██╗██║████╗  ██║
+███████╗██║   ██║██████╔╝█████╗  ██████╔╝██║     ███████║███████║██║██╔██╗ ██║
+╚════██║██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗██║     ██╔══██║██╔══██║██║██║╚██╗██║
+███████║╚██████╔╝██║     ███████╗██║  ██║╚██████╗██║  ██║██║  ██║██║██║ ╚████║
+╚══════╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
+
+██████╗  ██████╗  ██████╗ ████████╗ ██████╗██╗     ██████╗  ██████╗  ██████╗ ██╗
+██╔══██╗██╔═══██╗██╔═══██╗╚══██╔══╝██╔════╝██║     ██╔══██╗██╔═══██╗██╔═══██╗██║
+██████╔╝██║   ██║██║   ██║   ██║   ██║     ██║     ██████╔╝██║   ██║██║   ██║██║
+██╔══██╗██║   ██║██║   ██║   ██║   ██║     ██║     ██╔═══╝ ██║   ██║██║   ██║██║
+██║  ██║╚██████╔╝╚██████╔╝   ██║   ╚██████╗███████╗██║     ╚██████╔╝╚██████╔╝███████╗
+╚═╝  ╚═╝ ╚═════╝  ╚═════╝    ╚═╝    ╚═════╝╚══════╝╚═╝      ╚═════╝  ╚═════╝ ╚══════╝
+
+███████╗ █████╗  ██████╗████████╗ ██████╗ ██████╗ ██╗   ██╗
+██╔════╝██╔══██╗██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗╚██╗ ██╔╝
+█████╗  ███████║██║        ██║   ██║   ██║██████╔╝ ╚████╔╝
+██╔══╝  ██╔══██║██║        ██║   ██║   ██║██╔══██╗  ╚██╔╝
+██║     ██║  ██║╚██████╗   ██║   ╚██████╔╝██║  ██║   ██║
+╚═╝     ╚═╝  ╚═╝ ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝
+
+*/
+
+/// @title Velodrome Superchain Root CL Pool Factory
+/// @notice Factory used to create RootCLPools
 contract RootCLPoolFactory is IRootCLPoolFactory {
     /// @inheritdoc IRootCLPoolFactory
     address public immutable override implementation;
@@ -43,7 +75,7 @@ contract RootCLPoolFactory is IRootCLPoolFactory {
         override
         returns (address pool)
     {
-        require(IChainRegistry(bridge).containsChain(chainid), "NR");
+        require(ICrossChainRegistry(bridge).containsChain(chainid), "NR");
         require(tokenA != tokenB, "S_A");
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), "Z_A");

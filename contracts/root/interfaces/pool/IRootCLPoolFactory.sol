@@ -3,10 +3,8 @@ pragma solidity >=0.5.0;
 
 import {IVoter} from "../../../core/interfaces/IVoter.sol";
 
-/// @title Minimal CL Factory interface
-/// @notice Used to support the integration with the core implementation
-/// @notice The CL Factory facilitates creation of CL pools and control over the protocol fees
-/// @dev For full context, please review the Uniswap implementation under GPL license.
+/// @title Velodrome Superchain Root CL Pool Factory interface
+/// @notice The Factory is used to create Root CL Pools
 interface IRootCLPoolFactory {
     event OwnerChanged(address indexed oldOwner, address indexed newOwner);
 
@@ -50,7 +48,7 @@ interface IRootCLPoolFactory {
     /// @return List of enabled tick spacings
     function tickSpacings() external view returns (int24[] memory);
 
-    /// @notice Returns the root pool address for a given pair of tokens and a tick spacing, or address 0 if it does not exist
+    /// @notice Returns the root pool address for a given pair of tokens, a tick spacing and chainid, or address 0 if it does not exist
     /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
     /// @param chainid Chain ID associated with pool
     /// @param tokenA The contract address of either token0 or token1

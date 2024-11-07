@@ -2,7 +2,9 @@
 pragma solidity =0.7.6;
 
 interface IMessageSender {
-    event SentMessage(uint32 indexed _destination, bytes32 indexed _recipient, uint256 _value, string _message);
+    event SentMessage(
+        uint32 indexed _destination, bytes32 indexed _recipient, uint256 _value, string _message, string _metadata
+    );
 
     /// @notice Sends a message to the destination module
     /// @dev All message modules must implement this function
@@ -14,5 +16,5 @@ interface IMessageSender {
     /// @param _destinationDomain The chain id of the destination chain
     /// @param _messageBody The message body to be dispatched
     /// @return The amount of native token required to dispatch the message
-    function quote(uint256 _destinationDomain, bytes calldata _messageBody) external payable returns (uint256);
+    function quote(uint256 _destinationDomain, bytes calldata _messageBody) external view returns (uint256);
 }

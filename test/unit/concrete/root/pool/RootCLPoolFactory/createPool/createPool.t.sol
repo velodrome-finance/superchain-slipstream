@@ -32,7 +32,7 @@ contract CreatePoolIntegrationConcreteTest is RootCLPoolFactoryTest {
 
     modifier whenChainIdIsRegistered() {
         vm.startPrank(Ownable(address(rootMessageBridge)).owner());
-        IChainRegistry(address(rootMessageBridge)).registerChain({
+        ICrossChainRegistry(address(rootMessageBridge)).registerChain({
             _chainid: _chainid,
             _module: address(rootMessageModule)
         });

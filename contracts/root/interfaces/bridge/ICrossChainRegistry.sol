@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.7.6;
 
-interface IChainRegistry {
-    event ChainRegistered(uint256 indexed _chainid);
-    event ChainDeregistered(uint256 indexed _chainid);
-
+interface ICrossChainRegistry {
     /// @notice Add support for a chain with messages forwarded to a given module
     /// @dev Check module code if adding a new module for the first time
     /// @param _chainid Chain ID to add

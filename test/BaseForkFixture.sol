@@ -41,8 +41,8 @@ import {Constants} from "script/constants/Constants.sol";
 
 import {IXERC20} from "contracts/superchain/IXERC20.sol";
 import {IXERC20Lockbox} from "contracts/superchain/IXERC20Lockbox.sol";
-import {IChainRegistry} from "contracts/root/interfaces/bridge/IChainRegistry.sol";
 import {IRootMessageBridge} from "contracts/root/interfaces/bridge/IRootMessageBridge.sol";
+import {ICrossChainRegistry} from "contracts/root/interfaces/bridge/ICrossChainRegistry.sol";
 import {IRootHLMessageModule} from "contracts/root/interfaces/bridge/hyperlane/IRootHLMessageModule.sol";
 import {ILeafHLMessageModule} from "contracts/root/interfaces/bridge/hyperlane/ILeafHLMessageModule.sol";
 import {RootCLPool} from "contracts/root/pool/RootCLPool.sol";
@@ -416,8 +416,8 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.stopPrank();
 
         vm.startPrank(Ownable(address(rootMessageBridge)).owner());
-        IChainRegistry(address(rootMessageBridge)).addModule({_module: address(rootMessageModule)});
-        IChainRegistry(address(rootMessageBridge)).registerChain({
+        ICrossChainRegistry(address(rootMessageBridge)).addModule({_module: address(rootMessageModule)});
+        ICrossChainRegistry(address(rootMessageBridge)).registerChain({
             _chainid: leafChainId,
             _module: address(leafMessageModule)
         });

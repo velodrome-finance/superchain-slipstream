@@ -17,7 +17,4 @@ interface ILeafHLMessageModule {
 
     /// @notice Returns the address of the security module contract used by the bridge
     function securityModule() external view returns (address);
-
-    /// @notice Returns the nonce of the next message to be received
-    function receivingNonce() external view returns (uint256);
 }
