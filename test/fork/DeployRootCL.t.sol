@@ -49,7 +49,6 @@ contract DeployRootCLForkTest is BaseForkFixture {
         assertNotEq(params.messageBridge, address(0));
         assertNotEq(params.votingRewardsFactory, address(0));
         assertNotEq(params.poolFactoryOwner, address(0));
-        assertNotEq(params.feeManager, address(0));
         assertNotEq(params.notifyAdmin, address(0));
         assertNotEq(params.emissionAdmin, address(0));
 
@@ -74,7 +73,7 @@ contract DeployRootCLForkTest is BaseForkFixture {
         assertEq(rootGaugeFactory.poolFactory(), address(rootPoolFactory));
         assertEq(rootGaugeFactory.votingRewardsFactory(), params.votingRewardsFactory);
         assertEq(rootGaugeFactory.emissionAdmin(), params.emissionAdmin);
-        assertEqUint(rootGaugeFactory.defaultCap(), 100);
+        assertEqUint(rootGaugeFactory.defaultCap(), 150);
         assertEq(rootGaugeFactory.notifyAdmin(), params.notifyAdmin);
         assertEqUint(rootGaugeFactory.weeklyEmissions(), 0);
         assertEqUint(rootGaugeFactory.activePeriod(), 0);

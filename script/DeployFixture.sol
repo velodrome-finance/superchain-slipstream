@@ -34,6 +34,7 @@ abstract contract DeployFixture is Script {
 
         deploy();
         logParams();
+        logOutput();
 
         vm.stopBroadcast();
     }

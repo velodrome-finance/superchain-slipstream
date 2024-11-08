@@ -8,14 +8,14 @@ contract DeployRootCL is DeployRootBaseFixture {
     function setUp() public override {
         _params = DeployRootBaseFixture.DeploymentParameters({
             voter: 0x41C914ee0c7E1A5edCD0295623e6dC557B5aBf3C,
-            xVelo: 0xa700b592304b69dDb70d9434F5E90877947f1f05,
-            lockbox: 0xF37D648ff7ab53fBe71C4EE66c212f74372f846b,
-            messageBridge: 0x0b34Ec8995052783A62692B7F3fF7c856A184dDD,
-            votingRewardsFactory: 0xEAc8b42979528447d58779A6a3CaBEb4E4aEdEC5,
+            xVelo: 0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81,
+            lockbox: 0x12B64dF29590b4F0934070faC96e82e580D60232,
+            messageBridge: 0xF278761576f45472bdD721EACA19317cE159c011,
+            votingRewardsFactory: 0x7dc9fd82f91B36F416A89f5478375e4a79f4Fb2F,
             poolFactoryOwner: 0xBA4BB89f4d1E66AA86B60696534892aE0cCf91F5,
-            feeManager: 0xBA4BB89f4d1E66AA86B60696534892aE0cCf91F5,
             notifyAdmin: 0xBA4BB89f4d1E66AA86B60696534892aE0cCf91F5,
             emissionAdmin: 0xBA4BB89f4d1E66AA86B60696534892aE0cCf91F5,
+            emissionCap: 150,
             outputFilename: "DeployCL-Optimism.json"
         });
     }

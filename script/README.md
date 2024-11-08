@@ -15,17 +15,16 @@ forge test
 
 ### Deployment
 
-Command:
-
-As of 2024, gas estimation for foundry on L2s continues to be inaccurate. You will need `--legacy --with-gas-price 2500000` if you wish to not overpay L2 gas.
-For non-create transactions, `--gas-estimate-multiplier 200` must be used as gas estimation is incorrect for these as well.
+Deploy Root Contracts
 
 ```
-forge script script/DeployCL.s.sol:DeployCL --broadcast --slow --rpc-url optimism --verify -vvvv 
+forge script script/deployParameters/optimism/DeployRootCL.s.sol:DeployRootCL --slow --rpc-url optimism -vvvv 
+forge script script/deployParameters/optimism/DeployRootCL.s.sol:DeployRootCL --broadcast --slow --rpc-url optimism --broadcast --verify -vvvv 
+```
 
-forge script script/DeployLpMigrator.s.sol:DeployLpMigrator --broadcast --slow --rpc-url optimism --verify -vvvv
+Deploy Leaf Contracts
 
-forge script script/DeployPools.s.sol:DeployPools --broadcast --slow --rpc-url optimism -vvvv
-
-forge script script/DeployPositionDescriptor.s.sol:DeployPositionDescriptor --broadcast --slow --rpc-url optimism -vvvv
+```
+forge script script/deployParameters/mode/DeployLeafCL.s.sol:DeployLeafCL --slow --rpc-url mode -vvvv 
+forge script script/deployParameters/mode/DeployLeafCL.s.sol:DeployLeafCL --broadcast --slow --rpc-url mode --broadcast --verify --verifier blockscout --verifier-url https://explorer.mode.network/api\? -vvvv 
 ```

@@ -214,22 +214,15 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         string memory root = vm.projectRoot();
         string memory path = string(abi.encodePacked(root, "/deployment-addresses/", _params.outputFilename));
         /// @dev This might overwrite an existing output file
-        vm.writeJson(
-            path,
-            string(
-                abi.encodePacked(
-                    stdJson.serialize("", "leafPoolImplementation", address(leafPoolImplementation)),
-                    stdJson.serialize("", "leafPoolFactory", address(leafPoolFactory)),
-                    stdJson.serialize("", "nftDescriptor", address(nftDescriptor)),
-                    stdJson.serialize("", "nft", address(nft)),
-                    stdJson.serialize("", "leafGaugeFactory", address(leafGaugeFactory)),
-                    stdJson.serialize("", "swapFeeModule", address(swapFeeModule)),
-                    stdJson.serialize("", "unstakedFeeModule", address(unstakedFeeModule)),
-                    stdJson.serialize("", "mixedQuoter", address(mixedQuoter)),
-                    stdJson.serialize("", "quoter", address(quoter)),
-                    stdJson.serialize("", "swapRouter", address(swapRouter))
-                )
-            )
-        );
+        vm.writeJson(vm.serializeAddress("", "leafPoolImplementation: ", address(leafPoolImplementation)), path);
+        vm.writeJson(vm.serializeAddress("", "leafPoolFactory: ", address(leafPoolFactory)), path);
+        vm.writeJson(vm.serializeAddress("", "nftDescriptor: ", address(nftDescriptor)), path);
+        vm.writeJson(vm.serializeAddress("", "nft: ", address(nft)), path);
+        vm.writeJson(vm.serializeAddress("", "leafGaugeFactory: ", address(leafGaugeFactory)), path);
+        vm.writeJson(vm.serializeAddress("", "swapFeeModule: ", address(swapFeeModule)), path);
+        vm.writeJson(vm.serializeAddress("", "unstakedFeeModule: ", address(unstakedFeeModule)), path);
+        vm.writeJson(vm.serializeAddress("", "mixedQuoter: ", address(mixedQuoter)), path);
+        vm.writeJson(vm.serializeAddress("", "quoter: ", address(quoter)), path);
+        vm.writeJson(vm.serializeAddress("", "swapRouter: ", address(swapRouter)), path);
     }
 }

@@ -20,9 +20,9 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
         address messageBridge;
         address votingRewardsFactory;
         address poolFactoryOwner;
-        address feeManager;
         address notifyAdmin;
         address emissionAdmin;
+        uint256 emissionCap;
         string outputFilename;
     }
 
@@ -74,7 +74,7 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
                         _params.votingRewardsFactory, // voting rewards factory
                         _params.notifyAdmin, // notify admin
                         _params.emissionAdmin, // emission admin
-                        100 // 1% default cap
+                        _params.emissionCap // 1% default cap
                     )
                 )
             })
@@ -98,15 +98,8 @@ abstract contract DeployRootBaseFixture is DeployFixture, Constants {
         string memory root = vm.projectRoot();
         string memory path = string(abi.encodePacked(root, "/deployment-addresses/", _params.outputFilename));
         /// @dev This might overwrite an existing output file
-        vm.writeJson(
-            path,
-            string(
-                abi.encodePacked(
-                    stdJson.serialize("", "rootPoolImplementation", address(rootPoolImplementation)),
-                    stdJson.serialize("", "rootPoolFactory", address(rootPoolFactory)),
-                    stdJson.serialize("", "rootGaugeFactory", address(rootGaugeFactory))
-                )
-            )
-        );
+        vm.writeJson(vm.serializeAddress("", "rootPoolImplementation: ", address(rootPoolImplementation)), path);
+        vm.writeJson(vm.serializeAddress("", "rootPoolFactory: ", address(rootPoolFactory)), path);
+        vm.writeJson(vm.serializeAddress("", "rootGaugeFactory: ", address(rootGaugeFactory)), path);
     }
 }
