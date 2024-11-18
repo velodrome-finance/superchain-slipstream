@@ -17,6 +17,7 @@ runs = 5000
 [rpc_endpoints]
 optimism_goerli = "${OPTIMISM_GOERLI_RPC_URL}"
 optimism = "${OPTIMISM_RPC_URL}"
+lisk = "${LISK_RPC_URL}"
 mode = "${MODE_RPC_URL}"
 bob = "${BOB_RPC_URL}"
 

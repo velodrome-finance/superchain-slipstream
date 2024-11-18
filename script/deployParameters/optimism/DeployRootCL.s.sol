@@ -16,7 +16,7 @@ contract DeployRootCL is DeployRootBaseFixture {
             notifyAdmin: 0xBA4BB89f4d1E66AA86B60696534892aE0cCf91F5,
             emissionAdmin: 0xBA4BB89f4d1E66AA86B60696534892aE0cCf91F5,
             emissionCap: 150,
-            outputFilename: "DeployCL-Optimism.json"
+            outputFilename: "root-optimism.json"
         });
     }
 }

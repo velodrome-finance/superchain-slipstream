@@ -30,7 +30,7 @@ contract DeployLeafCL is DeployLeafBaseFixture {
             feeManager: 0xe915AEf46E1bd9b9eD2D9FE571AE9b5afbDE571b,
             nftName: "Slipstream Position NFT v1.2",
             nftSymbol: "VELO-CL-POS",
-            outputFilename: "DeployCL-Mode.json"
+            outputFilename: "mode.json"
         });
 
         _modeParams = ModeDeploymentParameters({recipient: 0xb8804281fc224a4E597A3f256b53C9Ed3C89B6c3});
