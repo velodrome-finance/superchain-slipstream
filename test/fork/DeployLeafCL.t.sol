@@ -15,6 +15,7 @@ import {LeafCLGaugeFactory} from "contracts/gauge/LeafCLGaugeFactory.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
+import {SlipstreamSugar} from "contracts/sugar/SlipstreamSugar.sol";
 import {QuoterV2} from "contracts/periphery/lens/QuoterV2.sol";
 import {SwapRouter} from "contracts/periphery/SwapRouter.sol";
 import "test/BaseForkFixture.sol";
@@ -28,6 +29,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
     DeployLeafCL.ModeDeploymentParameters public modeParams;
 
     // deployed contracts (not in BaseForkFixture)
+    SlipstreamSugar public slipstreamSugar;
     MixedRouteQuoterV1 public mixedQuoter;
     QuoterV2 public quoter;
     SwapRouter public swapRouter;
@@ -57,6 +59,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         leafGaugeFactory = deployCL.leafGaugeFactory();
         customSwapFeeModule = deployCL.swapFeeModule();
         customUnstakedFeeModule = deployCL.unstakedFeeModule();
+        slipstreamSugar = deployCL.slipstreamSugar();
         mixedQuoter = deployCL.mixedQuoter();
         quoter = deployCL.quoter();
         swapRouter = deployCL.swapRouter();
@@ -121,6 +124,8 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertNotEq(address(customUnstakedFeeModule), address(0));
         assertEq(customUnstakedFeeModule.MAX_FEE(), 500_000); // 50%, using pip denomination
         assertEq(address(customUnstakedFeeModule.factory()), address(leafPoolFactory));
+
+        assertNotEq(address(slipstreamSugar), address(0));
 
         assertNotEq(address(mixedQuoter), address(0));
         assertEq(mixedQuoter.factoryV2(), params.factoryV2);

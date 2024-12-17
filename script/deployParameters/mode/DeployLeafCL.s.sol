@@ -133,6 +133,9 @@ contract DeployLeafCL is DeployLeafBaseFixture {
         leafPoolFactory.setSwapFeeManager(_params.feeManager);
         leafPoolFactory.setUnstakedFeeManager(_params.feeManager);
 
+        // deploy slipstream sugar
+        slipstreamSugar = new SlipstreamSugar();
+
         //deploy quoter and router
         mixedQuoter = MixedRouteQuoterV1(
             cx.deployCreate3({

@@ -13,6 +13,7 @@ import {LeafCLGaugeFactory} from "contracts/gauge/LeafCLGaugeFactory.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
+import {SlipstreamSugar} from "contracts/sugar/SlipstreamSugar.sol";
 import {QuoterV2} from "contracts/periphery/lens/QuoterV2.sol";
 import {SwapRouter} from "contracts/periphery/SwapRouter.sol";
 import {Constants} from "script/constants/Constants.sol";
@@ -45,6 +46,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
 
     CustomSwapFeeModule public swapFeeModule;
     CustomUnstakedFeeModule public unstakedFeeModule;
+    SlipstreamSugar public slipstreamSugar;
     MixedRouteQuoterV1 public mixedQuoter;
     QuoterV2 public quoter;
     SwapRouter public swapRouter;
@@ -146,6 +148,9 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         leafPoolFactory.setSwapFeeManager(_params.feeManager);
         leafPoolFactory.setUnstakedFeeManager(_params.feeManager);
 
+        // deploy slipstream sugar
+        slipstreamSugar = new SlipstreamSugar();
+
         //deploy quoter and router
         mixedQuoter = MixedRouteQuoterV1(
             cx.deployCreate3({
@@ -204,6 +209,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         console2.log("leafGaugeFactory: ", address(leafGaugeFactory));
         console2.log("swapFeeModule: ", address(swapFeeModule));
         console2.log("unstakedFeeModule: ", address(unstakedFeeModule));
+        console2.log("slipstreamSugar: ", address(slipstreamSugar));
         console2.log("mixedQuoter: ", address(mixedQuoter));
         console2.log("quoter: ", address(quoter));
         console2.log("swapRouter: ", address(swapRouter));
@@ -221,6 +227,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         vm.writeJson(vm.serializeAddress("", "leafGaugeFactory: ", address(leafGaugeFactory)), path);
         vm.writeJson(vm.serializeAddress("", "swapFeeModule: ", address(swapFeeModule)), path);
         vm.writeJson(vm.serializeAddress("", "unstakedFeeModule: ", address(unstakedFeeModule)), path);
+        vm.writeJson(vm.serializeAddress("", "slipstreamSugar", address(slipstreamSugar)), path);
         vm.writeJson(vm.serializeAddress("", "mixedQuoter: ", address(mixedQuoter)), path);
         vm.writeJson(vm.serializeAddress("", "quoter: ", address(quoter)), path);
         vm.writeJson(vm.serializeAddress("", "swapRouter: ", address(swapRouter)), path);
