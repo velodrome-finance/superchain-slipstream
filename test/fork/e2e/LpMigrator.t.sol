@@ -39,15 +39,16 @@ contract LpMigratorTest is BaseForkFixture {
             cx.deployCreate3({
                 salt: CreateXLibrary.calculateSalt({_entropy: CL_POOL_FACTORY_ENTROPY, _deployer: users.deployer2}),
                 initCode: abi.encodePacked(
-                    type(CLFactory).creationCode,
+                    type(ModeCLFactory).creationCode,
                     abi.encode(
                         users.owner, // owner
                         users.feeManager, // swap fee manager
                         users.feeManager, // unstaked fee manager
                         address(leafVoter), // leaf voter
                         address(leafPoolImplementation), // pool implementation
-                        address(leafGaugeFactory),
-                        address(nft)
+                        address(leafGaugeFactory), // gauge factory
+                        address(nft), // nft
+                        users.owner // sfs recipient
                     )
                 )
             })
