@@ -573,4 +573,9 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.selectFork({forkId: fork});
         _;
     }
+
+    function resetPrank(address msgSender) internal {
+        vm.stopPrank();
+        vm.startPrank(msgSender);
+    }
 }
