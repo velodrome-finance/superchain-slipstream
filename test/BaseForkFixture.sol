@@ -38,6 +38,10 @@ import {ILpMigrator, LpMigrator} from "contracts/periphery/LpMigrator.sol";
 import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
 
 import {Constants} from "script/constants/Constants.sol";
+import {TestDeployRootCL} from "test/utils/TestDeployRootCL.sol";
+import {DeployRootBaseFixture} from "script/01_DeployRootBaseFixture.s.sol";
+import {TestDeployLeafCL} from "test/utils/TestDeployLeafCL.sol";
+import {DeployLeafBaseFixture} from "script/01_DeployLeafBaseFixture.s.sol";
 
 import {IXERC20} from "contracts/superchain/IXERC20.sol";
 import {IXERC20Lockbox} from "contracts/superchain/IXERC20Lockbox.sol";
@@ -52,15 +56,23 @@ import {IRootCLGauge, RootCLGauge} from "contracts/root/gauge/RootCLGauge.sol";
 import {IRootVotingRewardsFactory} from "contracts/root/interfaces/rewards/IRootVotingRewardsFactory.sol";
 import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
 import {IMultichainMockMailbox} from "contracts/test/interfaces/IMultichainMockMailbox.sol";
+import {ModeCLFactory} from "contracts/core/extensions/ModeCLFactory.sol";
 
 import {TestERC20} from "contracts/periphery/test/TestERC20.sol";
 import {EnumerableSet} from "contracts/libraries/EnumerableSet.sol";
 
 abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
+    using stdStorage for StdStorage;
     using CreateXLibrary for bytes11;
     using SafeCast for uint256;
 
     string public addresses;
+
+    TestDeployRootCL public deployRootCL;
+    DeployRootBaseFixture.DeploymentParameters public rootParams;
+
+    TestDeployLeafCL public deployLeafCL;
+    DeployLeafBaseFixture.DeploymentParameters public leafParams;
 
     /// @dev Fixed fee used for x-chain message quotes
     uint256 public constant MESSAGE_FEE = 1 ether / 10_000; // 0.0001 ETH
@@ -213,48 +225,26 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
         deployRootDependencies();
 
-        vm.startPrank(users.deployer);
+        rootParams = DeployRootBaseFixture.DeploymentParameters({
+            voter: address(rootVoter),
+            xVelo: address(rootXVelo),
+            lockbox: address(rootLockbox),
+            messageBridge: address(rootMessageBridge),
+            votingRewardsFactory: address(rootVotingRewardsFactory),
+            poolFactoryOwner: users.owner,
+            notifyAdmin: users.owner,
+            emissionAdmin: users.owner,
+            emissionCap: 100,
+            outputFilename: "root-optimism.json"
+        });
+        deployRootCL = new TestDeployRootCL(rootParams);
+        stdstore.target(address(deployRootCL)).sig("deployer()").checked_write(users.owner);
 
-        rootPoolImplementation = RootCLPool(
-            cx.deployCreate3({
-                salt: CreateXLibrary.calculateSalt({_entropy: CL_POOL_ENTROPY, _deployer: users.deployer}),
-                initCode: abi.encodePacked(type(RootCLPool).creationCode)
-            })
-        );
-        rootPoolFactory = RootCLPoolFactory(
-            cx.deployCreate3({
-                salt: CreateXLibrary.calculateSalt({_entropy: CL_POOL_FACTORY_ENTROPY, _deployer: users.deployer}),
-                initCode: abi.encodePacked(
-                    type(RootCLPoolFactory).creationCode,
-                    abi.encode(
-                        users.owner,
-                        address(rootPoolImplementation), // root pool implementation
-                        address(rootMessageBridge) // message bridge
-                    )
-                )
-            })
-        );
+        deployRootCL.run();
 
-        rootGaugeFactory = RootCLGaugeFactory(
-            cx.deployCreate3({
-                salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: users.deployer}),
-                initCode: abi.encodePacked(
-                    type(RootCLGaugeFactory).creationCode,
-                    abi.encode(
-                        address(rootVoter), // root voter
-                        address(rootXVelo), // xerc20
-                        address(rootLockbox), // lockbox
-                        address(rootMessageBridge), // message bridge
-                        address(rootPoolFactory), // pool factory
-                        address(rootVotingRewardsFactory), // voting rewards factory
-                        users.owner, // notify admin
-                        users.owner, // emission admin
-                        100 // 1% default cap
-                    )
-                )
-            })
-        );
-        vm.stopPrank();
+        rootPoolImplementation = deployRootCL.rootPoolImplementation();
+        rootPoolFactory = deployRootCL.rootPoolFactory();
+        rootGaugeFactory = deployRootCL.rootGaugeFactory();
 
         // approve gauge in factory registry
         vm.prank(Ownable(address(factoryRegistry)).owner());
@@ -270,95 +260,34 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
 
         deployLeafDependencies();
 
-        vm.startPrank(users.deployer);
+        leafParams = DeployLeafBaseFixture.DeploymentParameters({
+            weth: address(weth),
+            leafVoter: address(leafVoter),
+            factoryV2: 0x31832f2a97Fd20664D76Cc421207669b55CE4BC0,
+            xVelo: address(leafXVelo),
+            messageBridge: address(leafMessageBridge),
+            team: users.owner,
+            poolFactoryOwner: users.owner,
+            feeManager: users.feeManager,
+            nftName: nftName,
+            nftSymbol: nftSymbol,
+            outputFilename: "mode.json"
+        });
+        deployLeafCL = new TestDeployLeafCL(leafParams);
+        stdstore.target(address(deployLeafCL)).sig("deployer()").checked_write(users.owner);
 
-        address deployer = users.deployer;
-        leafPoolImplementation = CLPool(
-            cx.deployCreate3({
-                salt: CL_POOL_ENTROPY.calculateSalt({_deployer: deployer}),
-                initCode: abi.encodePacked(type(CLPool).creationCode)
-            })
-        );
+        deployLeafCL.run();
 
-        leafGaugeFactory = LeafCLGaugeFactory(CL_GAUGE_FACTORY_ENTROPY.computeCreate3Address({_deployer: deployer}));
-        nft = NonfungiblePositionManager(payable(NFT_POSITION_MANAGER.computeCreate3Address({_deployer: deployer})));
+        leafPoolImplementation = deployLeafCL.leafPoolImplementation();
+        leafPoolFactory = deployLeafCL.leafPoolFactory();
+        nft = deployLeafCL.nft();
+        nftDescriptor = deployLeafCL.nftDescriptor();
+        leafGaugeFactory = deployLeafCL.leafGaugeFactory();
+        customSwapFeeModule = deployLeafCL.swapFeeModule();
+        customUnstakedFeeModule = deployLeafCL.unstakedFeeModule();
 
-        leafPoolFactory = CLFactory(
-            cx.deployCreate3({
-                salt: CL_POOL_FACTORY_ENTROPY.calculateSalt({_deployer: deployer}),
-                initCode: abi.encodePacked(
-                    type(CLFactory).creationCode,
-                    abi.encode(
-                        users.owner, // owner
-                        users.feeManager, // swap fee manager
-                        users.feeManager, // unstaked fee manager
-                        address(leafVoter), // leaf voter
-                        address(leafPoolImplementation), // pool implementation
-                        address(leafGaugeFactory),
-                        address(nft)
-                    )
-                )
-            })
-        );
-
-        vm.startPrank(deployer);
-
-        // deploy nft contracts
-        nftDescriptor = NonfungibleTokenPositionDescriptor(
-            cx.deployCreate3({
-                salt: NFT_POSITION_DESCRIPTOR.calculateSalt({_deployer: deployer}),
-                initCode: abi.encodePacked(
-                    type(NonfungibleTokenPositionDescriptor).creationCode,
-                    abi.encode(
-                        address(weth), // WETH9
-                        0x4554480000000000000000000000000000000000000000000000000000000000 // nativeCurrencyLabelBytes
-                    )
-                )
-            })
-        );
-        nft = NonfungiblePositionManager(
-            payable(
-                cx.deployCreate3({
-                    salt: NFT_POSITION_MANAGER.calculateSalt({_deployer: deployer}),
-                    initCode: abi.encodePacked(
-                        type(NonfungiblePositionManager).creationCode,
-                        abi.encode(
-                            users.owner, // owner
-                            address(leafPoolFactory), // pool factory
-                            address(weth), // WETH9
-                            address(nftDescriptor), // nft descriptor
-                            nftName, // name
-                            nftSymbol // symbol
-                        )
-                    )
-                })
-            )
-        );
-
-        // deploy gauges
-        leafGaugeFactory = LeafCLGaugeFactory(
-            cx.deployCreate3({
-                salt: CL_GAUGE_FACTORY_ENTROPY.calculateSalt({_deployer: deployer}),
-                initCode: abi.encodePacked(
-                    type(LeafCLGaugeFactory).creationCode,
-                    abi.encode(
-                        address(leafVoter), // voter
-                        address(nft), // nft (nfpm)
-                        address(leafXVelo), // xerc20
-                        address(leafMessageBridge) // bridge
-                    )
-                )
-            })
-        );
-
-        vm.stopPrank();
-
-        vm.startPrank(users.deployer2);
+        vm.prank(users.deployer2);
         lpMigrator = new LpMigrator();
-
-        customSwapFeeModule = new CustomSwapFeeModule(address(leafPoolFactory));
-        customUnstakedFeeModule = new CustomUnstakedFeeModule(address(leafPoolFactory));
-        vm.stopPrank();
 
         vm.startPrank(users.feeManager);
         leafPoolFactory.setSwapFeeModule(address(customSwapFeeModule));
@@ -643,5 +572,10 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         vm.warp({newTimestamp: leafStartTime});
         vm.selectFork({forkId: fork});
         _;
+    }
+
+    function resetPrank(address msgSender) internal {
+        vm.stopPrank();
+        vm.startPrank(msgSender);
     }
 }

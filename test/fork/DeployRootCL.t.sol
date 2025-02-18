@@ -13,20 +13,18 @@ import "test/BaseForkFixture.sol";
 contract DeployRootCLForkTest is BaseForkFixture {
     using stdStorage for StdStorage;
 
-    DeployRootCL public deployCL;
-
-    DeployRootCL.DeploymentParameters public params;
+    DeployRootCL public deployRootCL_;
 
     function setUp() public override {
         vm.createSelectFork({urlOrAlias: "optimism", blockNumber: blockNumber});
 
-        deployCL = new DeployRootCL();
-        deployCL.setUp();
+        deployRootCL_ = new DeployRootCL();
+        deployRootCL_.setUp();
 
         createUsers();
 
-        stdstore.target(address(deployCL)).sig("deployer()").checked_write(users.owner);
-        stdstore.target(address(deployCL)).sig("isTest()").checked_write(true);
+        stdstore.target(address(deployRootCL_)).sig("deployer()").checked_write(users.owner);
+        stdstore.target(address(deployRootCL_)).sig("isTest()").checked_write(true);
 
         string memory root = vm.projectRoot();
         string memory path = string(abi.encodePacked(root, "/test/fork/addresses.json"));
@@ -34,29 +32,29 @@ contract DeployRootCLForkTest is BaseForkFixture {
     }
 
     function test_deployCL() public {
-        deployCL.run();
+        deployRootCL_.run();
 
         // preload variables for convenience
-        rootPoolImplementation = deployCL.rootPoolImplementation();
-        rootPoolFactory = deployCL.rootPoolFactory();
-        rootGaugeFactory = deployCL.rootGaugeFactory();
+        rootPoolImplementation = deployRootCL_.rootPoolImplementation();
+        rootPoolFactory = deployRootCL_.rootPoolFactory();
+        rootGaugeFactory = deployRootCL_.rootGaugeFactory();
 
-        params = deployCL.params();
+        rootParams = deployRootCL_.params();
 
-        assertNotEq(params.voter, address(0));
-        assertNotEq(params.xVelo, address(0));
-        assertNotEq(params.lockbox, address(0));
-        assertNotEq(params.messageBridge, address(0));
-        assertNotEq(params.votingRewardsFactory, address(0));
-        assertNotEq(params.poolFactoryOwner, address(0));
-        assertNotEq(params.notifyAdmin, address(0));
-        assertNotEq(params.emissionAdmin, address(0));
+        assertNotEq(rootParams.voter, address(0));
+        assertNotEq(rootParams.xVelo, address(0));
+        assertNotEq(rootParams.lockbox, address(0));
+        assertNotEq(rootParams.messageBridge, address(0));
+        assertNotEq(rootParams.votingRewardsFactory, address(0));
+        assertNotEq(rootParams.poolFactoryOwner, address(0));
+        assertNotEq(rootParams.notifyAdmin, address(0));
+        assertNotEq(rootParams.emissionAdmin, address(0));
 
         assertNotEq(address(rootPoolImplementation), address(0));
         assertNotEq(address(rootPoolFactory), address(0));
         assertEq(address(rootPoolFactory.implementation()), address(rootPoolImplementation));
-        assertEq(address(rootPoolFactory.bridge()), params.messageBridge);
-        assertEq(address(rootPoolFactory.owner()), params.poolFactoryOwner);
+        assertEq(address(rootPoolFactory.bridge()), rootParams.messageBridge);
+        assertEq(address(rootPoolFactory.owner()), rootParams.poolFactoryOwner);
         assertEqUint(rootPoolFactory.tickSpacingToFee(1), 100);
         assertEqUint(rootPoolFactory.tickSpacingToFee(50), 500);
         assertEqUint(rootPoolFactory.tickSpacingToFee(100), 500);
@@ -66,15 +64,15 @@ contract DeployRootCLForkTest is BaseForkFixture {
         assertNotEq(address(rootGaugeFactory), address(0));
         assertEq(rootGaugeFactory.rewardToken(), vm.parseJsonAddress(addresses, ".Velo"));
         assertEq(rootGaugeFactory.minter(), vm.parseJsonAddress(addresses, ".Minter"));
-        assertEq(rootGaugeFactory.voter(), params.voter);
-        assertEq(rootGaugeFactory.xerc20(), params.xVelo);
-        assertEq(rootGaugeFactory.lockbox(), params.lockbox);
-        assertEq(rootGaugeFactory.messageBridge(), params.messageBridge);
+        assertEq(rootGaugeFactory.voter(), rootParams.voter);
+        assertEq(rootGaugeFactory.xerc20(), rootParams.xVelo);
+        assertEq(rootGaugeFactory.lockbox(), rootParams.lockbox);
+        assertEq(rootGaugeFactory.messageBridge(), rootParams.messageBridge);
         assertEq(rootGaugeFactory.poolFactory(), address(rootPoolFactory));
-        assertEq(rootGaugeFactory.votingRewardsFactory(), params.votingRewardsFactory);
-        assertEq(rootGaugeFactory.emissionAdmin(), params.emissionAdmin);
+        assertEq(rootGaugeFactory.votingRewardsFactory(), rootParams.votingRewardsFactory);
+        assertEq(rootGaugeFactory.emissionAdmin(), rootParams.emissionAdmin);
         assertEqUint(rootGaugeFactory.defaultCap(), 150);
-        assertEq(rootGaugeFactory.notifyAdmin(), params.notifyAdmin);
+        assertEq(rootGaugeFactory.notifyAdmin(), rootParams.notifyAdmin);
         assertEqUint(rootGaugeFactory.weeklyEmissions(), 0);
         assertEqUint(rootGaugeFactory.activePeriod(), 0);
         assertEqUint(rootGaugeFactory.MAX_BPS(), 10_000);
