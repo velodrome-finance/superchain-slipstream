@@ -49,5 +49,6 @@ Velodrome has a live bug bounty hosted on ([Immunefi](https://immunefi.com/bount
 | Superseed  | [Addresses](https://github.com/velodrome-finance/superchain-slipstream/blob/main/deployment-addresses/superseed.json)           | [v1.0](https://github.com/velodrome-finance/superchain-slipstream/commit/63b2e08a11f42d91dc6f8487643ecb3d79e745c4)      |
 | Ink        | [Addresses](https://github.com/velodrome-finance/superchain-slipstream/blob/main/deployment-addresses/ink.json)           | [v1.0](https://github.com/velodrome-finance/superchain-slipstream/commit/63b2e08a11f42d91dc6f8487643ecb3d79e745c4)      | 
 | Soneium    | [Addresses](https://github.com/velodrome-finance/superchain-slipstream/blob/main/deployment-addresses/soneium.json)           | [v1.0](https://github.com/velodrome-finance/superchain-slipstream/commit/63b2e08a11f42d91dc6f8487643ecb3d79e745c4)      | 
+| Swell      | [Addresses](https://github.com/velodrome-finance/superchain-slipstream/blob/main/deployment-addresses/swell.json)           | [v1.0](https://github.com/velodrome-finance/superchain-slipstream/commit/63b2e08a11f42d91dc6f8487643ecb3d79e745c4)      | 
 
 See the main [Superchain repository](https://github.com/velodrome-finance/superchain-contracts) for the core root contracts.
