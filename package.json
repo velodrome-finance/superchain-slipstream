@@ -19,6 +19,7 @@
   "files": [
     "contracts/core/interfaces",
     "contracts/core/libraries",
+    "contracts/gauge/interfaces",
     "contracts/periphery/base",
     "contracts/periphery/interfaces",
     "contracts/periphery/libraries",
