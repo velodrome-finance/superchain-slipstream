@@ -7,6 +7,6 @@
   "nftDescriptor: ": "0xf13bd1AFdf4f8b394928228F8FD122DC225f9140",
   "quoter: ": "0x3FA596fAC2D6f7d16E01984897Ac04200Cb9cA05",
   "swapFeeModule: ": "0xB0922e747e906B963dBdA37647DE1Aa709B35B2d",
-  "swapRouter: ": "0x63951637d667f23D5251DEdc0f9123D22d8595be",
+  "swapRouter: ": "0xcbfC968ac0B9d95061E1bB33504aA06bc53Ba554",
   "unstakedFeeModule: ": "0x479Bec910d4025b4aC440ec27aCf28eac522242B"
 }
