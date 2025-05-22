@@ -7,7 +7,6 @@ import "forge-std/StdJson.sol";
 import {DeployLeafCL} from "script/deployParameters/mode/DeployLeafCL.s.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
 import {CLFactory} from "contracts/core/CLFactory.sol";
-import {ModeFeeSharing} from "contracts/extensions/ModeFeeSharing.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
 import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
 import {LeafCLGauge} from "contracts/gauge/LeafCLGauge.sol";
@@ -15,6 +14,7 @@ import {LeafCLGaugeFactory} from "contracts/gauge/LeafCLGaugeFactory.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
+import {MixedRouteQuoterV2} from "contracts/periphery/lens/MixedRouteQuoterV2.sol";
 import {SlipstreamSugar} from "contracts/sugar/SlipstreamSugar.sol";
 import {QuoterV2} from "contracts/periphery/lens/QuoterV2.sol";
 import {SwapRouter} from "contracts/periphery/SwapRouter.sol";
@@ -26,13 +26,11 @@ contract DeployLeafCLForkTest is BaseForkFixture {
     // deployed contracts (not in BaseForkFixture)
     SlipstreamSugar public slipstreamSugar;
     MixedRouteQuoterV1 public mixedQuoter;
+    MixedRouteQuoterV2 public mixedQuoterV2;
     QuoterV2 public quoter;
     SwapRouter public swapRouter;
 
     DeployLeafCL public deployLeafCLMode;
-    DeployLeafCL.ModeDeploymentParameters public modeParams;
-
-    address public constant sfs = 0x8680CEaBcb9b56913c519c069Add6Bc3494B7020;
 
     function setUp() public override {
         vm.createSelectFork({urlOrAlias: "mode", blockNumber: leafBlockNumber});
@@ -61,9 +59,9 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         mixedQuoter = deployLeafCLMode.mixedQuoter();
         quoter = deployLeafCLMode.quoter();
         swapRouter = deployLeafCLMode.swapRouter();
+        mixedQuoterV2 = deployLeafCLMode.mixedQuoterV2();
 
         leafParams = deployLeafCLMode.params();
-        modeParams = deployLeafCLMode.modeParams();
 
         assertNotEq(leafParams.weth, address(0));
         assertNotEq(leafParams.leafVoter, address(0));
@@ -92,8 +90,6 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEqUint(leafPoolFactory.tickSpacingToFee(100), 500);
         assertEqUint(leafPoolFactory.tickSpacingToFee(200), 3_000);
         assertEqUint(leafPoolFactory.tickSpacingToFee(2_000), 10_000);
-        assertEq(ModeFeeSharing(address(leafPoolFactory)).sfs(), sfs);
-        assertEq(ModeFeeSharing(address(leafPoolFactory)).tokenId(), 587);
 
         assertNotEq(address(nftDescriptor), address(0));
         assertEq(nftDescriptor.WETH9(), leafParams.weth);
@@ -106,8 +102,6 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEq(nft.WETH9(), leafParams.weth);
         assertEq(nft.name(), leafParams.nftName);
         assertEq(nft.symbol(), leafParams.nftSymbol);
-        assertEq(ModeFeeSharing(address(nft)).sfs(), sfs);
-        assertEq(ModeFeeSharing(address(nft)).tokenId(), 588);
 
         assertNotEq(address(leafGaugeFactory), address(0));
         assertEq(leafGaugeFactory.voter(), leafParams.leafVoter);
@@ -137,6 +131,11 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertNotEq(address(swapRouter), address(0));
         assertEq(swapRouter.factory(), address(leafPoolFactory));
         assertEq(swapRouter.WETH9(), leafParams.weth);
+
+        assertNotEq(address(mixedQuoterV2), address(0));
+        assertEq(mixedQuoterV2.factoryV2(), leafParams.factoryV2);
+        assertEq(mixedQuoterV2.factory(), address(leafPoolFactory));
+        assertEq(mixedQuoterV2.WETH9(), leafParams.weth);
     }
 
     function concat(string memory a, string memory b) internal pure returns (string memory) {

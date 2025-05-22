@@ -13,6 +13,7 @@ import {LeafCLGaugeFactory} from "contracts/gauge/LeafCLGaugeFactory.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
+import {MixedRouteQuoterV2} from "contracts/periphery/lens/MixedRouteQuoterV2.sol";
 import {SlipstreamSugar} from "contracts/sugar/SlipstreamSugar.sol";
 import {QuoterV2} from "contracts/periphery/lens/QuoterV2.sol";
 import {SwapRouter} from "contracts/periphery/SwapRouter.sol";
@@ -48,6 +49,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
     CustomUnstakedFeeModule public unstakedFeeModule;
     SlipstreamSugar public slipstreamSugar;
     MixedRouteQuoterV1 public mixedQuoter;
+    MixedRouteQuoterV2 public mixedQuoterV2;
     QuoterV2 public quoter;
     SwapRouter public swapRouter;
 
@@ -194,6 +196,21 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
             )
         );
         checkAddress({_entropy: SWAP_ROUTER_ENTROPY, _output: address(swapRouter)});
+
+        mixedQuoterV2 = MixedRouteQuoterV2(
+            cx.deployCreate3({
+                salt: MIXED_QUOTER_V2_ENTROPY.calculateSalt({_deployer: _deployer}),
+                initCode: abi.encodePacked(
+                    type(MixedRouteQuoterV2).creationCode,
+                    abi.encode(
+                        address(leafPoolFactory), // pool factory
+                        _params.factoryV2, // factory v2
+                        _params.weth // WETH9
+                    )
+                )
+            })
+        );
+        checkAddress({_entropy: MIXED_QUOTER_V2_ENTROPY, _output: address(mixedQuoterV2)});
     }
 
     function params() external view returns (DeploymentParameters memory) {
@@ -211,6 +228,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         console2.log("unstakedFeeModule: ", address(unstakedFeeModule));
         console2.log("slipstreamSugar: ", address(slipstreamSugar));
         console2.log("mixedQuoter: ", address(mixedQuoter));
+        console2.log("mixedQuoterV2: ", address(mixedQuoterV2));
         console2.log("quoter: ", address(quoter));
         console2.log("swapRouter: ", address(swapRouter));
     }
@@ -229,6 +247,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         vm.writeJson(vm.serializeAddress("", "unstakedFeeModule: ", address(unstakedFeeModule)), path);
         vm.writeJson(vm.serializeAddress("", "slipstreamSugar", address(slipstreamSugar)), path);
         vm.writeJson(vm.serializeAddress("", "mixedQuoter: ", address(mixedQuoter)), path);
+        vm.writeJson(vm.serializeAddress("", "mixedQuoterV2: ", address(mixedQuoterV2)), path);
         vm.writeJson(vm.serializeAddress("", "quoter: ", address(quoter)), path);
         vm.writeJson(vm.serializeAddress("", "swapRouter: ", address(swapRouter)), path);
     }
