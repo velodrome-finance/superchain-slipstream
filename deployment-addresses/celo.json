@@ -9,5 +9,6 @@
   "slipstreamSugar": "0x928Bb6c9097d5C9c1eB5E99E71e24E4D773f2Be5",
   "swapFeeModule: ": "0xbcAE2d4b4E8E34a4100e69E9C73af8214a89572e",
   "swapRouter: ": "0x63951637d667f23D5251DEdc0f9123D22d8595be",
-  "unstakedFeeModule: ": "0xb8E41Db4Be1F6249cEc64F48CE4349004442d5c5"
+  "unstakedFeeModule: ": "0xb8E41Db4Be1F6249cEc64F48CE4349004442d5c5",
+  "mixedRouteQuoterV2": "0x846B5Cec4B4C3f7B95b3321D01e38a72D358F5C0"
 }

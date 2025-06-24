@@ -8,5 +8,6 @@
   "quoter: ": "0x3FA596fAC2D6f7d16E01984897Ac04200Cb9cA05",
   "swapFeeModule: ": "0xB0922e747e906B963dBdA37647DE1Aa709B35B2d",
   "swapRouter: ": "0xcbfC968ac0B9d95061E1bB33504aA06bc53Ba554",
-  "unstakedFeeModule: ": "0x479Bec910d4025b4aC440ec27aCf28eac522242B"
+  "unstakedFeeModule: ": "0x479Bec910d4025b4aC440ec27aCf28eac522242B",
+  "mixedRouteQuoterV2": "0x846B5Cec4B4C3f7B95b3321D01e38a72D358F5C0"
 }
