@@ -283,7 +283,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         nft = deployLeafCL.nft();
         nftDescriptor = deployLeafCL.nftDescriptor();
         leafGaugeFactory = deployLeafCL.leafGaugeFactory();
-        customSwapFeeModule = deployLeafCL.swapFeeModule();
+        customSwapFeeModule = new CustomSwapFeeModule({_factory: address(deployLeafCL.leafPoolFactory())});
         customUnstakedFeeModule = deployLeafCL.unstakedFeeModule();
 
         vm.prank(users.deployer2);

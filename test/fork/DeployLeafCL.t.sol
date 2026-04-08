@@ -11,7 +11,7 @@ import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/Nonfungibl
 import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
 import {LeafCLGauge} from "contracts/gauge/LeafCLGauge.sol";
 import {LeafCLGaugeFactory} from "contracts/gauge/LeafCLGaugeFactory.sol";
-import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
+import {DynamicSwapFeeModule} from "contracts/core/fees/DynamicSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
 import {MixedRouteQuoterV2} from "contracts/periphery/lens/MixedRouteQuoterV2.sol";
@@ -53,7 +53,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         nft = deployLeafCLMode.nft();
         nftDescriptor = deployLeafCLMode.nftDescriptor();
         leafGaugeFactory = deployLeafCLMode.leafGaugeFactory();
-        customSwapFeeModule = deployLeafCLMode.swapFeeModule();
+        DynamicSwapFeeModule dynamicSwapFeeModule = deployLeafCLMode.swapFeeModule();
         customUnstakedFeeModule = deployLeafCLMode.unstakedFeeModule();
         slipstreamSugar = deployLeafCLMode.slipstreamSugar();
         mixedQuoter = deployLeafCLMode.mixedQuoter();
@@ -81,7 +81,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEq(address(leafPoolFactory.nft()), address(nft));
         assertEq(address(leafPoolFactory.owner()), leafParams.poolFactoryOwner);
         assertEq(address(leafPoolFactory.swapFeeManager()), leafParams.feeManager);
-        assertEq(address(leafPoolFactory.swapFeeModule()), address(customSwapFeeModule));
+        assertEq(address(leafPoolFactory.swapFeeModule()), address(dynamicSwapFeeModule));
         assertEq(address(leafPoolFactory.unstakedFeeManager()), leafParams.feeManager);
         assertEq(address(leafPoolFactory.unstakedFeeModule()), address(customUnstakedFeeModule));
         assertEqUint(leafPoolFactory.defaultUnstakedFee(), 100_000);
@@ -109,9 +109,11 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEq(leafGaugeFactory.bridge(), leafParams.messageBridge);
         assertEq(leafGaugeFactory.nft(), address(nft));
 
-        assertNotEq(address(customSwapFeeModule), address(0));
-        assertEq(customSwapFeeModule.MAX_FEE(), 30_000); // 3%, using pip denomination
-        assertEq(address(customSwapFeeModule.factory()), address(leafPoolFactory));
+        assertNotEq(address(dynamicSwapFeeModule), address(0));
+        assertEq(dynamicSwapFeeModule.MAX_BASE_FEE(), 30_000); // 3%, using pip denomination
+        assertEq(address(dynamicSwapFeeModule.factory()), address(leafPoolFactory));
+        assertEq(dynamicSwapFeeModule.defaultFeeCap(), 30_000);
+        assertEq(dynamicSwapFeeModule.defaultScalingFactor(), 0);
 
         assertNotEq(address(customUnstakedFeeModule), address(0));
         assertEq(customUnstakedFeeModule.MAX_FEE(), 500_000); // 50%, using pip denomination

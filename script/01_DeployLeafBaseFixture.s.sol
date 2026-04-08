@@ -10,7 +10,7 @@ import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/Nonfungibl
 import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
 import {LeafCLGauge} from "contracts/gauge/LeafCLGauge.sol";
 import {LeafCLGaugeFactory} from "contracts/gauge/LeafCLGaugeFactory.sol";
-import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
+import {DynamicSwapFeeModule} from "contracts/core/fees/DynamicSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
 import {MixedRouteQuoterV2} from "contracts/periphery/lens/MixedRouteQuoterV2.sol";
@@ -45,7 +45,7 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
     NonfungiblePositionManager public nft;
     LeafCLGaugeFactory public leafGaugeFactory;
 
-    CustomSwapFeeModule public swapFeeModule;
+    DynamicSwapFeeModule public swapFeeModule;
     CustomUnstakedFeeModule public unstakedFeeModule;
     SlipstreamSugar public slipstreamSugar;
     MixedRouteQuoterV1 public mixedQuoter;
@@ -141,7 +141,13 @@ abstract contract DeployLeafBaseFixture is DeployFixture, Constants {
         checkAddress({_entropy: CL_GAUGE_FACTORY_ENTROPY, _output: address(leafGaugeFactory)});
 
         // deploy fee modules
-        swapFeeModule = new CustomSwapFeeModule({_factory: address(leafPoolFactory)});
+        swapFeeModule = new DynamicSwapFeeModule({
+            _factory: address(leafPoolFactory),
+            _defaultScalingFactor: 0,
+            _defaultFeeCap: 30_000,
+            _pools: new address[](0),
+            _fees: new uint24[](0)
+        });
         unstakedFeeModule = new CustomUnstakedFeeModule({_factory: address(leafPoolFactory)});
         leafPoolFactory.setSwapFeeModule({_swapFeeModule: address(swapFeeModule)});
         leafPoolFactory.setUnstakedFeeModule({_unstakedFeeModule: address(unstakedFeeModule)});
