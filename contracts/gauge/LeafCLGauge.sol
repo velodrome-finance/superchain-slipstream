@@ -16,6 +16,7 @@ import {FullMath} from "contracts/core/libraries/FullMath.sol";
 import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
 import {IReward} from "contracts/gauge/interfaces/IReward.sol";
 import {ILeafMessageBridge} from "contracts/superchain/ILeafMessageBridge.sol";
+import {ILeafCLGaugeFactory} from "contracts/gauge/interfaces/ILeafCLGaugeFactory.sol";
 
 /*
 
@@ -52,6 +53,7 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
     using SafeCast for int256;
 
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
+    uint256 private constant MAX_BPS = 10_000;
 
     /// @inheritdoc ILeafCLGauge
     INonfungiblePositionManager public immutable override nft;
@@ -62,6 +64,8 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
 
     /// @inheritdoc ILeafCLGauge
     address public immutable override bridge;
+    /// @inheritdoc ILeafCLGauge
+    address public immutable override gaugeFactory;
 
     /// @inheritdoc ILeafCLGauge
     address public immutable override feesVotingReward;
@@ -83,6 +87,11 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
     mapping(uint256 => uint256) public override rewards;
     /// @inheritdoc ILeafCLGauge
     mapping(uint256 => uint256) public override lastUpdateTime;
+    /// @inheritdoc ILeafCLGauge
+    mapping(uint256 => uint256) public override depositTimestamp;
+
+    /// @inheritdoc ILeafCLGauge
+    uint256 public override penaltyBuffer;
 
     /// @inheritdoc ILeafCLGauge
     uint256 public override fees0;
@@ -107,6 +116,7 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
         address _voter,
         address _nft,
         address _bridge,
+        address _gaugeFactory,
         bool _isPool
     ) {
         pool = ICLPool(_pool);
@@ -118,6 +128,7 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
         voter = IVoter(_voter);
         nft = INonfungiblePositionManager(_nft);
         bridge = _bridge;
+        gaugeFactory = _gaugeFactory;
         isPool = _isPool;
     }
 
@@ -134,7 +145,11 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
     function earned(address account, uint256 tokenId) external view override returns (uint256) {
         require(_stakes[account].contains(tokenId), "NA");
 
-        return _earned(tokenId);
+        uint256 claimable = rewards[tokenId] + _earned(tokenId);
+        if (claimable > 0) {
+            claimable -= _applyPenalty(claimable, tokenId);
+        }
+        return claimable;
     }
 
     function _earned(uint256 tokenId) internal view returns (uint256) {
@@ -192,8 +207,27 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
 
         if (reward > 0) {
             delete rewards[tokenId];
-            IERC20(rewardToken).safeTransfer(owner, reward);
-            emit ClaimRewards(owner, reward);
+            uint256 penalty = _applyPenalty(reward, tokenId);
+            if (penalty > 0) {
+                reward -= penalty;
+                penaltyBuffer += penalty;
+                emit EarlyWithdrawPenalty(owner, tokenId, penalty);
+            }
+            if (reward > 0) {
+                IERC20(rewardToken).safeTransfer(owner, reward);
+                emit ClaimRewards(owner, reward);
+            }
+        }
+    }
+
+    function _applyPenalty(uint256 reward, uint256 tokenId) internal view returns (uint256 penalty) {
+        uint256 _penaltyRate = ILeafCLGaugeFactory(gaugeFactory).penaltyRate();
+        if (
+            _penaltyRate > 0
+                && block.timestamp
+                    < depositTimestamp[tokenId] + ILeafCLGaugeFactory(gaugeFactory).minStakeTimes(address(pool))
+        ) {
+            penalty = reward * _penaltyRate / MAX_BPS;
         }
     }
 
@@ -224,6 +258,7 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
         uint256 rewardGrowth = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
         rewardGrowthInside[tokenId] = rewardGrowth;
         lastUpdateTime[tokenId] = block.timestamp;
+        depositTimestamp[tokenId] = block.timestamp;
 
         emit Deposit(msg.sender, tokenId, liquidityToStake);
     }
@@ -248,6 +283,7 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
         pool.stake(-(uint256(liquidityToStake).toInt256()).toInt128(), tickLower, tickUpper);
 
         _stakes[msg.sender].remove(tokenId);
+        delete depositTimestamp[tokenId];
         nft.safeTransferFrom(address(this), msg.sender, tokenId);
 
         emit Withdraw(msg.sender, tokenId, liquidityToStake);
@@ -311,6 +347,12 @@ contract LeafCLGauge is ILeafCLGauge, ERC721Holder, ReentrancyGuard {
         _amount += pool.rollover();
 
         if (timestamp >= periodFinish) {
+            // Sweep buffered penalties from early withdrawals
+            uint256 _buffered = penaltyBuffer;
+            if (_buffered > 0) {
+                _amount += _buffered;
+                delete penaltyBuffer;
+            }
             rewardRate = _amount / timeUntilNext;
             pool.syncReward({rewardRate: rewardRate, rewardReserve: _amount, periodFinish: nextPeriodFinish});
         } else {

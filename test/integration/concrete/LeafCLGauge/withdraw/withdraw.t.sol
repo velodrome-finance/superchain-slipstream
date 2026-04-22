@@ -1,41 +1,19 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./LeafCLGauge.t.sol";
+import "../LeafCLGauge.t.sol";
 
-contract WithdrawTest is LeafCLGaugeTest {
+contract WithdrawIntegrationConcreteTest is LeafCLGaugeTest {
     using stdStorage for StdStorage;
     using SafeCast for uint128;
-
-    CLPool public pool;
-    LeafCLGauge public gauge;
 
     event MetadataUpdate(uint256 _tokenId);
 
     function setUp() public override {
         super.setUp();
 
-        pool = CLPool(
-            leafPoolFactory.createPool({
-                tokenA: address(token0),
-                tokenB: address(token1),
-                tickSpacing: TICK_SPACING_60,
-                sqrtPriceX96: encodePriceSqrt(1, 1)
-            })
-        );
-
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
-
-        vm.prank(address(leafMessageModule));
-        gauge = LeafCLGauge(
-            leafVoter.createGauge({
-                _poolFactory: address(leafPoolFactory),
-                _pool: address(pool),
-                _votingRewardsFactory: address(votingRewardsFactory),
-                _gaugeFactory: address(leafGaugeFactory)
-            })
-        );
 
         vm.startPrank(users.alice);
     }
@@ -52,7 +30,7 @@ contract WithdrawTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
@@ -77,7 +55,7 @@ contract WithdrawTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
@@ -130,7 +108,7 @@ contract WithdrawTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
@@ -183,7 +161,7 @@ contract WithdrawTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);

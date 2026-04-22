@@ -5,34 +5,14 @@ import "./LeafCLGauge.t.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 
 contract NotifyRewardAmountTest is LeafCLGaugeTest {
-    CLPool public pool;
-    LeafCLGauge public gauge;
     address public feesVotingReward;
 
     function setUp() public override {
         super.setUp();
 
-        pool = CLPool(
-            leafPoolFactory.createPool({
-                tokenA: address(token0),
-                tokenB: address(token1),
-                tickSpacing: TICK_SPACING_60,
-                sqrtPriceX96: encodePriceSqrt(1, 1)
-            })
-        );
-
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
 
-        vm.prank(address(leafMessageModule));
-        gauge = LeafCLGauge(
-            leafVoter.createGauge({
-                _poolFactory: address(leafPoolFactory),
-                _pool: address(pool),
-                _votingRewardsFactory: address(votingRewardsFactory),
-                _gaugeFactory: address(leafGaugeFactory)
-            })
-        );
         feesVotingReward = leafVoter.gaugeToFees(address(gauge));
 
         skipToNextEpoch(0);

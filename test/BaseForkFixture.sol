@@ -266,6 +266,7 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
             factoryV2: 0x31832f2a97Fd20664D76Cc421207669b55CE4BC0,
             xVelo: address(leafXVelo),
             messageBridge: address(leafMessageBridge),
+            legacyCLFactory: address(0),
             team: users.owner,
             poolFactoryOwner: users.owner,
             feeManager: users.feeManager,
@@ -283,6 +284,11 @@ abstract contract BaseForkFixture is Test, TestConstants, Events, PoolUtils {
         nft = deployLeafCL.nft();
         nftDescriptor = deployLeafCL.nftDescriptor();
         leafGaugeFactory = deployLeafCL.leafGaugeFactory();
+        // reset penalty settings to 0 for tests — penalty-specific tests set these explicitly
+        vm.startPrank(users.owner);
+        leafGaugeFactory.setPenaltyRate(0);
+        leafGaugeFactory.setDefaultMinStakeTime(0);
+        vm.stopPrank();
         customSwapFeeModule = new CustomSwapFeeModule({_factory: address(deployLeafCL.leafPoolFactory())});
         customUnstakedFeeModule = deployLeafCL.unstakedFeeModule();
 

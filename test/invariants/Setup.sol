@@ -143,7 +143,8 @@ contract SetupCL {
             _voter: address(voter),
             _nft: address(nft),
             _xerc20: address(0),
-            _bridge: address(0)
+            _bridge: address(0),
+            _gaugeStakeManager: address(this)
         });
 
         factoryRegistry.approve({

@@ -9,11 +9,21 @@ NFT=
 LEAF_GAUGE_FACTORY=
 
 MIXED_QUOTER=
+MIXED_QUOTER_V2=
+MIXED_QUOTER_V3=
 QUOTER=
 SWAP_ROUTER=
+LP_MIGRATOR=
+
+SWAP_FEE_MODULE=
+UNSTAKED_FEE_MODULE=
+SLIPSTREAM_SUGAR=
 
 NFT_DESCRIPTOR_LIBRARY=
 NFTSVG_LIBRARY=
+
+# Populate when the target chain has a legacy CL factory; otherwise leave address(0).
+LEGACY_CL_FACTORY="0x0000000000000000000000000000000000000000"
 
 # V2 Constants
 WETH="0x4200000000000000000000000000000000000006"
@@ -92,7 +102,42 @@ forge verify-contract \
     --chain-id $CHAIN_ID \
     --num-of-optimizations 200 \
     --watch \
-    --constructor-args $(cast ae "constructor(address,address,address,address)()" $LEAF_VOTER $NFT $LEAF_X_VELO $MESSAGE_BRIDGE) \
+    --constructor-args $(cast ae "constructor(address,address,address,address,address)()" $LEAF_VOTER $NFT $LEAF_X_VELO $MESSAGE_BRIDGE $DEPLOYER) \
+    --compiler-version "v0.7.6" \
+    --verifier blockscout \
+    --verifier-url $ETHERSCAN_VERIFIER_URL
+
+# DynamicSwapFeeModule
+forge verify-contract \
+    $SWAP_FEE_MODULE \
+    contracts/core/fees/DynamicSwapFeeModule.sol:DynamicSwapFeeModule \
+    --chain-id $CHAIN_ID \
+    --num-of-optimizations 200 \
+    --watch \
+    --constructor-args $(cast ae "constructor(address,uint256,uint256,address[],uint24[])()" $LEAF_POOL_FACTORY 0 30000 "[]" "[]") \
+    --compiler-version "v0.7.6" \
+    --verifier blockscout \
+    --verifier-url $ETHERSCAN_VERIFIER_URL
+
+# CustomUnstakedFeeModule
+forge verify-contract \
+    $UNSTAKED_FEE_MODULE \
+    contracts/core/fees/CustomUnstakedFeeModule.sol:CustomUnstakedFeeModule \
+    --chain-id $CHAIN_ID \
+    --num-of-optimizations 200 \
+    --watch \
+    --constructor-args $(cast ae "constructor(address)()" $LEAF_POOL_FACTORY) \
+    --compiler-version "v0.7.6" \
+    --verifier blockscout \
+    --verifier-url $ETHERSCAN_VERIFIER_URL
+
+# SlipstreamSugar
+forge verify-contract \
+    $SLIPSTREAM_SUGAR \
+    contracts/sugar/SlipstreamSugar.sol:SlipstreamSugar \
+    --chain-id $CHAIN_ID \
+    --num-of-optimizations 200 \
+    --watch \
     --compiler-version "v0.7.6" \
     --verifier blockscout \
     --verifier-url $ETHERSCAN_VERIFIER_URL
@@ -129,6 +174,41 @@ forge verify-contract \
     --num-of-optimizations 200 \
     --watch \
     --constructor-args $(cast ae "constructor(address,address)()" $LEAF_POOL_FACTORY $WETH) \
+    --compiler-version "v0.7.6" \
+    --verifier blockscout \
+    --verifier-url $ETHERSCAN_VERIFIER_URL
+
+# MixedRouteQuoterV2
+forge verify-contract \
+    $MIXED_QUOTER_V2 \
+    contracts/periphery/lens/MixedRouteQuoterV2.sol:MixedRouteQuoterV2 \
+    --chain-id $CHAIN_ID \
+    --num-of-optimizations 200 \
+    --watch \
+    --constructor-args $(cast ae "constructor(address,address,address)()" $LEAF_POOL_FACTORY $FACTORY_V2 $WETH) \
+    --compiler-version "v0.7.6" \
+    --verifier blockscout \
+    --verifier-url $ETHERSCAN_VERIFIER_URL
+
+# MixedRouteQuoterV3
+forge verify-contract \
+    $MIXED_QUOTER_V3 \
+    contracts/periphery/lens/MixedRouteQuoterV3.sol:MixedRouteQuoterV3 \
+    --chain-id $CHAIN_ID \
+    --num-of-optimizations 200 \
+    --watch \
+    --constructor-args $(cast ae "constructor(address,address,address,address,address)()" $LEAF_POOL_FACTORY $LEGACY_CL_FACTORY "0x0000000000000000000000000000000000000000" $FACTORY_V2 $WETH) \
+    --compiler-version "v0.7.6" \
+    --verifier blockscout \
+    --verifier-url $ETHERSCAN_VERIFIER_URL
+
+# LpMigrator
+forge verify-contract \
+    $LP_MIGRATOR \
+    contracts/periphery/LpMigrator.sol:LpMigrator \
+    --chain-id $CHAIN_ID \
+    --num-of-optimizations 200 \
+    --watch \
     --compiler-version "v0.7.6" \
     --verifier blockscout \
     --verifier-url $ETHERSCAN_VERIFIER_URL

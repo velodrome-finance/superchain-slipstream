@@ -18,7 +18,7 @@ abstract contract Events {
     ///
     /// Custom Fee Module Events
     ///
-
+    event CustomFeeSet(address indexed pool, uint24 indexed fee);
     event SetCustomFee(address indexed pool, uint24 indexed fee);
 
     ///
@@ -27,20 +27,25 @@ abstract contract Events {
     event Transfer(address indexed from, address indexed to, uint256 value);
 
     ///
-    /// CLGauge Events
+    /// LeafCLGauge Events
     ///
     event Deposit(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event Withdraw(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event NotifyReward(address indexed from, uint256 amount);
     event ClaimRewards(address indexed from, uint256 amount);
+    event EarlyWithdrawPenalty(address indexed from, uint256 indexed tokenId, uint256 penalty);
 
     ///
-    /// CLGaugeFactory Events
+    /// LeafCLGaugeFactory Events
     ///
     event NotifyAdminSet(address indexed notifyAdmin);
     event EmissionAdminSet(address indexed emissionAdmin);
     event DefaultCapSet(uint256 indexed newDefaultCap);
     event EmissionCapSet(address indexed gauge, uint256 newEmissionCap);
+    event SetGaugeStakeManager(address indexed _gaugeStakeManager);
+    event SetDefaultMinStakeTime(uint256 _minStakeTime);
+    event SetPoolMinStakeTime(address indexed _pool, uint256 _minStakeTime);
+    event SetPenaltyRate(uint256 _penaltyRate);
 
     ///
     /// LeafVoter Events

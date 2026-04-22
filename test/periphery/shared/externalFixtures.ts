@@ -110,7 +110,8 @@ const v3CoreFactoryFixture: Fixture<{
     mockVoter.address,
     nft.address,
     constants.AddressZero, // xerc20 address
-    constants.AddressZero // bridge address
+    constants.AddressZero, // bridge address
+    wallet.address // gaugeStakeManager
   )) as LeafCLGaugeFactory
 
   // approve pool factory <=> gauge factory combination

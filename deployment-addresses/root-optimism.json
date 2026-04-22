@@ -1,5 +1,5 @@
 {
-  "rootGaugeFactory: ": "0xeAD23f606643E387a073D0EE8718602291ffaAeB",
-  "rootPoolFactory: ": "0x04625B046C69577EfC40e6c0Bb83CDBAfab5a55F",
-  "rootPoolImplementation: ": "0x321f7Dfb9B2eA9131B8C17691CF6e01E5c149cA8"
+  "rootGaugeFactory: ": "0x21dd3D2fe97ACD3bD4E597b515e572373f1C895D",
+  "rootPoolFactory: ": "0x718E46d0962A66942E233760a8bd6038Ce54EdCD",
+  "rootPoolImplementation: ": "0x5270d75326b0dD0607E4c8d8648A7f8CA7bFc003"
 }

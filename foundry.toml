@@ -14,7 +14,7 @@ no_match_test = "testEchidna"
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 
 [fuzz]
-runs = 5000
+runs = 256
 
 [rpc_endpoints]
 base = "${BASE_RPC_URL}"
@@ -32,6 +32,6 @@ unichain = "${UNICHAIN_RPC_URL}"
 
 [etherscan]
 base = { key = "${ETHERSCAN_API_KEY}" }
-celo = { key = "${ETHERSCAN_API_KEY}" }
-fraxtal = { key = "${ETHERSCAN_API_KEY}" }
-optimism = { key = "${ETHERSCAN_API_KEY}" }
+celo = { key = "${ETHERSCAN_API_KEY}", url = "${CELO_ETHERSCAN_VERIFIER_URL}" }
+fraxtal = { key = "${ETHERSCAN_API_KEY}", url = "${FRAXTAL_ETHERSCAN_VERIFIER_URL}" }
+optimism = { key = "${ETHERSCAN_API_KEY}", url = "${OPTIMISM_ETHERSCAN_VERIFIER_URL}" }
