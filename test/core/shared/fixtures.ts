@@ -90,7 +90,8 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     mockVoter.address,
     constants.AddressZero, //nft address
     constants.AddressZero, //xerc20 address
-    constants.AddressZero //bridge address
+    constants.AddressZero, //bridge address
+    wallet.address //gaugeStakeManager
   )) as LeafCLGaugeFactory
 
   const customUnstakedFeeModule = (await CustomUnstakedFeeModuleFactory.deploy(

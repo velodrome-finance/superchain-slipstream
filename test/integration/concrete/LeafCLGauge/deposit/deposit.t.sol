@@ -1,35 +1,14 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./LeafCLGauge.t.sol";
+import "../LeafCLGauge.t.sol";
 
-contract DepositTest is LeafCLGaugeTest {
+contract DepositIntegrationConcreteTest is LeafCLGaugeTest {
     using stdStorage for StdStorage;
     using SafeCast for uint128;
 
-    CLPool public pool;
-    LeafCLGauge public gauge;
-
     function setUp() public override {
         super.setUp();
-
-        pool = CLPool(
-            leafPoolFactory.createPool({
-                tokenA: address(token0),
-                tokenB: address(token1),
-                tickSpacing: TICK_SPACING_60,
-                sqrtPriceX96: encodePriceSqrt(1, 1)
-            })
-        );
-        vm.startPrank(address(leafMessageModule));
-        gauge = LeafCLGauge(
-            leafVoter.createGauge({
-                _poolFactory: address(leafPoolFactory),
-                _pool: address(pool),
-                _votingRewardsFactory: address(votingRewardsFactory),
-                _gaugeFactory: address(leafGaugeFactory)
-            })
-        );
 
         vm.startPrank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
@@ -48,7 +27,7 @@ contract DepositTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
@@ -70,7 +49,7 @@ contract DepositTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
@@ -120,7 +99,7 @@ contract DepositTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
@@ -157,7 +136,7 @@ contract DepositTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
@@ -179,13 +158,13 @@ contract DepositTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
 
         nft.approve(address(gauge), tokenId);
-        vm.expectEmit(true, true, true, false, address(gauge));
+        vm.expectEmit(address(gauge));
         emit Deposit({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.deposit({tokenId: tokenId});
 
@@ -206,6 +185,7 @@ contract DepositTest is LeafCLGaugeTest {
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
         assertEq(gauge.lastUpdateTime(tokenId), block.timestamp);
+        assertEq(gauge.depositTimestamp(tokenId), block.timestamp);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), -TICK_SPACING_60, TICK_SPACING_60)));
@@ -228,13 +208,13 @@ contract DepositTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
 
         nft.approve(address(gauge), tokenId);
-        vm.expectEmit(true, true, true, false, address(gauge));
+        vm.expectEmit(address(gauge));
         emit Deposit({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.deposit({tokenId: tokenId});
 
@@ -277,13 +257,13 @@ contract DepositTest is LeafCLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 10,
+            deadline: block.timestamp,
             sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
 
         nft.approve(address(gauge), tokenId);
-        vm.expectEmit(true, true, true, false, address(gauge));
+        vm.expectEmit(address(gauge));
         emit Deposit({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.deposit({tokenId: tokenId});
 
@@ -345,5 +325,28 @@ contract DepositTest is LeafCLGaugeTest {
             keccak256(abi.encodePacked(address(nft), getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60)))
         );
         assertEqUint(nftLiquidity, 0);
+    }
+
+    function test_DepositTimestampResetsOnRedeposit() public {
+        // It should reset depositTimestamp on re-deposit, preventing penalty bypass
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit({tokenId: tokenId});
+
+        uint256 firstDepositTimestamp = block.timestamp;
+        assertEq(gauge.depositTimestamp(tokenId), firstDepositTimestamp);
+
+        // withdraw, then re-deposit after some time
+        gauge.withdraw({tokenId: tokenId});
+        assertEq(gauge.depositTimestamp(tokenId), 0);
+
+        skip(1 days);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit({tokenId: tokenId});
+
+        assertEq(gauge.depositTimestamp(tokenId), block.timestamp);
+        assertNotEq(gauge.depositTimestamp(tokenId), firstDepositTimestamp);
     }
 }

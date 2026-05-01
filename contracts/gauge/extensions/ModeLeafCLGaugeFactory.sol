@@ -11,8 +11,8 @@ import {ModeLeafCLGauge} from "./ModeLeafCLGauge.sol";
 contract ModeLeafCLGaugeFactory is LeafCLGaugeFactory {
     using CreateXLibrary for bytes11;
 
-    constructor(address _voter, address _nft, address _xerc20, address _bridge)
-        LeafCLGaugeFactory(_voter, _nft, _xerc20, _bridge)
+    constructor(address _voter, address _nft, address _xerc20, address _bridge, address _gaugeStakeManager)
+        LeafCLGaugeFactory(_voter, _nft, _xerc20, _bridge, _gaugeStakeManager)
     {
         address sfs = IModeFeeSharing(_nft).sfs();
         uint256 tokenId = IModeFeeSharing(_nft).tokenId();
@@ -41,23 +41,23 @@ contract ModeLeafCLGaugeFactory is LeafCLGaugeFactory {
         gcx.salt = keccak256(abi.encodePacked(gcx.chainid, gcx.token0, gcx.token1, gcx.tickSpacing));
         gcx.entropy = bytes11(gcx.salt);
 
+        bytes memory args = abi.encode(
+            gcx.pool,
+            gcx.token0,
+            gcx.token1,
+            gcx.tickSpacing,
+            _feesVotingReward, // fee contract
+            xerc20, // xerc20 corresponding to reward token
+            voter, // superchain voter contract
+            nft, // nft (nfpm) contract
+            bridge, // bridge to communicate x-chain
+            address(this), // gauge factory
+            _isPool
+        );
+
         gauge = CreateXLibrary.CREATEX.deployCreate3({
             salt: gcx.entropy.calculateSalt({_deployer: address(this)}),
-            initCode: abi.encodePacked(
-                type(ModeLeafCLGauge).creationCode,
-                abi.encode(
-                    gcx.pool,
-                    gcx.token0,
-                    gcx.token1,
-                    gcx.tickSpacing,
-                    _feesVotingReward, // fee contract
-                    xerc20, // xerc20 corresponding to reward token
-                    voter, // superchain voter contract
-                    nft, // nft (nfpm) contract
-                    bridge, // bridge to communicate x-chain
-                    _isPool
-                )
-            )
+            initCode: abi.encodePacked(type(ModeLeafCLGauge).creationCode, args)
         });
     }
 }

@@ -12,10 +12,11 @@ contract DeployLeafCL is DeployLeafBaseFixture {
             factoryV2: 0x31832f2a97Fd20664D76Cc421207669b55CE4BC0,
             xVelo: 0x7f9AdFbd38b669F03d1d11000Bc76b9AaEA28A81,
             messageBridge: 0xF278761576f45472bdD721EACA19317cE159c011,
+            legacyCLFactory: 0x04625B046C69577EfC40e6c0Bb83CDBAfab5a55F,
             team: 0x6E5962C654488774406ffe04fc9A823546Fd94Bc,
             poolFactoryOwner: 0x6E5962C654488774406ffe04fc9A823546Fd94Bc,
             feeManager: 0x6E5962C654488774406ffe04fc9A823546Fd94Bc,
-            nftName: "Slipstream Position NFT v1.2",
+            nftName: "Slipstream Position NFT v1.3",
             nftSymbol: "VELO-CL-POS",
             outputFilename: "superseed.json"
         });

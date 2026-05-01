@@ -1,32 +1,11 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./LeafCLGauge.t.sol";
+import "../LeafCLGauge.t.sol";
 
-contract EarnedTest is LeafCLGaugeTest {
-    CLPool public pool;
-    LeafCLGauge public gauge;
-
+contract EarnedIntegrationConcreteTest is LeafCLGaugeTest {
     function setUp() public override {
         super.setUp();
-
-        pool = CLPool(
-            leafPoolFactory.createPool({
-                tokenA: address(token0),
-                tokenB: address(token1),
-                tickSpacing: TICK_SPACING_60,
-                sqrtPriceX96: encodePriceSqrt(1, 1)
-            })
-        );
-        vm.prank(address(leafMessageModule));
-        gauge = LeafCLGauge(
-            leafVoter.createGauge({
-                _poolFactory: address(leafPoolFactory),
-                _pool: address(pool),
-                _votingRewardsFactory: address(votingRewardsFactory),
-                _gaugeFactory: address(leafGaugeFactory)
-            })
-        );
 
         vm.startPrank(users.bob);
         deal({token: address(token0), to: users.bob, give: TOKEN_1 * 10});

@@ -137,7 +137,7 @@ describe('CLPool', () => {
   describe('#initialize', () => {
     beforeEach('initialize at zero tick', async () => await pool.uninitialize())
     it('fails if already initialized', async () => {
-      pool.initialize(
+      await pool.initialize(
         factory.address,
         token0.address,
         token1.address,

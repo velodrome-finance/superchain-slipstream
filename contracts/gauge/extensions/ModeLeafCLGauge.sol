@@ -18,9 +18,22 @@ contract ModeLeafCLGauge is LeafCLGauge {
         address _voter,
         address _nft,
         address _bridge,
+        address _gaugeFactory,
         bool _isPool
     )
-        LeafCLGauge(_pool, _token0, _token1, _tickSpacing, _feesVotingReward, _rewardToken, _voter, _nft, _bridge, _isPool)
+        LeafCLGauge(
+            _pool,
+            _token0,
+            _token1,
+            _tickSpacing,
+            _feesVotingReward,
+            _rewardToken,
+            _voter,
+            _nft,
+            _bridge,
+            _gaugeFactory,
+            _isPool
+        )
     {
         address sfs = IModeFeeSharing(_nft).sfs();
         uint256 tokenId = IModeFeeSharing(_nft).tokenId();

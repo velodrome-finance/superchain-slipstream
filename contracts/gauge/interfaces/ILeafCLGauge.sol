@@ -11,6 +11,18 @@ interface ILeafCLGauge {
     event Withdraw(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event ClaimFees(address indexed from, uint256 claimed0, uint256 claimed1);
     event ClaimRewards(address indexed from, uint256 amount);
+    event EarlyWithdrawPenalty(address indexed from, uint256 indexed tokenId, uint256 penalty);
+
+    /// @notice Address of the factory that created this gauge
+    function gaugeFactory() external view returns (address);
+
+    /// @notice Returns the timestamp at which a position was deposited
+    /// @param tokenId The tokenId of the position
+    /// @return The deposit timestamp for the position
+    function depositTimestamp(uint256 tokenId) external view returns (uint256);
+
+    /// @notice Accumulated early-withdrawal penalties awaiting redistribution on next epoch's notifyRewardAmount
+    function penaltyBuffer() external view returns (uint256);
 
     /// @notice NonfungiblePositionManager used to create nfts this gauge accepts
     function nft() external view returns (INonfungiblePositionManager);

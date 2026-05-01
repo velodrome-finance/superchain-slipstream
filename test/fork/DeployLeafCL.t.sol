@@ -7,14 +7,14 @@ import "forge-std/StdJson.sol";
 import {DeployLeafCL} from "script/deployParameters/mode/DeployLeafCL.s.sol";
 import {CLPool} from "contracts/core/CLPool.sol";
 import {CLFactory} from "contracts/core/CLFactory.sol";
-import {ModeFeeSharing} from "contracts/extensions/ModeFeeSharing.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
 import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
 import {LeafCLGauge} from "contracts/gauge/LeafCLGauge.sol";
 import {LeafCLGaugeFactory} from "contracts/gauge/LeafCLGaugeFactory.sol";
-import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
+import {DynamicSwapFeeModule} from "contracts/core/fees/DynamicSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
+import {MixedRouteQuoterV2} from "contracts/periphery/lens/MixedRouteQuoterV2.sol";
 import {SlipstreamSugar} from "contracts/sugar/SlipstreamSugar.sol";
 import {QuoterV2} from "contracts/periphery/lens/QuoterV2.sol";
 import {SwapRouter} from "contracts/periphery/SwapRouter.sol";
@@ -26,13 +26,11 @@ contract DeployLeafCLForkTest is BaseForkFixture {
     // deployed contracts (not in BaseForkFixture)
     SlipstreamSugar public slipstreamSugar;
     MixedRouteQuoterV1 public mixedQuoter;
+    MixedRouteQuoterV2 public mixedQuoterV2;
     QuoterV2 public quoter;
     SwapRouter public swapRouter;
 
     DeployLeafCL public deployLeafCLMode;
-    DeployLeafCL.ModeDeploymentParameters public modeParams;
-
-    address public constant sfs = 0x8680CEaBcb9b56913c519c069Add6Bc3494B7020;
 
     function setUp() public override {
         vm.createSelectFork({urlOrAlias: "mode", blockNumber: leafBlockNumber});
@@ -55,15 +53,15 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         nft = deployLeafCLMode.nft();
         nftDescriptor = deployLeafCLMode.nftDescriptor();
         leafGaugeFactory = deployLeafCLMode.leafGaugeFactory();
-        customSwapFeeModule = deployLeafCLMode.swapFeeModule();
+        DynamicSwapFeeModule dynamicSwapFeeModule = deployLeafCLMode.swapFeeModule();
         customUnstakedFeeModule = deployLeafCLMode.unstakedFeeModule();
         slipstreamSugar = deployLeafCLMode.slipstreamSugar();
         mixedQuoter = deployLeafCLMode.mixedQuoter();
         quoter = deployLeafCLMode.quoter();
         swapRouter = deployLeafCLMode.swapRouter();
+        mixedQuoterV2 = deployLeafCLMode.mixedQuoterV2();
 
         leafParams = deployLeafCLMode.params();
-        modeParams = deployLeafCLMode.modeParams();
 
         assertNotEq(leafParams.weth, address(0));
         assertNotEq(leafParams.leafVoter, address(0));
@@ -83,7 +81,7 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEq(address(leafPoolFactory.nft()), address(nft));
         assertEq(address(leafPoolFactory.owner()), leafParams.poolFactoryOwner);
         assertEq(address(leafPoolFactory.swapFeeManager()), leafParams.feeManager);
-        assertEq(address(leafPoolFactory.swapFeeModule()), address(customSwapFeeModule));
+        assertEq(address(leafPoolFactory.swapFeeModule()), address(dynamicSwapFeeModule));
         assertEq(address(leafPoolFactory.unstakedFeeManager()), leafParams.feeManager);
         assertEq(address(leafPoolFactory.unstakedFeeModule()), address(customUnstakedFeeModule));
         assertEqUint(leafPoolFactory.defaultUnstakedFee(), 100_000);
@@ -92,8 +90,6 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEqUint(leafPoolFactory.tickSpacingToFee(100), 500);
         assertEqUint(leafPoolFactory.tickSpacingToFee(200), 3_000);
         assertEqUint(leafPoolFactory.tickSpacingToFee(2_000), 10_000);
-        assertEq(ModeFeeSharing(address(leafPoolFactory)).sfs(), sfs);
-        assertEq(ModeFeeSharing(address(leafPoolFactory)).tokenId(), 587);
 
         assertNotEq(address(nftDescriptor), address(0));
         assertEq(nftDescriptor.WETH9(), leafParams.weth);
@@ -106,8 +102,6 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEq(nft.WETH9(), leafParams.weth);
         assertEq(nft.name(), leafParams.nftName);
         assertEq(nft.symbol(), leafParams.nftSymbol);
-        assertEq(ModeFeeSharing(address(nft)).sfs(), sfs);
-        assertEq(ModeFeeSharing(address(nft)).tokenId(), 588);
 
         assertNotEq(address(leafGaugeFactory), address(0));
         assertEq(leafGaugeFactory.voter(), leafParams.leafVoter);
@@ -115,9 +109,11 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertEq(leafGaugeFactory.bridge(), leafParams.messageBridge);
         assertEq(leafGaugeFactory.nft(), address(nft));
 
-        assertNotEq(address(customSwapFeeModule), address(0));
-        assertEq(customSwapFeeModule.MAX_FEE(), 30_000); // 3%, using pip denomination
-        assertEq(address(customSwapFeeModule.factory()), address(leafPoolFactory));
+        assertNotEq(address(dynamicSwapFeeModule), address(0));
+        assertEq(dynamicSwapFeeModule.MAX_BASE_FEE(), 30_000); // 3%, using pip denomination
+        assertEq(address(dynamicSwapFeeModule.factory()), address(leafPoolFactory));
+        assertEq(dynamicSwapFeeModule.defaultFeeCap(), 30_000);
+        assertEq(dynamicSwapFeeModule.defaultScalingFactor(), 0);
 
         assertNotEq(address(customUnstakedFeeModule), address(0));
         assertEq(customUnstakedFeeModule.MAX_FEE(), 500_000); // 50%, using pip denomination
@@ -137,6 +133,11 @@ contract DeployLeafCLForkTest is BaseForkFixture {
         assertNotEq(address(swapRouter), address(0));
         assertEq(swapRouter.factory(), address(leafPoolFactory));
         assertEq(swapRouter.WETH9(), leafParams.weth);
+
+        assertNotEq(address(mixedQuoterV2), address(0));
+        assertEq(mixedQuoterV2.factoryV2(), leafParams.factoryV2);
+        assertEq(mixedQuoterV2.factory(), address(leafPoolFactory));
+        assertEq(mixedQuoterV2.WETH9(), leafParams.weth);
     }
 
     function concat(string memory a, string memory b) internal pure returns (string memory) {
